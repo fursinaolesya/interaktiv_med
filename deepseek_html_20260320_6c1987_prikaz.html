@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конструктор приказа о рабочей группе (СМО)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: #f2f5f9;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .card {
+            max-width: 1400px;
+            width: 100%;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+            overflow: hidden;
+            padding: 30px;
+        }
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            margin-top: 0;
+            margin-bottom: 12px;
+            color: #0b2b4f;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        h1 small {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #2c5779;
+            margin-left: auto;
+        }
+        .split {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+        }
+        .form-panel {
+            flex: 1 1 400px;
+            background: #f9fcff;
+            border-radius: 24px;
+            padding: 28px 24px;
+            border: 1px solid #e0ecf5;
+            box-shadow: inset 0 2px 4px rgba(0,20,40,0.02);
+        }
+        .preview-panel {
+            flex: 1 1 500px;
+            background: white;
+            border-radius: 24px;
+            padding: 28px 30px;
+            border: 1px solid #dde7f0;
+            box-shadow: 0 10px 20px -5px rgba(0,32,64,0.08);
+        }
+        .form-row {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1a4b6d;
+            margin-bottom: 5px;
+            letter-spacing: 0.3px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #bdd3e6;
+            border-radius: 18px;
+            font-size: 0.95rem;
+            background: white;
+            transition: 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #0077be;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0,119,190,0.2);
+        }
+        .inline-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .inline-group .form-row {
+            flex: 1 1 100px;
+        }
+        button {
+            background: #0b2b4f;
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 8px 16px -6px #0b2b4f70;
+            border: 1px solid #2c5779;
+            margin-right: 12px;
+            margin-top: 8px;
+        }
+        button:hover {
+            background: #1f3f64;
+            transform: translateY(-2px);
+            box-shadow: 0 12px 20px -8px #0b2b4f;
+        }
+        button.secondary {
+            background: white;
+            color: #0b2b4f;
+            box-shadow: none;
+            border: 1px solid #9bb8d4;
+        }
+        button.secondary:hover {
+            background: #e5f0fa;
+        }
+        .preview-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #0f3b5e;
+            border-bottom: 2px dashed #b0cde0;
+            padding-bottom: 15px;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .document-box {
+            background: #ffffff;
+            border-radius: 18px;
+            padding: 25px 30px;
+            border: 1px solid #c9ddec;
+            font-family: 'Times New Roman', 'Georgia', serif;
+            line-height: 1.5;
+            box-shadow: 0 4px 10px #e2ecf5;
+            word-wrap: break-word;
+        }
+        .document-box p {
+            margin: 10px 0;
+        }
+        .document-box h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            text-align: center;
+            margin: 15px 0 5px;
+            color: #1e3a5f;
+        }
+        .document-box .order-number {
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin: 5px 0 15px;
+        }
+        .document-box .signature {
+            margin-top: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .document-box ul, .document-box ol {
+            padding-left: 25px;
+            margin: 12px 0;
+        }
+        hr {
+            margin: 24px 0 12px;
+            border: 1px dashed #9cb6d0;
+        }
+        .info-hint {
+            font-size: 0.85rem;
+            color: #467596;
+            margin-top: 5px;
+        }
+        footer {
+            text-align: center;
+            margin-top: 30px;
+            color: #5e7e9c;
+        }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>
+        ⚕️ Приказ о рабочей группе (ЭКМП/СМО)
+        <small>заполните поля → скачайте Word</small>
+    </h1>
+    <div class="split">
+        <!-- Левая панель: форма -->
+        <div class="form-panel">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                <button id="fillExampleBtn">📋 Заполнить пример</button>
+                <button class="secondary" id="downloadWordBtn">📥 Скачать в Word</button>
+            </div>
+
+            <div class="form-row">
+                <label>Номер приказа</label>
+                <input type="text" id="orderNumber" placeholder="например 47-ОД" value="47-ОД">
+            </div>
+
+            <div class="inline-group">
+                <div class="form-row" style="min-width: 70px;">
+                    <label>День</label>
+                    <input type="number" id="day" min="1" max="31" placeholder="__" value="15">
+                </div>
+                <div class="form-row" style="min-width: 140px;">
+                    <label>Месяц</label>
+                    <select id="month">
+                        <option value="">__________</option>
+                        <option value="января" selected>января</option>
+                        <option value="февраля">февраля</option>
+                        <option value="марта">марта</option>
+                        <option value="апреля">апреля</option>
+                        <option value="мая">мая</option>
+                        <option value="июня">июня</option>
+                        <option value="июля">июля</option>
+                        <option value="августа">августа</option>
+                        <option value="сентября">сентября</option>
+                        <option value="октября">октября</option>
+                        <option value="ноября">ноября</option>
+                        <option value="декабря">декабря</option>
+                    </select>
+                </div>
+                <div class="form-row" style="min-width: 90px;">
+                    <label>Год</label>
+                    <input type="number" id="year" value="2026" step="1" min="2020" max="2035">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <label>Председатель (должность / ФИО)</label>
+                <input type="text" id="chairman" value="Заместитель главного врача по КЭР Петров А.А.">
+            </div>
+
+            <div class="form-row">
+                <label>Члены группы (каждый с новой строки или через запятую)</label>
+                <textarea id="members" rows="3">Заведующие профильными отделениями (хирургия, терапия)
+Начальник юридического отдела
+Специалист отдела IT</textarea>
+                <div class="info-hint">Укажите роли или ФИО. В приказе будут перечислены.</div>
+            </div>
+
+            <div class="form-row">
+                <label>Обязанности (каждый пункт с новой строки)</label>
+                <textarea id="duties" rows="5">Анализ каждого заключения ЭКМП в течение 3 рабочих дней с момента получения.
+Подготовка протоколов разногласий в СМО и претензий в ТФОМС.
+Мониторинг квалификации экспертов СМО через ЕГИСЗ.
+Своевременное предоставление документации по запросам СМО.
+Корректная оценка каждого заключения с установленными дефектами.
+Соблюдение 10-дневного срока для подачи протокола разногласий.</textarea>
+            </div>
+
+            <div class="form-row">
+                <label>Контроль за исполнением (текст)</label>
+                <input type="text" id="controlText" value="Контроль за исполнением приказа оставляю за собой.">
+            </div>
+
+            <div class="form-row">
+                <label>Главный врач (должность / подпись)</label>
+                <input type="text" id="chiefDoctor" value="Главный врач ___________ / Иванов И.И./">
+            </div>
+            <p class="info-hint">* Все поля можно редактировать. Предпросмотр обновляется автоматически.</p>
+        </div>
+
+        <!-- Правая панель: предпросмотр документа -->
+        <div class="preview-panel">
+            <div class="preview-title">🔍 Предпросмотр приказа</div>
+            <div class="document-box" id="previewDocument">
+                <!-- динамически заполняется -->
+            </div>
+            <hr>
+            <div style="font-style: italic; color: #3b5e7e; background: #e9f2fa; padding: 10px 18px; border-radius: 30px;">
+                ⚡ После редактирования нажмите «Скачать в Word» для получения готового файла .doc
+            </div>
+        </div>
+    </div>
+    <footer>
+        Шаблон для создания рабочей группы по анализу заключений СМО. Адаптируйте под свою медорганизацию.
+    </footer>
+</div>
+
+<script>
+    (function() {
+        // Элементы формы
+        const orderNumberInput = document.getElementById('orderNumber');
+        const dayInput = document.getElementById('day');
+        const monthSelect = document.getElementById('month');
+        const yearInput = document.getElementById('year');
+        const chairmanInput = document.getElementById('chairman');
+        const membersTextarea = document.getElementById('members');
+        const dutiesTextarea = document.getElementById('duties');
+        const controlTextInput = document.getElementById('controlText');
+        const chiefDoctorInput = document.getElementById('chiefDoctor');
+
+        // Элемент предпросмотра
+        const previewDiv = document.getElementById('previewDocument');
+
+        // Кнопки
+        const fillExampleBtn = document.getElementById('fillExampleBtn');
+        const downloadWordBtn = document.getElementById('downloadWordBtn');
+
+        // Функция обновления предпросмотра
+        function updatePreview() {
+            // считываем значения
+            let orderNum = orderNumberInput.value.trim() || '___';
+            let day = dayInput.value.trim() || '___';
+            let month = monthSelect.options[monthSelect.selectedIndex]?.value || '__________';
+            let year = yearInput.value.trim() || '2026';
+
+            // если месяц не выбран — прочерк
+            if (month === '') month = '__________';
+
+            let chairman = chairmanInput.value.trim() || '___________________';
+            let membersRaw = membersTextarea.value.trim();
+            let dutiesRaw = dutiesTextarea.value.trim();
+            let controlText = controlTextInput.value.trim() || 'Контроль за исполнением приказа оставляю за собой.';
+            let chiefDoctor = chiefDoctorInput.value.trim() || '___________ /____________/';
+
+            // Формируем состав группы (члены) как маркированный список
+            let membersHtml = '';
+            if (membersRaw) {
+                // разбиваем по строкам, удаляем пустые
+                let lines = membersRaw.split(/\n/).map(s => s.trim()).filter(s => s.length > 0);
+                if (lines.length > 0) {
+                    membersHtml = '<ul>';
+                    lines.forEach(line => membersHtml += `<li>${line}</li>`);
+                    membersHtml += '</ul>';
+                } else {
+                    membersHtml = '<p><i>не указаны</i></p>';
+                }
+            } else {
+                membersHtml = '<p><i>состав не указан</i></p>';
+            }
+
+            // Обязанности — нумерованный список
+            let dutiesHtml = '';
+            if (dutiesRaw) {
+                let dutyLines = dutiesRaw.split(/\n/).map(s => s.trim()).filter(s => s.length > 0);
+                if (dutyLines.length > 0) {
+                    dutiesHtml = '<ol>';
+                    dutyLines.forEach(d => dutiesHtml += `<li>${d}</li>`);
+                    dutiesHtml += '</ol>';
+                } else {
+                    dutiesHtml = '<p><i>обязанности не указаны</i></p>';
+                }
+            } else {
+                dutiesHtml = '<p><i>обязанности не указаны</i></p>';
+            }
+
+            // Полный HTML приказа
+            const docHtml = `
+                <div style="font-family: 'Times New Roman', Times, serif;">
+                    <h3 style="text-align: center; margin-bottom: 5px;">ПРИКАЗ</h3>
+                    <div class="order-number" style="text-align: center; font-weight: 600; margin-top: 0;">
+                        № ${orderNum} от «${day}» ${month} ${year} г.
+                    </div>
+                    <div style="text-align: center; font-size: 1.2rem; font-weight: 600; margin: 15px 0 10px;">
+                        О создании рабочей группы по анализу экспертных заключений СМО
+                    </div>
+                    <p style="text-align: justify;">
+                        В целях обеспечения финансовой устойчивости организации и реализации Порядка проведения контроля (Приказ Минздрава № 231н),
+                    </p>
+                    <p style="font-weight: 600; margin: 10px 0 5px;">ПРИКАЗЫВАЮ:</p>
+                    <ol style="list-style-type: none; padding-left: 0;">
+                        <li style="margin-bottom: 12px;">
+                            <strong>1. Создать рабочую группу в составе:</strong><br>
+                            <span style="font-weight: 500;">Председатель:</span> ${chairman}<br>
+                            <span style="font-weight: 500;">Члены группы:</span>
+                            ${membersHtml}
+                        </li>
+                        <li style="margin-bottom: 12px;">
+                            <strong>2. Закрепить за рабочей группой следующие обязанности:</strong>
+                            ${dutiesHtml}
+                        </li>
+                    </ol>
+                    <p><strong>3. ${controlText}</strong></p>
+                    <div class="signature" style="margin-top: 35px; display: flex; justify-content: space-between;">
+                        <span>Главный врач</span>
+                        <span>${chiefDoctor}</span>
+                    </div>
+                </div>
+            `;
+            previewDiv.innerHTML = docHtml;
+        }
+
+        // Подписка на изменения во всех полях формы
+        const fields = [
+            orderNumberInput, dayInput, monthSelect, yearInput,
+            chairmanInput, membersTextarea, dutiesTextarea,
+            controlTextInput, chiefDoctorInput
+        ];
+        fields.forEach(field => field.addEventListener('input', updatePreview));
+        fields.forEach(field => field.addEventListener('change', updatePreview));
+        monthSelect.addEventListener('change', updatePreview); // уже добавлено выше, но дубль не помешает
+
+        // Пример заполнения (по образу задания)
+        function fillExample() {
+            orderNumberInput.value = '42-К';
+            dayInput.value = '1';
+            monthSelect.value = 'марта';  // должно совпадать со значением option
+            yearInput.value = '2026';
+            chairmanInput.value = 'Заместитель главного врача по КЭР (Смирнова Е.П.)';
+            membersTextarea.value = 'Заведующий хирургическим отделением\nЗаведующий терапевтическим отделением\nНачальник юридического отдела\nСпециалист отдела IT (администратор МИС)';
+            dutiesTextarea.value = 'Анализ каждого заключения ЭКМП в течение 3 рабочих дней с момента получения.\nПодготовка протоколов разногласий в СМО и претензий в ТФОМС.\nМониторинг квалификации экспертов СМО через ЕГИСЗ.\nКонтроль своевременности предоставления документации по запросам СМО.\nПроверка корректности заключений с дефектами.\nСоблюдение 10-дневного срока для подачи протокола разногласий.';
+            controlTextInput.value = 'Контроль за исполнением приказа оставляю за собой.';
+            chiefDoctorInput.value = 'Главный врач ___________ / Козлов В.П./';
+            updatePreview();
+        }
+
+        fillExampleBtn.addEventListener('click', fillExample);
+
+        // Скачивание в Word
+        function downloadWord() {
+            // собираем актуальные данные так же, как в preview, но добавим обёртку для doc
+            let orderNum = orderNumberInput.value.trim() || '___';
+            let day = dayInput.value.trim() || '___';
+            let month = monthSelect.options[monthSelect.selectedIndex]?.value || '__________';
+            let year = yearInput.value.trim() || '2026';
+            if (month === '') month = '__________';
+            let chairman = chairmanInput.value.trim() || '___________________';
+            let membersRaw = membersTextarea.value.trim();
+            let dutiesRaw = dutiesTextarea.value.trim();
+            let controlText = controlTextInput.value.trim() || 'Контроль за исполнением приказа оставляю за собой.';
+            let chiefDoctor = chiefDoctorInput.value.trim() || '___________ /____________/';
+
+            // аналогичное формирование списков
+            let membersList = '';
+            if (membersRaw) {
+                let lines = membersRaw.split(/\n/).map(s => s.trim()).filter(s => s.length > 0);
+                if (lines.length > 0) {
+                    membersList = '<ul>';
+                    lines.forEach(line => membersList += `<li>${line}</li>`);
+                    membersList += '</ul>';
+                } else {
+                    membersList = '<p><i>не указаны</i></p>';
+                }
+            } else {
+                membersList = '<p><i>состав не указан</i></p>';
+            }
+
+            let dutiesList = '';
+            if (dutiesRaw) {
+                let dutyLines = dutiesRaw.split(/\n/).map(s => s.trim()).filter(s => s.length > 0);
+                if (dutyLines.length > 0) {
+                    dutiesList = '<ol>';
+                    dutyLines.forEach(d => dutiesList += `<li>${d}</li>`);
+                    dutiesList += '</ol>';
+                } else {
+                    dutiesList = '<p><i>обязанности не указаны</i></p>';
+                }
+            } else {
+                dutiesList = '<p><i>обязанности не указаны</i></p>';
+            }
+
+            // Создаём полный HTML-документ для Word с базовыми стилями
+            const fullDoc = `
+                <html xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns:m="http://schemas.microsoft.com/office/2004/12/omml" xmlns="http://www.w3.org/TR/REC-html40">
+                <head>
+                    <meta charset="UTF-8">
+                    <title>Приказ о рабочей группе СМО</title>
+                    <style>
+                        body { font-family: 'Times New Roman', Times, serif; font-size: 14pt; line-height: 1.5; margin: 2.5cm auto; width: 90%; max-width: 800px; }
+                        h3 { text-align: center; font-weight: bold; font-size: 16pt; margin-bottom: 5px; }
+                        .order-number { text-align: center; font-weight: 600; font-size: 14pt; margin: 5px 0 15px; }
+                        .order-title { text-align: center; font-weight: 700; font-size: 15pt; margin: 15px 0 10px; }
+                        p { margin: 10px 0; text-align: justify; }
+                        ul, ol { margin: 8px 0 12px; padding-left: 25px; }
+                        .signature { margin-top: 40px; display: flex; justify-content: space-between; }
+                    </style>
+                </head>
+                <body>
+                    <h3>ПРИКАЗ</h3>
+                    <div class="order-number">№ ${orderNum} от «${day}» ${month} ${year} г.</div>
+                    <div class="order-title">О создании рабочей группы по анализу экспертных заключений СМО</div>
+                    <p>В целях обеспечения финансовой устойчивости организации и реализации Порядка проведения контроля (Приказ Минздрава № 231н),</p>
+                    <p><strong>ПРИКАЗЫВАЮ:</strong></p>
+                    <ol style="list-style-type: none; padding-left: 0;">
+                        <li style="margin-bottom: 12px;">
+                            <strong>1. Создать рабочую группу в составе:</strong><br>
+                            <span style="font-weight: 500;">Председатель:</span> ${chairman}<br>
+                            <span style="font-weight: 500;">Члены группы:</span>
+                            ${membersList}
+                        </li>
+                        <li style="margin-bottom: 12px;">
+                            <strong>2. Закрепить за рабочей группой следующие обязанности:</strong>
+                            ${dutiesList}
+                        </li>
+                    </ol>
+                    <p><strong>3. ${controlText}</strong></p>
+                    <div class="signature">
+                        <span>Главный врач</span>
+                        <span>${chiefDoctor}</span>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            // Создаём Blob и скачиваем
+            const blob = new Blob([fullDoc], { type: 'application/msword' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `prikaz_rabochaya_gruppa_SMO_${year}.doc`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        }
+
+        downloadWordBtn.addEventListener('click', downloadWord);
+
+        // Инициализация preview при загрузке
+        updatePreview();
+    })();
+</script>
+</body>
+</html>
