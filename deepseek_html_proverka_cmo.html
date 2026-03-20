@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ЭКМП аудит – полная проверка (таблицы 4–6)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: #eef2f7; display: flex; justify-content: center; padding: 20px; }
+        .card { max-width: 1400px; width: 100%; background: white; border-radius: 32px; box-shadow: 0 20px 40px rgba(0,20,50,0.2); padding: 2rem; }
+        h1 { display: flex; align-items: center; gap: 10px; color: #0f3b73; border-left: 6px solid #2563eb; padding-left: 1.2rem; }
+        .sub { background: #e8f0fe; border-radius: 20px; padding: 1rem 1.8rem; margin: 1rem 0 2rem; }
+        .upload-area { background: #f8fafc; border: 2px dashed #a0c0e5; border-radius: 24px; padding: 2rem; text-align: center; cursor: pointer; transition: 0.2s; }
+        .upload-area:hover { background: #e3efff; border-color: #2563eb; }
+        .upload-area i { font-size: 3rem; color: #2563eb; }
+        .progress { margin: 1.5rem 0; height: 8px; background: #e2e8f0; border-radius: 20px; display: none; }
+        .progress-bar { height: 100%; width: 0%; background: #2563eb; transition: width 0.2s; }
+        .report { margin-top: 2rem; border-radius: 24px; background: #f9fcff; border: 1px solid #cbd5e1; overflow: hidden; display: none; }
+        .report-header { background: #1e3a5f; color: white; padding: 1rem 1.5rem; font-size: 1.2rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .report-body { padding: 1.5rem; max-height: 700px; overflow-y: auto; }
+        .stage-badge { display: inline-block; padding: 0.2rem 0.8rem; border-radius: 30px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; margin-left: 0.5rem; background: #ccc; color: #000; }
+        .stage-red { background: #dc2626; color: white; }
+        .stage-orange { background: #f97316; color: white; }
+        .stage-yellow { background: #eab308; color: black; }
+        .stage-blue { background: #3b82f6; color: white; }
+        .violation-item { border-radius: 12px; padding: 1rem 1.2rem; margin-bottom: 1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .error { background: #fff0f0; border-left: 5px solid #dc2626; }
+        .warning { background: #ffeed9; border-left: 5px solid #f97316; }
+        .good { background: #e6f7e6; border-left: 5px solid #16a34a; }
+        .info { background: #e6f0ff; border-left: 5px solid #3b82f6; }
+        .violation-title { font-weight: 700; margin-bottom: 0.4rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .code-tag { background: #1e3a5f; color: white; padding: 0.2rem 0.6rem; border-radius: 30px; font-size: 0.8rem; font-family: monospace; }
+        .evidence { background: #eef5ff; padding: 0.5rem 1rem; border-radius: 30px; font-size: 0.85rem; font-family: monospace; margin-top: 0.5rem; white-space: pre-wrap; }
+        .btn-reset { background: white; border: 1px solid #98b9e9; padding: 0.4rem 1.2rem; border-radius: 40px; color: #1e4b8f; font-weight: 500; cursor: pointer; }
+        .footer { margin-top: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+        .small-note { background: #ecf3fa; border-radius: 40px; padding: 0.4rem 1rem; font-size: 0.85rem; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1><i class="fas fa-file-pdf" style="color:#2563eb;"></i> Полный аудит обоснованности санкций</h1>
+    <div class="sub"><i class="fas fa-balance-scale"></i> Загрузите PDF с заключением ЭКМП – анализ по таблицам 4, 5, 6 с этапами рисков.</div>
+    <div id="dropArea" class="upload-area">
+        <i class="fas fa-cloud-upload-alt"></i>
+        <h3>Нажмите или перетащите PDF</h3>
+        <p style="color:#4b6589;">до 10 МБ</p>
+        <input type="file" id="fileInput" accept=".pdf" style="display: none;">
+    </div>
+    <div id="fileInfo" class="file-info"></div>
+    <div id="progressContainer" class="progress"><div id="progressBar" class="progress-bar"></div></div>
+    <div id="reportContainer" class="report">
+        <div class="report-header"><i class="fas fa-clipboard-list"></i> Результаты проверки</div>
+        <div id="reportBody" class="report-body"></div>
+    </div>
+    <div class="footer">
+        <div class="small-note"><i class="fas fa-robot"></i> Эвристический анализ – не замена эксперту</div>
+        <button id="resetBtn" class="btn-reset"><i class="fas fa-redo-alt"></i> Загрузить другой</button>
+    </div>
+</div>
+<script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    const dropArea = document.getElementById('dropArea');
+    const fileInput = document.getElementById('fileInput');
+    const fileInfo = document.getElementById('fileInfo');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressBar = document.getElementById('progressBar');
+    const reportContainer = document.getElementById('reportContainer');
+    const reportBody = document.getElementById('reportBody');
+    const resetBtn = document.getElementById('resetBtn');
+
+    dropArea.addEventListener('click', () => fileInput.click());
+    dropArea.addEventListener('dragover', (e) => e.preventDefault());
+    dropArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const file = e.dataTransfer.files[0];
+        if (file && file.type === 'application/pdf') processFile(file);
+        else alert('Нужен PDF');
+    });
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) processFile(e.target.files[0]);
+    });
+    resetBtn.addEventListener('click', () => {
+        fileInfo.innerHTML = '';
+        progressContainer.style.display = 'none';
+        reportContainer.style.display = 'none';
+        reportBody.innerHTML = '';
+        fileInput.value = '';
+    });
+
+    async function processFile(file) {
+        fileInfo.innerHTML = `<i class="fas fa-file-pdf"></i> ${file.name} (${(file.size/1024).toFixed(1)} КБ)`;
+        progressContainer.style.display = 'block';
+        const arrayBuffer = await file.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        try {
+            const pdf = await loadingTask.promise;
+            let fullText = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+                progressBar.style.width = `${(i-1)/pdf.numPages*100}%`;
+                const page = await pdf.getPage(i);
+                const textContent = await page.getTextContent();
+                fullText += ' ' + textContent.items.map(item => item.str).join(' ');
+            }
+            progressBar.style.width = '100%';
+            const violations = analyzeText(fullText);
+            displayReport(violations);
+            progressContainer.style.display = 'none';
+            reportContainer.style.display = 'block';
+        } catch (error) {
+            alert('Ошибка: ' + error.message);
+            progressContainer.style.display = 'none';
+        }
+    }
+
+    // Извлечение всех кодов из текста (разделы 2 и 3)
+    function extractCodes(text) {
+        const codeRegex = /\b(3\.\d{1,2}(?:\.\d)?|2\.\d{1,2}(?:\.\d)?|3\.\d{1,2}\.\d)\b/g;
+        return [...new Set(text.match(codeRegex) || [])];
+    }
+
+    // Определение этапа риска для кода
+    function getCodeStage(code) {
+        const redZone = ['3.1.5', '3.2.4'];
+        if (redZone.includes(code)) return 'red';
+
+        const judicialRisk = ['3.1.3', '3.2.2', '3.3', '3.11']; // 3.11 (ятрогения) – добавим как судебный риск
+        if (judicialRisk.includes(code)) return 'orange';
+
+        const criminalRisk = ['3.14.1', '3.14.2', '3.14.3'];
+        if (criminalRisk.includes(code)) return 'criminal';
+
+        const formal = ['2.5', '3.15', '3.7', '3.8', '3.2.1', '3.2.3', '2.16.1'];
+        if (formal.includes(code)) return 'blue';
+
+        return 'gray';
+    }
+
+    function analyzeText(text) {
+        const lower = text.toLowerCase();
+        const codes = extractCodes(text);
+        const violations = [];
+
+        // 1. Проверка наличия нормативной базы (общая)
+        if (!/(приказ.*203н|клинические рекомендации|кр|порядок оказания|ст\.\s*37|323-фз)/i.test(text)) {
+            violations.push({ type: 'error', title: '❌ Отсутствуют ссылки на нормативную базу', desc: 'Не найдены упоминания Приказа 203н, клинических рекомендаций или 323-ФЗ.', evidence: 'Проверьте раздел II.' });
+        }
+
+        // 2. Субъективные формулировки
+        const subjMatch = /не информативна|не обосновано|личное мнение|недостаточно полно|некорректно|некачественно/i.exec(lower);
+        if (subjMatch) {
+            violations.push({ type: 'warning', title: '⚠️ Субъективные формулировки', desc: 'Использованы оценочные суждения вместо норм.', evidence: `…${subjMatch.input.substring(Math.max(0, subjMatch.index-30), subjMatch.index+30)}…` });
+        }
+
+        // 3. Проверка наличия раздела II и конкретных ссылок в нём
+        const sectionIIMatch = text.match(/II\.?\s*Выводы?:?([^]*?)(?=III\.|$)/i);
+        if (sectionIIMatch) {
+            const secText = sectionIIMatch[1];
+            if (!/п\.\s*\d+|пункт\s*\d+/i.test(secText)) {
+                violations.push({ type: 'error', title: '❌ В разделе II нет конкретных ссылок', desc: 'Каждая строка дефекта должна содержать ссылку на пункт КР или приказа.', evidence: secText.substring(0, 300) + '…' });
+            }
+        } else {
+            violations.push({ type: 'error', title: '❌ Не найден раздел II', desc: 'Отсутствует раздел с выводами. Невозможно проверить обоснованность.', evidence: 'Проверьте структуру документа.' });
+        }
+
+        // 4. Проверка актуальности КР (год)
+        if (!/\b20\d\d\b/.test(text)) {
+            violations.push({ type: 'warning', title: '⚠️ Не указан год клинических рекомендаций', desc: 'Необходимо указывать редакцию КР, действующую на момент помощи.', evidence: 'Уточните у эксперта.' });
+        }
+
+        // 5. Проверка наличия упоминаний объективных причин / ВК
+        const hasObjective = /тяжесть состояния|противопоказания|кратковременность пребывания|не зависящим от врача/i.test(lower);
+        const hasVK = /врачебная комиссия|ВК|протокол ВК/i.test(lower);
+        if (!hasObjective && /не выполнено|отступление/i.test(lower)) {
+            violations.push({ type: 'warning', title: '⚠️ Не обсуждаются объективные причины', desc: 'При невыполнении КР нужно учитывать тяжесть, противопоказания.', evidence: 'Запросите протокол ВК.' });
+        }
+        if (/отступление/i.test(lower) && !hasVK) {
+            violations.push({ type: 'warning', title: '⚠️ Отступление без упоминания ВК', desc: 'При отступлениях от КР должен быть протокол врачебной комиссии.', evidence: 'Проверьте наличие в карте.' });
+        }
+
+        // 6. Анализ каждого обнаруженного кода
+        codes.forEach(code => {
+            const stage = getCodeStage(code);
+            let stageText = '';
+            if (stage === 'red') stageText = '<span class="stage-badge stage-red">Красная зона (300%)</span>';
+            else if (stage === 'orange') stageText = '<span class="stage-badge stage-orange">Судебные риски</span>';
+            else if (stage === 'criminal') stageText = '<span class="stage-badge stage-yellow">Уголовная ответственность</span>';
+            else if (stage === 'blue') stageText = '<span class="stage-badge stage-blue">Формальные нарушения</span>';
+
+            // Базовая проверка для всех кодов: есть ли упоминание кода в разделе II и ссылка на пункт?
+            let codeIssues = [];
+            let codeEvidence = '';
+
+            // Проверка на наличие обоснования для конкретных кодов
+            if (code === '3.2.2' || code === '3.1.3' || code === '3.3') {
+                const causal = /причинно-следственн|связь.*дефекта.*исход|привел к ухудшению|обоснование вреда/i.test(lower);
+                if (!causal) {
+                    codeIssues.push('❌ Отсутствует доказательство причинно-следственной связи между дефектом и ухудшением/смертью.');
+                }
+            }
+            if (code === '3.2.1') {
+                // Для формального нарушения важно, чтобы была ссылка на пункт КР (уже проверено выше, но добавим)
+                if (!/п\.\s*\d+|пункт\s*\d+/i.test(text)) {
+                    codeIssues.push('⚠️ Код 3.2.1 применён, но нет ссылки на конкретный пункт КР.');
+                }
+            }
+            if (code === '3.11') {
+                if (!/журнал|операционный журнал|лабораторный журнал/i.test(lower)) {
+                    codeIssues.push('⚠️ Код 3.11 (нет результатов) – не видно запроса учётных журналов. Эксперт должен был их запросить.');
+                }
+            }
+            if (code === '2.5' || code === '3.15') {
+                // Проверить, есть ли упоминание отказа пациента
+                if (!/отказ.*пациент|пациент.*отказался|отказ от диспансерного наблюдения/i.test(lower)) {
+                    codeIssues.push('⚠️ Код диспансерного наблюдения – проверьте, нет ли в карте отказа пациента. Это единственное основание для оспаривания.');
+                }
+            }
+            if (code === '3.7' || code === '3.8') {
+                if (!/нетранспортабельн|тяжесть состояния|отсутствие мест|невозможность перевода/i.test(lower)) {
+                    codeIssues.push('⚠️ Код ' + code + ' – проверьте, были ли объективные причины (нетранспортабельность, отказ в переводе и т.п.)');
+                }
+            }
+            if (code === '3.14.1' || code === '3.14.2' || code === '3.14.3') {
+                if (!/отказ.*необоснован|жалоба|экстренная помощь/i.test(lower)) {
+                    codeIssues.push('⚠️ Код отказа в помощи – проверьте хронологию и наличие повода для экстренной помощи.');
+                }
+            }
+            if (code === '2.16.1') {
+                // Несоответствие данных реестру счетов
+                if (!/тариф|несоответствие|тарифное соглашение/i.test(lower)) {
+                    codeIssues.push('⚠️ Код 2.16.1 – проверьте корректность тарификации, возможно, случай сложный (КУС).');
+                }
+            }
+
+            // Если есть проблемы, добавим запись
+            if (codeIssues.length > 0) {
+                violations.push({
+                    type: 'warning',
+                    title: `Код ${code} ${stageText}`,
+                    desc: codeIssues.join(' '),
+                    evidence: 'Упомянут в тексте, но требуются дополнительные обоснования.'
+                });
+            } else {
+                // Если код есть и нет явных проблем, отметим как информационный
+                violations.push({
+                    type: 'info',
+                    title: `Код ${code} ${stageText}`,
+                    desc: 'Код обнаружен. Проверьте наличие ссылок на пункты КР в разделе II.',
+                    evidence: 'Если ссылки есть – возможно, код применён обоснованно.'
+                });
+            }
+        });
+
+        // 7. Дополнительно: проверка наличия нелегитимных источников
+        if (/(учебник|зарубежн.*статья|иностранный источник|pubmed)/i.test(lower) && !/(дополнительный аргумент)/i.test(lower)) {
+            violations.push({ type: 'error', title: '❌ Нелегитимные источники', desc: 'Ссылки на учебники/зарубежные статьи не могут быть основой санкции.', evidence: 'Ищите нормативные акты РФ.' });
+        }
+
+        // 8. Если кодов вообще нет, предупредим
+        if (codes.length === 0) {
+            violations.push({ type: 'warning', title: '⚠️ Не найдено ни одного кода дефекта', desc: 'В заключении должны быть указаны коды нарушений.', evidence: 'Проверьте, что документ содержит раздел с кодами.' });
+        }
+
+        return violations;
+    }
+
+    function displayReport(violations) {
+        if (!violations.length) {
+            reportBody.innerHTML = '<div class="violation-item good"><div class="violation-title">✅ Явных нарушений не найдено</div><div class="violation-desc">Рекомендуется экспертная проверка.</div></div>';
+            return;
+        }
+        let html = '';
+        violations.sort((a,b) => {
+            // Сначала ошибки, потом предупреждения, потом инфо
+            const order = { error: 0, warning: 1, info: 2, good: 3 };
+            return (order[a.type] || 4) - (order[b.type] || 4);
+        });
+        violations.forEach(v => {
+            let cls = 'violation-item ';
+            if (v.type === 'error') cls += 'error';
+            else if (v.type === 'warning') cls += 'warning';
+            else if (v.type === 'good') cls += 'good';
+            else cls += 'info';
+            html += `<div class="${cls}">`;
+            html += `<div class="violation-title">${v.title}</div>`;
+            html += `<div class="violation-desc">${v.desc}</div>`;
+            if (v.evidence) html += `<div class="evidence"><i class="fas fa-quote-left"></i> ${v.evidence}</div>`;
+            html += `</div>`;
+        });
+        reportBody.innerHTML = html;
+    }
+</script>
+</body>
+</html>
