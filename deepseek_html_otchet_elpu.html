@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Интерактивный дашборд: Контроль выполнения плана ОМС</title>
+    <!-- Chart.js CDN для графиков -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- XLSX для экспорта/импорта -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: #f0f4f8;
+            margin: 0;
+            padding: 24px 16px;
+        }
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-size: 1.8rem;
+            margin: 0 0 0.25rem 0;
+            color: #0b3b5f;
+        }
+        .sub {
+            color: #2c5a7a;
+            margin-bottom: 2rem;
+            border-left: 4px solid #2c7da0;
+            padding-left: 16px;
+        }
+        .card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 2rem;
+            transition: all 0.2s;
+        }
+        .card-header {
+            font-weight: 700;
+            font-size: 1.3rem;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 0.6rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .badge {
+            background: #eef2ff;
+            padding: 6px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1e4a76;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            overflow-x: auto;
+            display: block;
+        }
+        th, td {
+            border: 1px solid #dce5ec;
+            padding: 10px 8px;
+            text-align: right;
+            vertical-align: top;
+        }
+        th:first-child, td:first-child { text-align: left; background-color: #fafcff; }
+        th {
+            background-color: #eef3fc;
+            font-weight: 600;
+            color: #1e3a5f;
+        }
+        .input-cell {
+            background-color: #fff9e8;
+        }
+        input, .readonly-cell {
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            padding: 6px 8px;
+            font-size: 0.8rem;
+            text-align: right;
+            background: white;
+        }
+        .readonly-cell {
+            background: #f8fafc;
+            color: #0f3b5c;
+            font-weight: 500;
+        }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0 10px;
+            justify-content: flex-end;
+        }
+        button {
+            background: #1f6392;
+            border: none;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 0.85rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        button:hover {
+            background: #0e4b70;
+            transform: translateY(-1px);
+        }
+        .btn-outline {
+            background: white;
+            border: 1px solid #1f6392;
+            color: #1f6392;
+        }
+        .btn-outline:hover {
+            background: #e7f0f8;
+        }
+        .kpi-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            margin-bottom: 24px;
+        }
+        .kpi {
+            background: #f8fafd;
+            border-radius: 24px;
+            padding: 16px 20px;
+            flex: 1 1 180px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            border: 1px solid #e2edf7;
+        }
+        .kpi-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: #4a6f8f;
+            letter-spacing: 0.5px;
+        }
+        .kpi-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0b3b5f;
+            line-height: 1.2;
+        }
+        .alert {
+            background: #fff8e7;
+            border-left: 6px solid #e6a017;
+            padding: 14px 20px;
+            border-radius: 16px;
+            margin: 20px 0 0;
+            font-size: 0.9rem;
+        }
+        .alert-success {
+            background: #e6f4ea;
+            border-left-color: #2e7d32;
+        }
+        .alert-warning {
+            background: #ffe8e6;
+            border-left-color: #c62828;
+        }
+        hr {
+            margin: 1rem 0;
+        }
+        .chart-container {
+            max-width: 100%;
+            height: 280px;
+            margin-top: 10px;
+        }
+        @media (max-width: 700px) {
+            .card { padding: 1rem; }
+            th, td { font-size: 0.7rem; padding: 6px 4px; }
+        }
+        footer {
+            text-align: center;
+            font-size: 0.75rem;
+            color: #6c8eaa;
+            margin-top: 2rem;
+        }
+        .file-input-hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard-container">
+    <h1>📊 Контроль выполнения финансового плана по ОМС</h1>
+    <div class="sub">Интерактивная таблица контроля по объемам медпомощи и финансированию<br>Анализ: средний тариф, резерв, % выполнения, ожидаемые поступления, доход</div>
+
+    <div class="card">
+        <div class="card-header">
+            <span>📋 Редактируемая ведомость (план/факт)</span>
+            <span class="badge">по методологии экспертов Системы Экономика ЛПУ</span>
+        </div>
+        <div style="overflow-x: auto;">
+            <table id="dataTable">
+                <thead>
+                    <tr>
+                        <th>Вид помощи</th>
+                        <th>Кол-во (факт)</th>
+                        <th>Сумма, руб (факт оплата)</th>
+                        <th>План на месяц, руб</th>
+                        <th>Сумма принятая к оплате (нараст. итог), руб</th>
+                        <th>Условно принятые нарастающим (неоплач. прошлые), руб</th>
+                        <th>% выполнения плана</th>
+                        <th>Средний тариф, руб</th>
+                        <th>Резерв выполнения, руб</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- строки будут заполнены JS -->
+                </tbody>
+            </table>
+        </div>
+        <div class="button-group">
+            <button id="resetExampleBtn" class="btn-outline">📌 Загрузить пример из документа</button>
+            <button id="importExcelBtn" class="btn-outline">📂 Импорт из Excel</button>
+            <button id="exportExcelBtn">📎 Экспорт в Excel (XLSX)</button>
+            <button id="refreshCalcBtn">🔄 Пересчитать показатели</button>
+        </div>
+        <input type="file" id="fileInput" accept=".xlsx, .xls, .csv" class="file-input-hidden">
+        <div class="alert">
+            💡 <strong>Подсказка:</strong> Редактируйте любые ячейки в столбцах "Кол-во", "Сумма, руб", "План на месяц", "Условно принятые".<br>
+            После изменения нажмите «Пересчитать показатели». Графа "Сумма принятая" = фактическая сумма (для простоты = Сумма факт), в реальности можно вручную править. Резерв = План - Сумма принятая. % выполнения = (Сумма факт / План)*100.
+        </div>
+    </div>
+
+    <!-- Блок KPI и аналитика -->
+    <div class="kpi-grid" id="kpiArea">
+        <!-- динамические KPI -->
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <span>📈 Динамика выполнения плана (график)</span>
+            <span class="badge">по видам помощи</span>
+        </div>
+        <div class="chart-container">
+            <canvas id="completionChart" width="400" height="200" style="max-height: 280px; width:100%"></canvas>
+        </div>
+        <div class="alert" id="dynamicAdvice">
+            ⚙️ Анализ: после пересчета здесь появятся рекомендации (чек-лист).
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">🧠 Интерактивный чек-лист и анализ отставания/перевыполнения</div>
+        <div id="checklistText">
+            <!-- заполняется скриптом -->
+        </div>
+    </div>
+    <footer>На основе методического руководства Анжелики Полыневой, ГАУЗ «ООКБ №2». Данные для аналитики: ожидаемые поступления, доход, средний тариф в динамике.</footer>
+</div>
+
+<script>
+    // ---------- исходные данные из документа (пример таблицы Рис.1) ----------
+    const defaultRows = [
+        { name: "Круглосуточный стационар", quantity: 815, sumFact: 28111746.96, planMonth: 24364482.60, sumAccepted: 24364482.60, conditionalPrev: 3747264.36 },
+        { name: "Круглосуточный стационар ВМП", quantity: 50, sumFact: 8690037.86, planMonth: 11458812.16, sumAccepted: 8690037.86, conditionalPrev: 348753.50 },
+        { name: "Дневной стационар", quantity: 290, sumFact: 3775824.40, planMonth: 4077500.00, sumAccepted: 3775824.40, conditionalPrev: 301675.60 },
+        { name: "Неотложная помощь", quantity: 3237, sumFact: 2338994.72, planMonth: 2570000.00, sumAccepted: 2338994.72, conditionalPrev: 168994.62 },
+        { name: "Диагностические услуги УЗИ", quantity: 1060, sumFact: 792347.43, planMonth: 786091.67, sumAccepted: 786091.67, conditionalPrev: 6255.76 },
+        { name: "Диагностические услуги КТ", quantity: 596, sumFact: 795269.74, planMonth: 697526.67, sumAccepted: 697526.67, conditionalPrev: 97743.07 },
+        { name: "Диагностические услуги МРТ", quantity: 323, sumFact: 531450.76, planMonth: 1044333.46, sumAccepted: 531450.76, conditionalPrev: 512882.70 },
+        { name: "Диагностические услуги эндоскопия", quantity: 734, sumFact: 1069118.94, planMonth: 1310000.48, sumAccepted: 1069118.94, conditionalPrev: 240881.54 },
+        { name: "АПП прикреплённое население", quantity: 11915, sumFact: 12584816.86, planMonth: 12621708.00, sumAccepted: 12621708.00, conditionalPrev: 0 },
+        { name: "Углубленная диспансеризация", quantity: 507, sumFact: 657092.28, planMonth: 653399.75, sumAccepted: 653399.75, conditionalPrev: 3692.53 }
+    ];
+
+    let currentData = JSON.parse(JSON.stringify(defaultRows));
+    let chartInstance = null;
+
+    // DOM элементы
+    const tbody = document.getElementById('tableBody');
+    const refreshBtn = document.getElementById('refreshCalcBtn');
+    const resetBtn = document.getElementById('resetExampleBtn');
+    const exportBtn = document.getElementById('exportExcelBtn');
+    const importBtn = document.getElementById('importExcelBtn');
+    const fileInput = document.getElementById('fileInput');
+
+    // Функция рендеринга таблицы с input
+    function renderTable() {
+        tbody.innerHTML = '';
+        currentData.forEach((row, idx) => {
+            const tr = document.createElement('tr');
+            // Вид помощи (только текст)
+            const tdName = document.createElement('td'); tdName.innerText = row.name; tr.appendChild(tdName);
+            
+            // Кол-во (input)
+            const tdQty = document.createElement('td'); 
+            const inpQty = document.createElement('input'); inpQty.type = 'number'; inpQty.value = row.quantity; inpQty.step = '1'; inpQty.className = 'input-cell';
+            inpQty.addEventListener('change', (e) => { currentData[idx].quantity = parseFloat(e.target.value) || 0; });
+            tdQty.appendChild(inpQty); tr.appendChild(tdQty);
+            
+            // Сумма факт
+            const tdSumFact = document.createElement('td');
+            const inpSumFact = document.createElement('input'); inpSumFact.type = 'number'; inpSumFact.value = row.sumFact; inpSumFact.step = '0.01'; inpSumFact.className = 'input-cell';
+            inpSumFact.addEventListener('change', (e) => { currentData[idx].sumFact = parseFloat(e.target.value) || 0; });
+            tdSumFact.appendChild(inpSumFact); tr.appendChild(tdSumFact);
+            
+            // План на месяц
+            const tdPlan = document.createElement('td');
+            const inpPlan = document.createElement('input'); inpPlan.type = 'number'; inpPlan.value = row.planMonth; inpPlan.step = '0.01'; inpPlan.className = 'input-cell';
+            inpPlan.addEventListener('change', (e) => { currentData[idx].planMonth = parseFloat(e.target.value) || 0; });
+            tdPlan.appendChild(inpPlan); tr.appendChild(tdPlan);
+            
+            // Сумма принятая (можно отдельно править, но для демо свяжем с sumFact либо ручное)
+            const tdAccepted = document.createElement('td');
+            const inpAccepted = document.createElement('input'); inpAccepted.type = 'number'; inpAccepted.value = row.sumAccepted; inpAccepted.step = '0.01'; inpAccepted.className = 'input-cell';
+            inpAccepted.addEventListener('change', (e) => { currentData[idx].sumAccepted = parseFloat(e.target.value) || 0; });
+            tdAccepted.appendChild(inpAccepted); tr.appendChild(tdAccepted);
+            
+            // Условно принятые нарастающим (неоплаченные прошлые)
+            const tdCond = document.createElement('td');
+            const inpCond = document.createElement('input'); inpCond.type = 'number'; inpCond.value = row.conditionalPrev; inpCond.step = '0.01'; inpCond.className = 'input-cell';
+            inpCond.addEventListener('change', (e) => { currentData[idx].conditionalPrev = parseFloat(e.target.value) || 0; });
+            tdCond.appendChild(inpCond); tr.appendChild(tdCond);
+            
+            // Процент выполнения (readonly)
+            const tdPerc = document.createElement('td'); const percSpan = document.createElement('span'); percSpan.className = 'readonly-cell'; percSpan.style.display = 'block'; percSpan.style.textAlign = 'right';
+            tdPerc.appendChild(percSpan); tr.appendChild(tdPerc);
+            
+            // Средний тариф (readonly)
+            const tdAvg = document.createElement('td'); const avgSpan = document.createElement('span'); avgSpan.className = 'readonly-cell'; avgSpan.style.display = 'block';
+            tdAvg.appendChild(avgSpan); tr.appendChild(tdAvg);
+            
+            // Резерв выполнения (readonly)
+            const tdReserve = document.createElement('td'); const resSpan = document.createElement('span'); resSpan.className = 'readonly-cell'; resSpan.style.display = 'block';
+            tdReserve.appendChild(resSpan); tr.appendChild(tdReserve);
+            
+            tr.setAttribute('data-idx', idx);
+            tbody.appendChild(tr);
+            
+            // сохраним ссылки для обновления
+            row._refs = { percSpan, avgSpan, resSpan };
+        });
+        updateAllCalculations();
+    }
+    
+    // пересчет всех показателей (таблица + KPI + график + чек-лист)
+    function updateAllCalculations() {
+        // 1. обновляем каждую строку: средний тариф, резерв, % выполнения
+        currentData.forEach((row, idx) => {
+            const qty = row.quantity;
+            const sumFact = row.sumFact;
+            const plan = row.planMonth;
+            const sumAccepted = row.sumAccepted;
+            let avgTariff = (qty > 0) ? (sumFact / qty) : 0;
+            let reserve = plan - sumAccepted;
+            let percentComplete = (plan > 0) ? (sumFact / plan) * 100 : 0;
+            if (row._refs) {
+                row._refs.avgSpan.innerText = avgTariff.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
+                row._refs.resSpan.innerText = reserve.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
+                row._refs.percSpan.innerText = percentComplete.toFixed(2) + '%';
+            }
+            row.calculated = { avgTariff, reserve, percentComplete };
+        });
+        
+        // 2. KPI: ИТОГО по всем видам
+        const totalSumFact = currentData.reduce((acc, r) => acc + r.sumFact, 0);
+        const totalPlanMonth = currentData.reduce((acc, r) => acc + r.planMonth, 0);
+        const totalAccepted = currentData.reduce((acc, r) => acc + r.sumAccepted, 0);
+        const totalConditional = currentData.reduce((acc, r) => acc + r.conditionalPrev, 0);
+        const overallPercent = totalPlanMonth > 0 ? (totalSumFact / totalPlanMonth) * 100 : 0;
+        
+        // ожидаемые поступления за прошлые периоды (только по видам, где план НЕ выполнен)
+        let expectedPrev = 0;
+        currentData.forEach(r => {
+            if (r.calculated.percentComplete < 99.99 && r.conditionalPrev > 0) expectedPrev += r.conditionalPrev;
+        });
+        // доход за текущий месяц = сумма принятая (всего) + expectedPrev
+        const incomeMonth = totalAccepted + expectedPrev;
+        const advanceAmount = 28700000;
+        const finalSettlement = incomeMonth - advanceAmount;
+        
+        // отрисовка KPI
+        const kpiHtml = `
+            <div class="kpi"><div class="kpi-label">Общий % выполнения плана</div><div class="kpi-value">${overallPercent.toFixed(2)}%</div></div>
+            <div class="kpi"><div class="kpi-label">Сумма факт (всего)</div><div class="kpi-value">${totalSumFact.toLocaleString('ru-RU')} ₽</div></div>
+            <div class="kpi"><div class="kpi-label">План на месяц (итого)</div><div class="kpi-value">${totalPlanMonth.toLocaleString('ru-RU')} ₽</div></div>
+            <div class="kpi"><div class="kpi-label">Ожидаемые поступления (прошлые периоды)</div><div class="kpi-value">${expectedPrev.toLocaleString('ru-RU')} ₽</div></div>
+            <div class="kpi"><div class="kpi-label">Доход за текущий месяц</div><div class="kpi-value">${incomeMonth.toLocaleString('ru-RU')} ₽</div></div>
+            <div class="kpi"><div class="kpi-label">Ожидаемый окончательный расчёт</div><div class="kpi-value">${finalSettlement.toLocaleString('ru-RU')} ₽</div></div>
+        `;
+        document.getElementById('kpiArea').innerHTML = kpiHtml;
+        
+        // 3. График выполнения
+        const labels = currentData.map(r => r.name.length > 20 ? r.name.substring(0,18)+'..' : r.name);
+        const percentages = currentData.map(r => r.calculated.percentComplete);
+        if (chartInstance) chartInstance.destroy();
+        const ctx = document.getElementById('completionChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'bar',
+            data: { labels: labels, datasets: [{ label: '% выполнения плана', data: percentages, backgroundColor: '#2c7da0', borderRadius: 8 }] },
+            options: { responsive: true, maintainAspectRatio: true, scales: { y: { max: 160, title: { display: true, text: 'Процент (%)' } } } }
+        });
+        
+        // 4. Чек-лист и советы
+        let underperformRows = currentData.filter(r => r.calculated.percentComplete < 95);
+        let overperformRows = currentData.filter(r => r.calculated.percentComplete > 105);
+        let adviceMsg = '';
+        if (underperformRows.length > 0) {
+            adviceMsg += `<div class="alert-warning" style="padding:12px; border-radius:16px; margin-bottom:12px;"><strong>⚠️ Отставание от плана:</strong> Виды помощи с выполнением <95%: ${underperformRows.map(r=>r.name).join(', ')}.<br>👉 <strong>Чек-лист:</strong> проверьте сроки госпитализации, кадровый состав (отпуска/больничные), загрузку коечного фонда, своевременность закрытия случаев в ЕГИС, технические ошибки в реестрах. Рекомендуется перераспределить невыполненные объемы на следующие месяцы.</div>`;
+        }
+        if (overperformRows.length > 0) {
+            adviceMsg += `<div class="alert-success" style="padding:12px; border-radius:16px; margin-top:8px;"><strong>📈 Перевыполнение плана:</strong> ${overperformRows.map(r=>r.name).join(', ')}. Учтите: помощь сверх объемов может быть не оплачена. Подайте заявку в комиссию ТФОМС на дополнительное финансирование, обоснуйте рост заболеваемости или срочность.</div>`;
+        }
+        if (underperformRows.length === 0 && overperformRows.length === 0) {
+            adviceMsg = `<div class="alert-success" style="padding:12px; border-radius:16px;">✅ План выполняется стабильно. Продолжайте мониторинг по датам 10, 15, 20 числа для оперативной корректировки.</div>`;
+        }
+        let tariffChangeNote = '';
+        if (currentData.some(r => r.calculated.avgTariff > 0)) {
+            tariffChangeNote = `<hr><strong>📉 Анализ среднего тарифа:</strong> Если тариф вырос — возможно, оказывали более дорогие услуги (например, с контрастом). Если снизился — проверьте долю коротких госпитализаций или перебои с расходными материалами.`;
+        }
+        document.getElementById('checklistText').innerHTML = `<div style="background:#f9fafb; padding:12px; border-radius:20px;">${adviceMsg} ${tariffChangeNote}<br><small>💡 Совет: используйте графу "Условно принятые" для отслеживания неоплаченных прошлых объемов. Доход за месяц + ожидаемые поступления улучшают прогноз ликвидности.</small></div>`;
+        
+        const advBlock = document.getElementById('dynamicAdvice');
+        if(advBlock) {
+            advBlock.innerHTML = `💰 <strong>Финансовый итог:</strong> Доход за тек.месяц = ${incomeMonth.toLocaleString('ru-RU')} ₽. Аванс = ${advanceAmount.toLocaleString('ru-RU')} ₽. Окончательный расчёт к получению: ${finalSettlement.toLocaleString('ru-RU')} ₽. Не забывайте про планирование расходов (зарплата, коммуналка, медикаменты).`;
+        }
+    }
+    
+    // загрузка примера по умолчанию
+    function loadExample() {
+        currentData = JSON.parse(JSON.stringify(defaultRows));
+        renderTable();
+    }
+    
+    // экспорт в Excel
+    function exportToExcel() {
+        const wsData = [["Вид помощи","Кол-во (факт)","Сумма факт (руб)","План на месяц (руб)","Сумма принятая (руб)","Условно принятые (руб)","% выполнения","Средний тариф (руб)","Резерв (руб)"]];
+        currentData.forEach(row => {
+            const qty = row.quantity;
+            const sumFact = row.sumFact;
+            const plan = row.planMonth;
+            const sumAcc = row.sumAccepted;
+            const cond = row.conditionalPrev;
+            const perc = (plan>0? (sumFact/plan*100):0).toFixed(2);
+            const avgTariff = (qty>0? sumFact/qty:0).toFixed(2);
+            const reserve = (plan - sumAcc).toFixed(2);
+            wsData.push([row.name, qty, sumFact, plan, sumAcc, cond, perc+"%", avgTariff, reserve]);
+        });
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Контроль_ОМС");
+        XLSX.writeFile(wb, `финплан_ОМС_${new Date().toISOString().slice(0,19)}.xlsx`);
+    }
+    
+    // импорт из Excel
+    function importFromExcel(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(firstSheet, { header: 1, defval: "" });
+            
+            if (!rows || rows.length < 2) {
+                alert("Файл не содержит данных");
+                return;
+            }
+            
+            // ищем заголовки (первая строка)
+            const headers = rows[0].map(cell => String(cell || "").toLowerCase().trim());
+            const idxName = headers.findIndex(h => h.includes("вид") || h.includes("наименование") || h === "name");
+            const idxQty = headers.findIndex(h => h.includes("кол") || h === "quantity");
+            const idxSumFact = headers.findIndex(h => h.includes("сумма факт") || h === "sumfact");
+            const idxPlan = headers.findIndex(h => h.includes("план") || h === "planmonth");
+            const idxAccepted = headers.findIndex(h => h.includes("принятая") || h === "sumaccepted");
+            const idxCond = headers.findIndex(h => h.includes("условно") || h === "conditionalprev");
+            
+            if (idxName === -1) {
+                alert("Не найден столбец 'Вид помощи'. Убедитесь, что в первой строке есть заголовок с этим словом.");
+                return;
+            }
+            
+            const newData = [];
+            for (let i = 1; i < rows.length; i++) {
+                const row = rows[i];
+                if (!row[idxName] || String(row[idxName]).trim() === "") continue;
+                
+                newData.push({
+                    name: String(row[idxName]).trim(),
+                    quantity: parseFloat(row[idxQty]) || 0,
+                    sumFact: parseFloat(row[idxSumFact]) || 0,
+                    planMonth: parseFloat(row[idxPlan]) || 0,
+                    sumAccepted: parseFloat(row[idxAccepted]) || (parseFloat(row[idxSumFact]) || 0),
+                    conditionalPrev: parseFloat(row[idxCond]) || 0
+                });
+            }
+            
+            if (newData.length === 0) {
+                alert("Не удалось загрузить данные. Проверьте формат файла.");
+                return;
+            }
+            
+            currentData = newData;
+            renderTable();
+            alert(`Импортировано ${newData.length} строк.`);
+        };
+        reader.onerror = function() {
+            alert("Ошибка чтения файла");
+        };
+        reader.readAsArrayBuffer(file);
+    }
+    
+    // обработчик кнопки импорта
+    importBtn.addEventListener('click', () => {
+        fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            importFromExcel(e.target.files[0]);
+            fileInput.value = '';
+        }
+    });
+    
+    refreshBtn.addEventListener('click', () => {
+        const rowsInput = document.querySelectorAll('#tableBody tr');
+        rowsInput.forEach((tr, idx) => {
+            const inputs = tr.querySelectorAll('input');
+            if (inputs.length >= 5) {
+                currentData[idx].quantity = parseFloat(inputs[0].value) || 0;
+                currentData[idx].sumFact = parseFloat(inputs[1].value) || 0;
+                currentData[idx].planMonth = parseFloat(inputs[2].value) || 0;
+                currentData[idx].sumAccepted = parseFloat(inputs[3].value) || 0;
+                currentData[idx].conditionalPrev = parseFloat(inputs[4].value) || 0;
+            }
+        });
+        updateAllCalculations();
+    });
+    
+    resetBtn.addEventListener('click', loadExample);
+    exportBtn.addEventListener('click', exportToExcel);
+    
+    // Инициализация
+    loadExample();
+</script>
+</body>
+</html>
