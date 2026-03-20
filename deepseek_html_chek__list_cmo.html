@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Чек-лист: 4 этапа разбора экспертизы</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #eef3fc;
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      line-height: 1.5;
+      color: #0a1e2f;
+    }
+
+    /* главный контейнер */
+    .presentation {
+      max-width: 1280px;
+      width: 100%;
+      background: white;
+      border-radius: 2rem;
+      box-shadow: 0 20px 35px -8px rgba(0, 25, 45, 0.2);
+      overflow: hidden;
+    }
+
+    /* шапка с новым названием */
+    .presentation-header {
+      padding: 2rem 2.5rem 1rem 2.5rem;
+      background: white;
+      border-bottom: 1px solid #e2eaf1;
+    }
+
+    .presentation-header h1 {
+      font-weight: 700;
+      font-size: 2rem;
+      letter-spacing: -0.02em;
+      color: #0f3a58;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .presentation-header h1 span {
+      background: #eef2f7;
+      font-size: 0.9rem;
+      font-weight: 500;
+      padding: 0.25rem 1rem;
+      border-radius: 40px;
+      color: #2a6f96;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.75rem;
+    }
+
+    .badges {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: #3f6a8a;
+      font-size: 0.9rem;
+    }
+
+    /* индикатор этапа */
+    .stage-indicator {
+      background: #eaf2f9;
+      border-radius: 60px;
+      padding: 0.3rem 1rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #1f577b;
+    }
+
+    /* табы (опционально, дублируют навигацию) */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      background: #f8fbfe;
+      padding: 0 2rem;
+      gap: 0.25rem;
+      border-bottom: 1px solid #cfdeed;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 0.9rem 1.6rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #2c4e6e;
+      cursor: pointer;
+      transition: 0.15s;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -1px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      opacity: 0.75;
+    }
+
+    .tab-btn:hover {
+      opacity: 1;
+      background: #ecf3fa;
+      border-bottom-color: #99b8d4;
+    }
+
+    .tab-btn.active {
+      opacity: 1;
+      background: white;
+      border-bottom-color: #1d6f9c;
+      color: #0f3b57;
+      font-weight: 700;
+    }
+
+    /* навигационные кнопки листалки */
+    .slide-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #ffffff;
+      padding: 0.75rem 2rem;
+      border-top: 1px solid #e2eaf1;
+      border-bottom: 1px solid #e2eaf1;
+    }
+
+    .nav-btn {
+      background: #f0f5fc;
+      border: none;
+      border-radius: 2rem;
+      padding: 0.6rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: #1e5a7e;
+    }
+
+    .nav-btn:hover {
+      background: #e2ecf5;
+      transform: scale(0.97);
+    }
+
+    .nav-btn:active {
+      background: #cbdce9;
+    }
+
+    .page-counter {
+      font-weight: 600;
+      background: #eef3fc;
+      padding: 0.3rem 1rem;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      color: #1c577b;
+    }
+
+    /* панели контента */
+    .panels {
+      padding: 2rem 2.5rem 2rem 2.5rem;
+      background: white;
+    }
+
+    .panel {
+      display: none;
+      animation: fadeSlide 0.3s ease;
+    }
+
+    .panel.active {
+      display: block;
+    }
+
+    @keyframes fadeSlide {
+      0% { opacity: 0; transform: translateX(12px); }
+      100% { opacity: 1; transform: translateX(0); }
+    }
+
+    /* стили контента (как в предыдущем варианте, но без больших заголовков в блоках проверки) */
+    .stage-tag {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .stage-icon {
+      font-size: 2.3rem;
+      line-height: 1;
+    }
+
+    .stage-title {
+      font-weight: 700;
+      font-size: 1.9rem;
+      color: #0f3a58;
+    }
+
+    .stage-desc {
+      font-size: 1.2rem;
+      color: #2e577a;
+      margin-bottom: 2rem;
+      border-left: 5px solid;
+      padding-left: 1.2rem;
+      font-weight: 400;
+    }
+
+    .codes-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem 1.8rem;
+      background: #f2f7fd;
+      border-radius: 1.8rem;
+      padding: 1.5rem 2rem;
+      margin: 1.5rem 0 2rem 0;
+      border: 1px solid #dae8f2;
+    }
+
+    .code-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: white;
+      border-radius: 60px;
+      padding: 0.3rem 1.2rem 0.3rem 0.8rem;
+      box-shadow: 0 2px 6px rgba(0,30,50,0.05);
+      border: 1px solid #cbdae8;
+    }
+
+    .code-num {
+      font-family: 'JetBrains Mono', 'Courier New', monospace;
+      font-weight: 700;
+      font-size: 1.2rem;
+      background: #e0eefb;
+      padding: 0.2rem 0.8rem;
+      border-radius: 40px;
+      color: #0b3b57;
+    }
+
+    .code-desc {
+      font-weight: 500;
+      color: #173f5c;
+    }
+
+    .check-card {
+      background: #ffffff;
+      border-radius: 1.6rem;
+      padding: 1.5rem 2rem;
+      margin: 1.8rem 0 1.5rem 0;
+      border: 1px solid #cfdeed;
+      box-shadow: 0 4px 12px -6px rgba(0,45,70,0.06);
+    }
+
+    .check-card p {
+      color: #1d3d59;
+      margin-bottom: 1rem;
+    }
+
+    .alert {
+      background: #fef6e6;
+      border-radius: 1.5rem;
+      padding: 1.4rem 2rem;
+      margin: 1.5rem 0;
+      border-left: 8px solid #f2af3b;
+    }
+
+    .alert-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #935f00;
+      margin-bottom: 0.6rem;
+    }
+
+    .attention-mild {
+      background: #e9f2fa;
+      border-radius: 1.2rem;
+      padding: 1rem 1.8rem;
+      margin: 1rem 0 0.2rem 0;
+      border: 1px dashed #5588b1;
+      color: #1c4b6e;
+      font-size: 0.95rem;
+    }
+
+    .footer-note {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      background: #eaf1f9;
+      border-radius: 1.5rem;
+      padding: 1rem 2rem;
+      margin-top: 2rem;
+      font-size: 0.9rem;
+      color: #1f4a6b;
+    }
+
+    /* цветовые линии этапов */
+    .border-stage-1 { border-left-color: #bc3f32; }
+    .border-stage-2 { border-left-color: #ce8b2c; }
+    .border-stage-3 { border-left-color: #aa3a3a; }
+    .border-stage-4 { border-left-color: #2a7f9c; }
+
+    @media (max-width: 700px) {
+      .presentation-header { padding: 1.5rem; }
+      .tabs { padding: 0 0.8rem; }
+      .tab-btn { padding: 0.6rem 1rem; font-size: 0.85rem; }
+      .panels { padding: 1.5rem; }
+      .slide-nav { padding: 0.6rem 1rem; }
+      .nav-btn { padding: 0.4rem 1rem; }
+      .stage-title { font-size: 1.6rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="presentation">
+  <div class="presentation-header">
+    <h1>
+      📋 Чек-лист: 4 этапа разбора экспертизы
+      <span>алгоритм защиты</span>
+    </h1>
+    <div class="meta-row">
+      <div class="badges">
+        <span>🔍 зоны риска</span>
+        <span>⚖️ переквалификация</span>
+        <span>⚠️ уголовные риски</span>
+      </div>
+      <div class="stage-indicator" id="pageIndicator">Этап 1 из 4</div>
+    </div>
+  </div>
+
+  <!-- табы (быстрая навигация) -->
+  <div class="tabs" id="tabsContainer">
+    <button class="tab-btn active" data-tab="1"><span>🔥</span> Этап 1</button>
+    <button class="tab-btn" data-tab="2"><span>⚖️</span> Этап 2</button>
+    <button class="tab-btn" data-tab="3"><span>⛓️</span> Этап 3</button>
+    <button class="tab-btn" data-tab="4"><span>📋</span> Этап 4</button>
+  </div>
+
+  <!-- навигация листалки -->
+  <div class="slide-nav">
+    <button class="nav-btn" id="prevBtn">← Назад</button>
+    <span class="page-counter" id="counterText">1 / 4</span>
+    <button class="nav-btn" id="nextBtn">Вперёд →</button>
+  </div>
+
+  <div class="panels">
+    <!-- ЭТАП 1 -->
+    <div class="panel active" id="panel1">
+      <div class="stage-tag"><span class="stage-icon">🔥</span><span class="stage-title">Красная зона</span></div>
+      <div class="stage-desc border-stage-1">Коды с максимальными штрафами 300% + полное снятие оплаты</div>
+      <div class="codes-grid">
+        <div class="code-item"><span class="code-num">3.1.5</span><span class="code-desc">неверный диагноз → смерть</span></div>
+        <div class="code-item"><span class="code-num">3.2.4</span><span class="code-desc">невыполнение КР → смерть</span></div>
+      </div>
+      <div class="check-card">
+        <p>🔍 Доказана ли экспертом <strong>прямая причинно-следственная связь</strong> между действием врача и летальным исходом? Если результаты обследований, опровергающие диагноз, получены <strong>после смерти объективно</strong> (длительный лабораторный цикл) — штраф по 3.1.5 необоснован. Эксперт должен оценивать только своевременность назначений.</p>
+        <p>📌 Коллегиально рассмотреть случай, представить обоснование, что действия врача <strong>не повлекли летальный исход</strong>.</p>
+      </div>
+      <div class="alert"><div class="alert-header"><span>⚠️</span> ВНИМАНИЕ</div><p>При отсутствии прямой связи, но наличии дефекта — настаивайте на переквалификации. Полное снятие + 300% применимо только при доказанной причинности смерти.</p></div>
+      <div class="attention-mild">* Первоочередному анализу подлежат именно коды с двойной санкцией.</div>
+    </div>
+
+    <!-- ЭТАП 2 -->
+    <div class="panel" id="panel2">
+      <div class="stage-tag"><span class="stage-icon">⚖️</span><span class="stage-title">Зона судебных рисков</span></div>
+      <div class="stage-desc border-stage-2">Коды «ухудшения состояния» — риск исков о моральном вреде</div>
+      <div class="codes-grid">
+        <div class="code-item"><span class="code-num">3.1.3</span><span class="code-desc">неверный диагноз → ухудшение</span></div>
+        <div class="code-item"><span class="code-num">3.2.2</span><span class="code-desc">нарушение КР → ухудшение</span></div>
+        <div class="code-item"><span class="code-num">3.3</span><span class="code-desc">непоказанные мероприятия → ухудшение</span></div>
+        <div class="code-item"><span class="code-num">3.11</span><span class="code-desc">ятрогенное заболевание</span></div>
+      </div>
+      <div class="check-card"><p>🔍 Зафиксировано ли в меддокументации <strong>реальное ухудшение здоровья</strong>, вызванное именно этим дефектом? Если дефект формальный и не повлиял на исход — требовать переквалификации на <strong>код 3.2.1</strong> (нарушение без влияния на здоровье).</p></div>
+      <div class="alert"><div class="alert-header"><span>❗</span> ВНИМАНИЕ</div><p><strong>Код 3.2.1</strong> фиксирует факт нарушения, но без влияния на здоровье. При несогласии с выводами эксперта — инициируйте претензионную работу. Отказ от оспаривания = согласие с нарушением, что создаёт риски компенсации морального вреда.</p></div>
+      <div class="attention-mild">Акт ЭКМП с такими кодами признаёт вину клиники. Оспаривайте формальные дефекты.</div>
+    </div>
+
+    <!-- ЭТАП 3 -->
+    <div class="panel" id="panel3">
+      <div class="stage-tag"><span class="stage-icon">⛓️</span><span class="stage-title">Зона уголовной ответственности</span></div>
+      <div class="stage-desc border-stage-3">Необоснованный отказ — сигнал для СК, ст. 124 УК РФ</div>
+      <div class="codes-grid"><div class="code-item"><span class="code-num">3.14.1–3.14.3</span><span class="code-desc">необоснованный отказ в медпомощи</span></div></div>
+      <div class="check-card"><p>🔍 Наличие в медкарте чёткой фиксации <strong>повода для экстренной помощи</strong> и хронологии действий персонала. Доказывайте обоснованность через протокол ВК, подтверждающий отсутствие показаний для немедленного вмешательства.</p></div>
+      <div class="alert"><div class="alert-header"><span>🚨</span> ВНИМАНИЕ</div><p>Обязательно контролируйте <strong>все записи в журналы отказов в госпитализации</strong>. Внедрение комплексного консультативного тарифа приёмного отделения снижает жалобы на отказ.</p></div>
+      <div class="attention-mild">Любой необоснованный отказ (код 3.14) — прямой риск уголовного преследования персонала. Протокол ВК — главный щит.</div>
+    </div>
+
+    <!-- ЭТАП 4 -->
+    <div class="panel" id="panel4">
+      <div class="stage-tag"><span class="stage-icon">📋</span><span class="stage-title">Коды полного снятия / диспансеризация</span></div>
+      <div class="stage-desc border-stage-4">Формальные нарушения — снятие финансирования без доказательства вреда</div>
+      <div class="codes-grid">
+        <div class="code-item"><span class="code-num">2.5</span><span class="code-desc">нет диспансерного наблюдения</span></div>
+        <div class="code-item"><span class="code-num">3.15</span><span class="code-desc">нет диспансерного наблюдения</span></div>
+        <div class="code-item"><span class="code-num">3.7</span><span class="code-desc">непрофильная госпитализация</span></div>
+        <div class="code-item"><span class="code-num">3.8</span><span class="code-desc">необоснованная госпитализация</span></div>
+      </div>
+      <div class="check-card"><p>🔍 По кодам диспансеризации эксперту достаточно <strong>самого факта пропуска</strong> исследования/осмотра. Единственный аргумент защиты — наличие в медкарте <strong>официального отказа пациента</strong> от диспансерного наблюдения, при условии, что он был предварительно проинформирован врачом о необходимости.</p></div>
+      <div class="alert"><div class="alert-header"><span>📌</span> ВНИМАНИЕ</div><p>СМО лишает финансирования без доказывания вреда здоровью. Фиксируйте каждый отказ пациента письменно!</p></div>
+      <div class="attention-mild">* Коды 2.5 и 3.15 идентичны по сути: непроведение диспансерного наблюдения.</div>
+    </div>
+  </div>
+
+  <div class="footer-note">
+    <span>📎 Переквалификация в 3.2.1 (нарушение без вреда)</span>
+    <span>⚡ Врачебная комиссия — главный инструмент</span>
+    <span>📬 Претензия в СМО / ФОМС при несогласии</span>
+  </div>
+</div>
+
+<script>
+  (function() {
+    let currentTab = 1;      // 1..4
+    const panels = {
+      1: document.getElementById('panel1'),
+      2: document.getElementById('panel2'),
+      3: document.getElementById('panel3'),
+      4: document.getElementById('panel4')
+    };
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const counterText = document.getElementById('counterText');
+    const pageIndicator = document.getElementById('pageIndicator');  // дополнительный
+
+    function updateUI() {
+      // обновляем панели
+      for (let i = 1; i <= 4; i++) {
+        if (panels[i]) {
+          panels[i].classList.toggle('active', i === currentTab);
+        }
+      }
+      // обновляем активный таб
+      tabBtns.forEach(btn => {
+        const tabVal = parseInt(btn.dataset.tab, 10);
+        if (tabVal === currentTab) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+      // счетчики
+      counterText.innerText = `${currentTab} / 4`;
+      if (pageIndicator) pageIndicator.innerText = `Этап ${currentTab} из 4`;
+    }
+
+    function setStage(stage) {
+      if (stage < 1) stage = 1;
+      if (stage > 4) stage = 4;
+      currentTab = stage;
+      updateUI();
+    }
+
+    function nextStage() {
+      if (currentTab < 4) setStage(currentTab + 1);
+    }
+
+    function prevStage() {
+      if (currentTab > 1) setStage(currentTab - 1);
+    }
+
+    // обработчики кнопок
+    prevBtn.addEventListener('click', prevStage);
+    nextBtn.addEventListener('click', nextStage);
+
+    // табы
+    tabBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = parseInt(btn.dataset.tab, 10);
+        if (!isNaN(tabId)) setStage(tabId);
+      });
+    });
+
+    // клавиши влево / вправо
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        prevStage();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        nextStage();
+      }
+    });
+
+    // инициализация
+    updateUI();
+  })();
+</script>
+</body>
+</html>
