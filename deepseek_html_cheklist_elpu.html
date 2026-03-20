@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Интерактивный чек-лист: Проверка полноты закрытых случаев лечения</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eef2f7;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            margin: 0;
+            padding: 24px 16px;
+            color: #1a2c3e;
+        }
+
+        /* Контейнер с тенью и скруглением */
+        .checklist-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        /* Шапка */
+        .header {
+            background: #0f2b3d;
+            padding: 24px 28px;
+            color: white;
+            border-bottom: 4px solid #2c9cd4;
+        }
+
+        .header h1 {
+            margin: 0 0 8px 0;
+            font-weight: 600;
+            font-size: 1.75rem;
+            letter-spacing: -0.2px;
+        }
+
+        .header .sub {
+            font-size: 0.95rem;
+            opacity: 0.85;
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+
+        .header .goal {
+            background: rgba(44, 156, 212, 0.2);
+            padding: 12px 16px;
+            border-radius: 20px;
+            margin-top: 16px;
+            font-size: 0.9rem;
+            border-left: 3px solid #2c9cd4;
+        }
+
+        /* тулбар с прогрессом и кнопками */
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 28px;
+            background: #f9fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .progress-area {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .progress-text {
+            font-weight: 600;
+            background: #eef2ff;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            color: #0f3b4f;
+        }
+
+        .progress-bar-wrapper {
+            width: 220px;
+            background-color: #e2e8f0;
+            border-radius: 30px;
+            height: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background-color: #2c9cd4;
+            width: 0%;
+            height: 100%;
+            border-radius: 30px;
+            transition: width 0.25s ease;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        button {
+            background: white;
+            border: 1px solid #cbd5e1;
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #1e4a6e;
+        }
+
+        button:hover {
+            background-color: #eef2ff;
+            border-color: #2c9cd4;
+            transform: translateY(-1px);
+        }
+
+        .reset-btn {
+            background: #fff0e6;
+            border-color: #f3b38b;
+            color: #b45a2b;
+        }
+
+        .reset-btn:hover {
+            background: #ffe0d0;
+        }
+
+        /* Таблица (стилизация под современный чек-лист) */
+        .table-wrapper {
+            overflow-x: auto;
+            padding: 0 20px 24px 20px;
+        }
+
+        .checklist-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 640px;
+        }
+
+        .checklist-table th {
+            text-align: left;
+            padding: 18px 16px;
+            background-color: #f1f5f9;
+            font-weight: 600;
+            color: #1e3a5f;
+            border-bottom: 2px solid #dce5ef;
+        }
+
+        .checklist-table td {
+            padding: 16px;
+            border-bottom: 1px solid #ecf3fa;
+            vertical-align: middle;
+        }
+
+        .checklist-table tr:hover td {
+            background-color: #fafcff;
+        }
+
+        /* колонка номер */
+        .col-num {
+            font-weight: 600;
+            color: #2c6b9e;
+            width: 70px;
+        }
+
+        /* действие */
+        .col-action {
+            font-weight: 500;
+            color: #1e2f3e;
+            line-height: 1.4;
+        }
+
+        /* статус выполнения */
+        .status-cell {
+            width: 130px;
+            text-align: center;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #f1f5f9;
+            padding: 6px 14px;
+            border-radius: 100px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.15s;
+            border: 1px solid transparent;
+        }
+
+        .status-badge.completed {
+            background: #e0f2e9;
+            color: #1f7840;
+            border-color: #b2dfc2;
+        }
+
+        .status-badge.pending {
+            background: #fff5e6;
+            color: #c26b2a;
+            border-color: #ffdfb3;
+        }
+
+        .status-badge:hover {
+            transform: scale(0.97);
+            filter: brightness(0.96);
+        }
+
+        .check-icon {
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        /* примечание */
+        .col-note {
+            width: 240px;
+        }
+
+        .note-input {
+            width: 100%;
+            border: 1px solid #d4dfed;
+            border-radius: 16px;
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            background: white;
+            transition: 0.1s;
+            font-family: inherit;
+        }
+
+        .note-input:focus {
+            outline: none;
+            border-color: #2c9cd4;
+            box-shadow: 0 0 0 2px rgba(44, 156, 212, 0.2);
+        }
+
+        /* footer */
+        .footer-note {
+            background: #f8fafd;
+            padding: 14px 28px;
+            font-size: 0.75rem;
+            color: #5b6f82;
+            border-top: 1px solid #e2edf7;
+            text-align: center;
+        }
+
+        @media (max-width: 700px) {
+            .header h1 {
+                font-size: 1.3rem;
+            }
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .action-buttons {
+                justify-content: flex-start;
+            }
+            .col-note {
+                min-width: 180px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="checklist-container">
+    <div class="header">
+        <h1>📋 Чек-лист. Этап 1</h1>
+        <div class="sub">Проверка полноты включения закрытых случаев лечения в реестр счетов</div>
+        <div class="goal">
+            🎯 <strong>Цель этапа:</strong> убедиться, что все завершенные случаи лечения отражены в реестре счетов и переданы в ЕГИС (или иную МИС) для своевременного получения оплаты.
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <div class="progress-area">
+            <div class="progress-text">
+                ✅ Выполнено: <span id="completedCount">0</span> / <span id="totalCount">6</span>
+            </div>
+            <div class="progress-bar-wrapper">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        <div class="action-buttons">
+            <button id="checkAllBtn" title="Отметить все пункты как выполненные">✔ Отметить все</button>
+            <button id="resetAllBtn" class="reset-btn" title="Сбросить все отметки и примечания">⟳ Сбросить всё</button>
+        </div>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="checklist-table">
+            <thead>
+                <tr>
+                    <th>№</th>
+                    <th>Действие</th>
+                    <th>Статус выполнения</th>
+                    <th>Примечание</th>
+                </tr>
+                </thead>
+                <tbody id="checklistBody">
+                    <!-- Данные будут загружены/сгенерированы через JS -->
+                </tbody>
+        </table>
+    </div>
+    <div class="footer-note">
+        ⚡ Интерактивный чек-лист: кликните по статусу, чтобы изменить (выполнено / не выполнено).<br>
+        Примечания сохраняются в localStorage — данные не потеряются при обновлении страницы.
+    </div>
+</div>
+
+<script>
+    // Определение пунктов чек-листа (строго по документу)
+    const checklistItems = [
+        {
+            id: 1,
+            action: "Сформировать перечень случаев, по которым лечение завершено (пациент выписан, закрыта карта стационарного больного, закрыт талон амбулаторного приема) за отчетный период.",
+            completed: false,
+            note: ""
+        },
+        {
+            id: 2,
+            action: "Сверить сформированный перечень с реестром счетов: каждый ли закрытый случай включен в реестр.",
+            completed: false,
+            note: ""
+        },
+        {
+            id: 3,
+            action: "Проверить статус каждого закрытого случая в ЕГИС / МИС (медицинской информационной системе).",
+            completed: false,
+            note: ""
+        },
+        {
+            id: 4,
+            action: "Выявить случаи, где лечение завершено, но в ЕГИС статус не обновлен (остался «открыт», «лечится», не передан на оплату).",
+            completed: false,
+            note: ""
+        },
+        {
+            id: 5,
+            action: "Завершить работу с выявленными случаями: закрыть в ЕГИС, передать на оплату.",
+            completed: false,
+            note: ""
+        },
+        {
+            id: 6,
+            action: "Убедиться, что все выявленные и исправленные случаи включены в итоговую версию реестра счетов.",
+            completed: false,
+            note: ""
+        }
+    ];
+
+    // Ключ для localStorage
+    const STORAGE_KEY = "checklist_etap1_555";
+
+    // Загружаем сохранённые данные (статусы и примечания)
+    function loadFromStorage() {
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+            try {
+                const parsed = JSON.parse(saved);
+                if (Array.isArray(parsed) && parsed.length === checklistItems.length) {
+                    for (let i = 0; i < checklistItems.length; i++) {
+                        if (typeof parsed[i].completed === 'boolean') {
+                            checklistItems[i].completed = parsed[i].completed;
+                        }
+                        if (typeof parsed[i].note === 'string') {
+                            checklistItems[i].note = parsed[i].note;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Ошибка загрузки из localStorage", e);
+            }
+        }
+    }
+
+    // Сохраняем в localStorage
+    function saveToStorage() {
+        const toSave = checklistItems.map(item => ({
+            completed: item.completed,
+            note: item.note
+        }));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
+    }
+
+    // Обновление UI: отрисовка таблицы, прогресс-бар, счетчики
+    let currentRenderTimeout = null;
+    function renderChecklist() {
+        const tbody = document.getElementById("checklistBody");
+        if (!tbody) return;
+
+        // Строим строки таблицы
+        let htmlRows = "";
+        for (let item of checklistItems) {
+            const statusClass = item.completed ? "completed" : "pending";
+            const statusText = item.completed ? "✓ Выполнено" : "○ Не выполнено";
+            const statusIcon = item.completed ? "✅" : "⭕";
+            
+            // для кнопки статуса будем использовать data-id
+            htmlRows += `
+                <tr data-item-id="${item.id}">
+                    <td class="col-num">${item.id}</td>
+                    <td class="col-action">${escapeHtml(item.action)}</td>
+                    <td class="status-cell">
+                        <div class="status-badge ${statusClass}" data-id="${item.id}" data-action="toggle">
+                            <span class="check-icon">${statusIcon}</span>
+                            <span>${statusText}</span>
+                        </div>
+                    </td>
+                    <td class="col-note">
+                        <input type="text" class="note-input" data-id="${item.id}" placeholder="Комментарий / примечание..." value="${escapeHtml(item.note)}">
+                    </td>
+                </tr>
+            `;
+        }
+        tbody.innerHTML = htmlRows;
+
+        // Обновляем счетчики и прогресс
+        const completedItems = checklistItems.filter(i => i.completed).length;
+        const total = checklistItems.length;
+        const completedSpan = document.getElementById("completedCount");
+        const totalSpan = document.getElementById("totalCount");
+        if (completedSpan) completedSpan.innerText = completedItems;
+        if (totalSpan) totalSpan.innerText = total;
+        
+        const percent = total === 0 ? 0 : (completedItems / total) * 100;
+        const progressFill = document.getElementById("progressFill");
+        if (progressFill) {
+            progressFill.style.width = `${percent}%`;
+        }
+
+        // Привязываем события к статус-бейджам и полям ввода (делегирование через слушатель на tbody, но проще добавить после отрисовки)
+        attachDynamicEvents();
+    }
+
+    // Эскейп HTML для безопасности
+    function escapeHtml(str) {
+        if (!str) return "";
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+
+    // Прикрепляем обработчики после перерисовки (так как элементы динамические)
+    function attachDynamicEvents() {
+        // Все статусные кнопки
+        const badges = document.querySelectorAll('.status-badge');
+        badges.forEach(badge => {
+            // Убираем старые слушатели, чтобы не навешивать дубли (можно просто заменить, но проще удалить предыдущие)
+            // Для надежности снимем предыдущий обработчик, если есть, через removeEventListener сложно, 
+            // используем новый подход: clone? нет, лучше просто добавим обработчик с проверкой, что не дублируется.
+            // Для чистоты удалим все старые обработчики через замену? но они могли быть добавлены ранее.
+            // Самый надежный способ: вешаем обработчик на родителя (делегирование) и для этого создадим глобальный обработчик на document.body.
+            // Но чтобы не плодить лишние, мы удалим предыдущий обработчик, если он там висит? проще делегировать на table-wrapper.
+        });
+    }
+
+    // Делегирование событий (один обработчик на контейнер таблицы)
+    function setupDelegation() {
+        const container = document.querySelector('.table-wrapper');
+        if (!container) return;
+        
+        // Обработка клика по статус-бейджам
+        container.addEventListener('click', (e) => {
+            // Ищем сам бейдж (клик может быть на span или div)
+            let target = e.target.closest('.status-badge');
+            if (target && target.dataset.id) {
+                const id = parseInt(target.dataset.id);
+                const item = checklistItems.find(i => i.id === id);
+                if (item) {
+                    // Переключаем статус
+                    item.completed = !item.completed;
+                    saveToStorage();
+                    renderChecklist();   // перерисовываем с обновленным состоянием
+                }
+                e.preventDefault();
+                return;
+            }
+        });
+        
+        // Обработка изменения примечаний (input)
+        container.addEventListener('input', (e) => {
+            const input = e.target.closest('.note-input');
+            if (input && input.dataset.id) {
+                const id = parseInt(input.dataset.id);
+                const newNote = input.value;
+                const item = checklistItems.find(i => i.id === id);
+                if (item) {
+                    item.note = newNote;
+                    saveToStorage();
+                    // Не перерисовываем всё, чтобы не сбросить фокус, но нужно обновить внутреннюю модель.
+                    // Однако при перерисовке фокус теряется — плохо. Сделаем "мягкое" обновление без полной перерисовки?
+                    // Чтобы сохранить UX: при вводе не будем перерисовывать всю таблицу, а просто сохраним и обновим модель.
+                    // Но если мы не перерисуем, то статус визуально останется старым — но статус может поменяться только от клика, не от примечания.
+                    // Однако могут быть другие изменения? при изменении примечания статус не меняется — можно просто сохранить.
+                    // Но надо ли обновлять какие-то счетчики? нет. Примечания не влияют на прогресс.
+                    // Единственная сложность: после сохранения, если позже произойдет перерисовка (например, клик на статус), примечания подтянутся из модели.
+                    // Всё корректно. При этом при изменении примечания не надо перерисовывать всю таблицу.
+                    // НО! Пользователь может изменить примечание, а потом нажать сброс или отметить всё, и тогда примечания сотрутся? Да, это правильно.
+                    // Не перерисовывая сейчас, мы избегаем потери фокуса.
+                    // Однако может быть конфликт, если в модели одно, а в инпуте другое? Мы уже обновили модель. Отлично.
+                    // Дополнительно, если примечание меняется через сброс, то будет полная перерисовка, и тогда фокус пропадёт — это допустимо.
+                }
+            }
+        });
+    }
+
+    // Функция отметить все как выполненные
+    function markAllCompleted() {
+        let changed = false;
+        for (let item of checklistItems) {
+            if (!item.completed) {
+                item.completed = true;
+                changed = true;
+            }
+        }
+        if (changed) {
+            saveToStorage();
+            renderChecklist();
+        } else {
+            // Если всё уже выполнено, можно показать лёгкий фидбек (но не обязательно)
+            const progFill = document.getElementById('progressFill');
+            if (progFill) progFill.style.transition = 'none';
+            setTimeout(() => { if(progFill) progFill.style.transition = ''; }, 100);
+        }
+    }
+
+    // Полный сброс: статусы false и очистка примечаний
+    function resetAll() {
+        for (let item of checklistItems) {
+            item.completed = false;
+            item.note = "";
+        }
+        saveToStorage();
+        renderChecklist();
+    }
+
+    // Дополнительная функция для инициализации всех кнопок управления
+    function initControlButtons() {
+        const checkAllBtn = document.getElementById("checkAllBtn");
+        const resetBtn = document.getElementById("resetAllBtn");
+        if (checkAllBtn) {
+            checkAllBtn.addEventListener("click", () => markAllCompleted());
+        }
+        if (resetBtn) {
+            resetBtn.addEventListener("click", () => resetAll());
+        }
+    }
+
+    // Валидация, что в локальном хранилище могут быть старые данные, добавим авто-миграцию
+    function migrateIfNeeded() {
+        // дополнительно проверим, что длина массива в storage совпадает с текущим списком
+        const savedRaw = localStorage.getItem(STORAGE_KEY);
+        if (savedRaw) {
+            try {
+                const parsed = JSON.parse(savedRaw);
+                if (parsed.length !== checklistItems.length) {
+                    // Несоответствие длины - сбрасываем устаревшие данные частично, но лучше пересоздать без потери, если возможно.
+                    // Для безопасности выполним мягкую миграцию: оставим старые completed и note для существующих id
+                    // Но наши пункты имеют жесткий список, мы просто перезапишем модель с сохранением совпадающих индексов.
+                    // Так как порядок пунктов не меняется, можно синхронизировать по индексу.
+                    for (let i = 0; i < Math.min(parsed.length, checklistItems.length); i++) {
+                        if (typeof parsed[i].completed === 'boolean') checklistItems[i].completed = parsed[i].completed;
+                        if (typeof parsed[i].note === 'string') checklistItems[i].note = parsed[i].note;
+                    }
+                    saveToStorage();
+                }
+            } catch(e) {}
+        }
+    }
+
+    // Функция инициализации
+    function init() {
+        loadFromStorage();      // загружаем сохранёнки
+        migrateIfNeeded();      // подстраховка на случай смены версии
+        renderChecklist();      // первая отрисовка
+        setupDelegation();      // глобальная обработка кликов и ввода
+        initControlButtons();   // кнопки "отметить все" и "сброс"
+        // Дополнительно сохраняем любые изменения при закрытии/перед выгрузкой (но save происходит при каждом действии)
+    }
+
+    // Запуск
+    init();
+</script>
+</body>
+</html>
