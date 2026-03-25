@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Интерактивная схема: Алгоритм претензионной работы</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #F5F9FE;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+            line-height: 1.4;
+        }
+
+        .interactive-wrapper {
+            max-width: 1300px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -12px rgba(14, 145, 221, 0.12), 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .scheme-container {
+            padding: 2rem 2rem 2.5rem 2rem;
+            background: #FFFFFF;
+        }
+
+        .interactive-flow {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: stretch;
+            gap: 1rem;
+            position: relative;
+        }
+
+        .flow-step {
+            flex: 1 1 220px;
+            min-width: 200px;
+            background: #FFFFFF;
+            border-radius: 24px;
+            box-shadow: 0 8px 20px rgba(14, 145, 221, 0.08), 0 2px 4px rgba(0, 0, 0, 0.02);
+            transition: all 0.25s ease;
+            cursor: pointer;
+            border: 1px solid #E0EFFA;
+            position: relative;
+            z-index: 2;
+        }
+
+        .flow-step:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 20px 28px -12px rgba(14, 145, 221, 0.25);
+            border-color: #AFD6F3;
+        }
+
+        .flow-step.active {
+            border-left: 5px solid #0E91DD;
+            border-top-left-radius: 20px;
+            border-bottom-left-radius: 20px;
+            background: #FBFEFF;
+            box-shadow: 0 16px 28px -12px rgba(14, 145, 221, 0.3);
+        }
+
+        .step-card {
+            padding: 1.5rem 1.2rem 1.2rem 1.2rem;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: #E0EFFA;
+            color: #0E91DD;
+            font-weight: 700;
+            font-size: 1.1rem;
+            border-radius: 40px;
+            margin-bottom: 1rem;
+            transition: 0.2s;
+        }
+
+        .flow-step.active .step-number {
+            background: #0E91DD;
+            color: white;
+            box-shadow: 0 4px 8px rgba(14, 145, 221, 0.3);
+        }
+
+        .step-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #0E2A3B;
+            margin-bottom: 0.6rem;
+            line-height: 1.3;
+        }
+
+        .step-badge {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            color: #0E91DD;
+            background: #EAF5FE;
+            display: inline-block;
+            padding: 0.2rem 0.7rem;
+            border-radius: 30px;
+            margin-bottom: 0.9rem;
+            width: fit-content;
+        }
+
+        .step-preview {
+            font-size: 0.9rem;
+            color: #4A627A;
+            margin-bottom: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .step-details {
+            max-height: 0;
+            overflow-y: auto;
+            transition: max-height 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            background: #F9FDFF;
+            border-radius: 16px;
+            margin-top: 0.5rem;
+            font-size: 0.85rem;
+            color: #1F4E6E;
+            border-top: 1px solid transparent;
+        }
+
+        .flow-step.active .step-details {
+            max-height: 280px;
+            border-top-color: #AFD6F3;
+            margin-top: 0.75rem;
+            padding: 0.85rem 0.7rem 0.5rem 0.7rem;
+        }
+
+        .compact-list {
+            list-style: none;
+            padding-left: 0;
+            margin: 0.2rem 0;
+        }
+        .compact-list li {
+            margin-bottom: 0.7rem;
+            padding-left: 1.2rem;
+            position: relative;
+            line-height: 1.35;
+        }
+        .compact-list li::before {
+            content: "•";
+            color: #0E91DD;
+            font-weight: bold;
+            position: absolute;
+            left: 0.2rem;
+        }
+
+        .warning-note {
+            font-size: 0.7rem;
+            color: #E67E22;
+            background: #FEF5E8;
+            border-radius: 12px;
+            padding: 0.3rem 0.6rem;
+            margin-top: 0.6rem;
+            display: inline-block;
+            line-height: 1.3;
+        }
+
+        .flow-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            color: #71B5EA;
+            font-weight: 300;
+            opacity: 0.7;
+            width: 32px;
+            flex-shrink: 0;
+        }
+
+        .interactive-hint {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: #5D7F9E;
+            background: #F0F7FD;
+            display: inline-block;
+            width: auto;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+        }
+
+        .reset-button {
+            background: none;
+            border: 1px solid #AFD6F3;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            color: #0E91DD;
+            font-size: 0.7rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .reset-button:hover {
+            background: #E0EFFA;
+        }
+        .scheme-header-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 880px) {
+            .interactive-flow {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .flow-arrow {
+                display: none;
+            }
+            .scheme-container {
+                padding: 1.5rem;
+            }
+            .step-title {
+                font-size: 1.2rem;
+            }
+            .flow-step.active .step-details {
+                max-height: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="interactive-wrapper">
+    <div class="scheme-container">
+        <div class="scheme-header-actions">
+            <button class="reset-button" id="resetStepsBtn" aria-label="Сбросить выделение">Сбросить выбор этапа</button>
+        </div>
+        <div class="interactive-flow" id="flowContainer">
+            <!-- КАРТОЧКА 1: Внутренний анализ — только заголовки-буллиты -->
+            <div class="flow-step" data-step="1">
+                <div class="step-card">
+                    <div class="step-number">01</div>
+                    <div class="step-title">Внутренний анализ</div>
+                    <div class="step-badge">Инициация</div>
+                    <div class="step-preview">Решение о начале претензионной работы — за руководителем медорганизации.</div>
+                    <div class="step-details">
+                        <ul class="compact-list">
+                            <li><strong>Проверьте заключение</strong></li>
+                            <li><strong>Проверьте правила вручения</strong></li>
+                            <li><strong>Проведите разбор заключения</strong></li>
+                        </ul>
+                        <div class="warning-note">⚠️ Пропуск срока подготовки и отсутствие внутреннего анализа — риск утраты права на досудебное обжалование.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="flow-arrow">→</div>
+
+            <!-- КАРТОЧКА 2: Протокол разногласий в СМО — без "Возможные исходы" -->
+            <div class="flow-step" data-step="2">
+                <div class="step-card">
+                    <div class="step-number">02</div>
+                    <div class="step-title">Протокол разногласий в СМО</div>
+                    <div class="step-badge">Досудебное урегулирование</div>
+                    <div class="step-preview">Формирование мотивированного несогласия с выставленными нарушениями.</div>
+                    <div class="step-details">
+                        <ul class="compact-list">
+                            <li><strong>Оформление протокола</strong></li>
+                            <li><strong>Срок направления</strong> — 10 рабочих дней</li>
+                            <li><strong>Рассмотрение СМО</strong> — 10 рабочих дней</li>
+                        </ul>
+                        <div class="warning-note">📌 Без протокола разногласий с соблюдением сроков дальнейшее обжалование в ТФОМС невозможно.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="flow-arrow">→</div>
+
+            <!-- КАРТОЧКА 3: Претензия в ТФОМС — без "Исполнение решения" -->
+            <div class="flow-step" data-step="3">
+                <div class="step-card">
+                    <div class="step-number">03</div>
+                    <div class="step-title">Претензия в ТФОМС</div>
+                    <div class="step-badge">Вышестоящий уровень</div>
+                    <div class="step-preview">Обжалование заключения СМО в территориальном фонде ОМС.</div>
+                    <div class="step-details">
+                        <ul class="compact-list">
+                            <li><strong>Составить претензию</strong></li>
+                            <li><strong>Приложить необходимые документы</strong></li>
+                            <li><strong>Направить в ТФОМС</strong> — срок 15 рабочих дней</li>
+                            <li><strong>Рассмотрение</strong> — 30 рабочих дней</li>
+                        </ul>
+                        <div class="warning-note">🔁 Решение ТФОМС является обязательным для страховой компании.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="flow-arrow">→</div>
+
+            <!-- КАРТОЧКА 4: Судебное решение — без "Когда обращаться", "Доказательная база", "Исковые требования" -->
+            <div class="flow-step" data-step="4">
+                <div class="step-card">
+                    <div class="step-number">04</div>
+                    <div class="step-title">Судебное решение</div>
+                    <div class="step-badge">Защита в арбитраже</div>
+                    <div class="step-preview">Решение о подаче заявления в суд остается за руководителем медорганизации.</div>
+                    <div class="step-details">
+                        <ul class="compact-list">
+                            <li><strong>Обязательное условие</strong> — полное прохождение досудебных процедур</li>
+                        </ul>
+                        <div class="warning-note">⚡️ Судебное обжалование — завершающий этап. Пропуск досудебного порядка влечет оставление иска без рассмотрения.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-top: 1.2rem;">
+            <div class="interactive-hint">
+                💡 <strong>Интерактивная схема:</strong> кликните по любому блоку → краткая структура этапа. Подробности — в тексте рекомендации.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const steps = document.querySelectorAll('.flow-step');
+    const resetBtn = document.getElementById('resetStepsBtn');
+    
+    function activateStep(stepElement) {
+        steps.forEach(step => {
+            step.classList.remove('active');
+        });
+        stepElement.classList.add('active');
+        if (window.innerWidth <= 880) {
+            stepElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+    
+    function resetActive() {
+        steps.forEach(step => {
+            step.classList.remove('active');
+        });
+        const hintDiv = document.querySelector('.interactive-hint');
+        if (hintDiv) {
+            hintDiv.style.transition = '0.2s';
+            hintDiv.style.backgroundColor = '#E0F0FA';
+            setTimeout(() => {
+                hintDiv.style.backgroundColor = '#F0F7FD';
+            }, 300);
+        }
+    }
+    
+    steps.forEach(step => {
+        step.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (step.classList.contains('active')) {
+                step.classList.remove('active');
+            } else {
+                activateStep(step);
+            }
+        });
+        
+        step.setAttribute('tabindex', '0');
+        step.setAttribute('role', 'button');
+        const titleEl = step.querySelector('.step-title');
+        step.setAttribute('aria-label', `Этап ${step.getAttribute('data-step')}: ${titleEl ? titleEl.innerText : 'этап алгоритма'}. Нажмите для просмотра структуры этапа`);
+        step.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                if (step.classList.contains('active')) {
+                    step.classList.remove('active');
+                } else {
+                    activateStep(step);
+                }
+            }
+        });
+    });
+    
+    resetBtn.addEventListener('click', () => {
+        resetActive();
+    });
+    
+    setTimeout(() => {
+        const firstStep = document.querySelector('.flow-step');
+        if (firstStep && !firstStep.classList.contains('active')) {
+            firstStep.style.transition = 'box-shadow 0.2s';
+            firstStep.style.boxShadow = '0 0 0 2px #71B5EA, 0 8px 20px rgba(14,145,221,0.2)';
+            setTimeout(() => {
+                firstStep.style.boxShadow = '';
+            }, 800);
+        }
+    }, 500);
+</script>
+</body>
+</html>
