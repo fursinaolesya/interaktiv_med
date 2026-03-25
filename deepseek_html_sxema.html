@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Интерактивная схема: Разбор экспертного заключения</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #F5F9FE;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem 1rem;
+            line-height: 1.4;
+        }
+
+        .interactive-wrapper {
+            max-width: 900px;
+            width: 100%;
+            background: #ffffff;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -12px rgba(14, 145, 221, 0.12), 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .scheme-container {
+            padding: 2rem 2rem 2.5rem 2rem;
+            background: #FFFFFF;
+        }
+
+        /* Вертикальное расположение карточек */
+        .steps-vertical {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0;
+        }
+
+        /* Горизонтальная карточка (ширина больше высоты) */
+        .horizontal-card {
+            width: 100%;
+            background: #FFFFFF;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(14, 145, 221, 0.08), 0 2px 4px rgba(0, 0, 0, 0.02);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 1px solid #E0EFFA;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .horizontal-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px -12px rgba(14, 145, 221, 0.2);
+            border-color: #AFD6F3;
+        }
+
+        .horizontal-card.active {
+            border-left: 5px solid #0E91DD;
+            background: #FBFEFF;
+            box-shadow: 0 12px 24px -12px rgba(14, 145, 221, 0.25);
+        }
+
+        .card-inner {
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1.2rem 1.5rem;
+        }
+
+        .card-icon {
+            width: 52px;
+            height: 52px;
+            background: #E0EFFA;
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #0E91DD;
+            flex-shrink: 0;
+        }
+
+        .horizontal-card.active .card-icon {
+            background: #0E91DD;
+            color: white;
+        }
+
+        .card-info {
+            flex: 1;
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #0E2A3B;
+            margin-bottom: 0.3rem;
+        }
+
+        .card-badge {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            color: #0E91DD;
+            background: #EAF5FE;
+            display: inline-block;
+            padding: 0.15rem 0.6rem;
+            border-radius: 30px;
+            margin-bottom: 0.6rem;
+        }
+
+        /* Вертикальный список для всех карточек */
+        .action-list-vertical {
+            list-style: none;
+            padding-left: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .action-list-vertical li {
+            font-size: 0.85rem;
+            color: #2C4B66;
+            line-height: 1.4;
+            padding-left: 1.2rem;
+            position: relative;
+        }
+        .action-list-vertical li::before {
+            content: "✓";
+            color: #0E91DD;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+            top: 0;
+            font-size: 0.8rem;
+        }
+
+        /* Стрелка вниз */
+        .down-arrow {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0.5rem 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .down-arrow:hover {
+            transform: translateY(3px);
+        }
+        .down-arrow svg {
+            width: 32px;
+            height: 32px;
+            stroke: #71B5EA;
+            stroke-width: 2;
+            fill: none;
+        }
+        .down-arrow:hover svg {
+            stroke: #0E91DD;
+        }
+
+        /* Скрытые карточки */
+        .hidden-card {
+            display: none;
+            width: 100%;
+            margin-top: 0;
+        }
+
+        /* Подсказка */
+        .interactive-hint {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: #5D7F9E;
+            background: #F0F7FD;
+            display: inline-block;
+            width: auto;
+            padding: 0.4rem 1.2rem;
+            border-radius: 40px;
+        }
+
+        .reset-button {
+            background: none;
+            border: 1px solid #AFD6F3;
+            padding: 0.3rem 1rem;
+            border-radius: 30px;
+            color: #0E91DD;
+            font-size: 0.7rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: inherit;
+        }
+        .reset-button:hover {
+            background: #E0EFFA;
+        }
+        .scheme-header-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 650px) {
+            .card-inner {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            .action-list-vertical li {
+                text-align: left;
+            }
+            .scheme-container {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="interactive-wrapper">
+    <div class="scheme-container">
+        <div class="scheme-header-actions">
+            <button class="reset-button" id="resetStepsBtn" aria-label="Сбросить выделение">Сбросить выбор</button>
+        </div>
+
+        <div class="steps-vertical" id="stepsContainer">
+            <!-- Карточка 1: Лечащий врач -->
+            <div class="horizontal-card" id="card1">
+                <div class="card-inner">
+                    <div class="card-icon">👨‍⚕️</div>
+                    <div class="card-info">
+                        <div class="card-title">Лечащий врач</div>
+                        <div class="card-badge">Первичный анализ</div>
+                        <ul class="action-list-vertical">
+                            <li>Оценка наличия обоснования выявленных экспертом нарушений</li>
+                            <li>Анализ соответствия нарушений требованиям порядков оказания медпомощи, клинических рекомендаций с учетом стандартов медпомощи</li>
+                            <li>Обоснование решения</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Стрелка 1 (вниз) -->
+            <div class="down-arrow" id="arrow1">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+
+            <!-- Карточка 2: Заведующий отделением (скрыта) -->
+            <div class="horizontal-card hidden-card" id="card2">
+                <div class="card-inner">
+                    <div class="card-icon">🏥</div>
+                    <div class="card-info">
+                        <div class="card-title">Заведующий отделением</div>
+                        <div class="card-badge">Коллегиальная оценка</div>
+                        <ul class="action-list-vertical">
+                            <li>Совместный разбор спорных случаев с лечащим врачом</li>
+                            <li>Проверка обоснованности выводов эксперта</li>
+                            <li>Формирование предварительной позиции отделения</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- Стрелка 2 (вниз, скрыта) -->
+            <div class="down-arrow hidden-card" id="arrow2">
+                <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
+
+            <!-- Карточка 3: Заместитель главного врача (скрыта) -->
+            <div class="horizontal-card hidden-card" id="card3">
+                <div class="card-inner">
+                    <div class="card-icon">📋</div>
+                    <div class="card-info">
+                        <div class="card-title">Заместитель главного врача</div>
+                        <div class="card-badge">Оформление позиции</div>
+                        <ul class="action-list-vertical">
+                            <li>Обоснование причин расхождения</li>
+                            <li>Составление и подача протокола разногласий</li>
+                            <li>Контроль претензионной работы</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: center; margin-top: 2rem;">
+            <div class="interactive-hint">
+                💡 <strong>Интерактивная схема:</strong> кликните на карточку или стрелку, чтобы раскрыть следующий этап разбора заключения
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const card1 = document.getElementById('card1');
+    const card2 = document.getElementById('card2');
+    const card3 = document.getElementById('card3');
+    const arrow1 = document.getElementById('arrow1');
+    const arrow2 = document.getElementById('arrow2');
+    const resetBtn = document.getElementById('resetStepsBtn');
+
+    let currentStep = 1; // 1, 2 или 3
+
+    // Функция сброса к начальному состоянию
+    function resetToInitial() {
+        // Скрываем карточки 2 и 3 и стрелки
+        card2.classList.add('hidden-card');
+        arrow2.classList.add('hidden-card');
+        card3.classList.add('hidden-card');
+        
+        // Показываем первую стрелку
+        arrow1.classList.remove('hidden-card');
+        
+        // Убираем активные классы
+        card1.classList.remove('active');
+        card2.classList.remove('active');
+        card3.classList.remove('active');
+        
+        currentStep = 1;
+        
+        // Анимация подсказки
+        const hintDiv = document.querySelector('.interactive-hint');
+        if (hintDiv) {
+            hintDiv.style.transition = '0.2s';
+            hintDiv.style.backgroundColor = '#E0F0FA';
+            setTimeout(() => {
+                hintDiv.style.backgroundColor = '#F0F7FD';
+            }, 300);
+        }
+    }
+
+    // Функция раскрытия карточки 2
+    function showStep2() {
+        card2.classList.remove('hidden-card');
+        arrow1.classList.add('hidden-card'); // скрываем первую стрелку после раскрытия
+        arrow2.classList.remove('hidden-card'); // показываем вторую стрелку
+        card1.classList.add('active');
+        card2.classList.remove('active');
+        currentStep = 2;
+        
+        // Плавный скролл к карточке 2
+        setTimeout(() => {
+            card2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+    }
+
+    // Функция раскрытия карточки 3
+    function showStep3() {
+        card3.classList.remove('hidden-card');
+        arrow2.classList.add('hidden-card'); // скрываем вторую стрелку
+        card2.classList.add('active');
+        card3.classList.remove('active');
+        currentStep = 3;
+        
+        setTimeout(() => {
+            card3.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+    }
+
+    // Обработчик клика на карточку 1
+    card1.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentStep === 1) {
+            showStep2();
+        } else if (currentStep === 2) {
+            resetToInitial();
+        } else if (currentStep === 3) {
+            resetToInitial();
+        }
+    });
+
+    // Обработчик клика на стрелку 1
+    arrow1.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentStep === 1) {
+            showStep2();
+        }
+    });
+
+    // Обработчик клика на карточку 2
+    card2.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentStep === 2) {
+            showStep3();
+        } else if (currentStep === 3) {
+            resetToInitial();
+        }
+    });
+
+    // Обработчик клика на стрелку 2
+    arrow2.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentStep === 2) {
+            showStep3();
+        }
+    });
+
+    // Обработчик клика на карточку 3 (сброс)
+    card3.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentStep === 3) {
+            resetToInitial();
+        }
+    });
+
+    // Кнопка сброса
+    resetBtn.addEventListener('click', () => {
+        resetToInitial();
+    });
+
+    // Доступность: клавиатурная навигация
+    const interactiveElements = [card1, arrow1, card2, arrow2, card3];
+    interactiveElements.forEach(el => {
+        if (el) {
+            el.setAttribute('tabindex', '0');
+            el.setAttribute('role', 'button');
+            el.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    el.click();
+                }
+            });
+        }
+    });
+
+    // Легкая анимация при загрузке
+    setTimeout(() => {
+        if (card1 && !card1.classList.contains('active')) {
+            card1.style.transition = 'box-shadow 0.2s';
+            card1.style.boxShadow = '0 0 0 2px #71B5EA, 0 8px 20px rgba(14,145,221,0.2)';
+            setTimeout(() => {
+                card1.style.boxShadow = '';
+            }, 800);
+        }
+    }, 500);
+</script>
+</body>
+</html>
