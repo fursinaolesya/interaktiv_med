@@ -115,6 +115,14 @@
             color: #0f4c71;
             min-width: 100px;
         }
+        .summary-row {
+            background-color: #e8f0fe;
+            font-weight: 600;
+        }
+        .summary-row td {
+            background-color: #e8f0fe;
+            font-weight: 600;
+        }
         .button-group {
             display: flex;
             flex-wrap: wrap;
@@ -146,6 +154,24 @@
             background: #e7f0f8;
             transform: none;
         }
+        .btn-add {
+            background: #2c7d4e;
+        }
+        .btn-add:hover {
+            background: #1e5e3a;
+        }
+        .btn-delete {
+            background: #c62828;
+            padding: 4px 10px;
+            font-size: 0.7rem;
+        }
+        .btn-delete:hover {
+            background: #b71c1c;
+        }
+        .delete-cell {
+            text-align: center;
+            white-space: nowrap;
+        }
         .info-note {
             background: #f0f7ff;
             border-radius: 14px;
@@ -162,6 +188,10 @@
         }
         .file-input-hidden {
             display: none;
+        }
+        .advance-input {
+            background: #fff8e0;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -186,6 +216,7 @@
                             <th>Условно принятые (прошлые), руб</th>
                             <th>Резерв выполнения, руб</th>
                             <th>% выполнения</th>
+                            <th></th>
                         </tr>
                         <tr class="subheader-row">
                             <th>1</th>
@@ -198,48 +229,132 @@
                             <th>8</th>
                             <th>9</th>
                             <th>10</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
+                    <tfoot id="tableFooter"></tfoot>
                 </table>
             </div>
         </div>
         
         <div class="button-group">
+            <button id="addRowBtn" class="btn-add">➕ Добавить строку</button>
             <button id="importBtn" class="btn-outline">📂 Импорт из Excel</button>
             <button id="exportBtn">📎 Экспорт в Excel</button>
             <button id="refreshCalcBtn">🔄 Пересчитать</button>
         </div>
         <input type="file" id="fileInput" accept=".xlsx, .xls" class="file-input-hidden">
         <div class="info-note">
-            💡 <strong>Как использовать:</strong> заполните/отредактируйте таблицу → нажмите «Пересчитать» для обновления расчётов → экспортируйте Excel. 
-            Полученный файл загрузите в дашборд для визуализации и аналитики.
+            💡 <strong>Как использовать:</strong> заполните/отредактируйте таблицу → нажмите «Пересчитать» для обновления расчётов → экспортируйте Excel.<br>
+            ➕ Кнопка «Добавить строку» позволяет добавить новый вид помощи. 🗑️ Кнопка удаления позволяет удалить строку.<br>
+            📌 Внизу таблицы отображаются итоговые показатели: Доход за месяц, Аванс (редактируется), Осталось получить за месяц.
         </div>
     </div>
     <footer>Редактор данных. Все показатели (средний тариф, резерв выполнения, % выполнения) рассчитываются автоматически.</footer>
 </div>
 
 <script>
-    // Базовый пример из методички с пустыми условно принятыми для строк 3, 7, 8, 9 (индексы 2, 6, 7, 8)
+    // Базовый пример из методички
     const defaultRows = [
         { name: "Круглосуточный стационар", quantity: 815, sumFact: 28111746.96, planMonth: 24364482.60, sumAccepted: 24364482.60, conditionalPrev: 3747264.36 },
         { name: "Круглосуточный стационар ВМП", quantity: 50, sumFact: 8690037.86, planMonth: 11458812.16, sumAccepted: 8690037.86, conditionalPrev: 348753.50 },
-        { name: "Дневной стационар", quantity: 290, sumFact: 3775824.40, planMonth: 4077500.00, sumAccepted: 3775824.40, conditionalPrev: 0 }, // пусто
+        { name: "Дневной стационар", quantity: 290, sumFact: 3775824.40, planMonth: 4077500.00, sumAccepted: 3775824.40, conditionalPrev: 0 },
         { name: "Неотложная помощь", quantity: 3237, sumFact: 2338994.72, planMonth: 2570000.00, sumAccepted: 2338994.72, conditionalPrev: 168994.62 },
         { name: "Диагностические услуги УЗИ", quantity: 1060, sumFact: 792347.43, planMonth: 786091.67, sumAccepted: 786091.67, conditionalPrev: 6255.76 },
         { name: "Диагностические услуги КТ", quantity: 596, sumFact: 795269.74, planMonth: 697526.67, sumAccepted: 697526.67, conditionalPrev: 97743.07 },
-        { name: "Диагностические услуги МРТ", quantity: 323, sumFact: 531450.76, planMonth: 1044333.46, sumAccepted: 531450.76, conditionalPrev: 0 }, // пусто
-        { name: "Диагностические услуги эндоскопия", quantity: 734, sumFact: 1069118.94, planMonth: 1310000.48, sumAccepted: 1069118.94, conditionalPrev: 0 }, // пусто
-        { name: "АПП прикреплённое население", quantity: 11915, sumFact: 12584816.86, planMonth: 12621708.00, sumAccepted: 12621708.00, conditionalPrev: 0 }, // пусто
+        { name: "Диагностические услуги МРТ", quantity: 323, sumFact: 531450.76, planMonth: 1044333.46, sumAccepted: 531450.76, conditionalPrev: 0 },
+        { name: "Диагностические услуги эндоскопия", quantity: 734, sumFact: 1069118.94, planMonth: 1310000.48, sumAccepted: 1069118.94, conditionalPrev: 0 },
+        { name: "АПП прикреплённое население", quantity: 11915, sumFact: 12584816.86, planMonth: 12621708.00, sumAccepted: 12621708.00, conditionalPrev: 0 },
         { name: "Углубленная диспансеризация", quantity: 507, sumFact: 657092.28, planMonth: 653399.75, sumAccepted: 653399.75, conditionalPrev: 3692.53 }
     ];
 
     let currentData = JSON.parse(JSON.stringify(defaultRows));
+    let advanceAmount = 28700000; // аванс по умолчанию
+    
     const tbody = document.getElementById('tableBody');
+    const tfoot = document.getElementById('tableFooter');
     const importBtn = document.getElementById('importBtn');
     const exportBtn = document.getElementById('exportBtn');
     const refreshBtn = document.getElementById('refreshCalcBtn');
+    const addRowBtn = document.getElementById('addRowBtn');
     const fileInput = document.getElementById('fileInput');
+
+    // Функция добавления новой строки
+    function addNewRow() {
+        const newRow = {
+            name: "Новый вид помощи",
+            quantity: 0,
+            sumFact: 0,
+            planMonth: 0,
+            sumAccepted: 0,
+            conditionalPrev: 0
+        };
+        currentData.push(newRow);
+        renderTable();
+        setTimeout(() => {
+            const tableWrapper = document.querySelector('.table-wrapper');
+            if (tableWrapper) {
+                tableWrapper.scrollTop = tableWrapper.scrollHeight;
+            }
+        }, 100);
+    }
+
+    // Функция удаления строки
+    function deleteRow(index) {
+        if (currentData.length === 1) {
+            alert("Нельзя удалить единственную строку. Добавьте новую строку перед удалением.");
+            return;
+        }
+        if (confirm(`Удалить строку "${currentData[index].name}"?`)) {
+            currentData.splice(index, 1);
+            renderTable();
+        }
+    }
+    
+    // Расчёт итоговых сумм
+    function calculateTotals() {
+        const totalAccepted = currentData.reduce((sum, row) => sum + (row.sumAccepted || 0), 0);
+        const remainingToReceive = totalAccepted - advanceAmount;
+        return { totalAccepted, remainingToReceive };
+    }
+    
+    // Обновление footer с итогами
+    function updateFooter() {
+        const { totalAccepted, remainingToReceive } = calculateTotals();
+        const footerHtml = `
+            <tr class="summary-row">
+                <td colspan="6" style="text-align: right; font-weight: 700;">📊 ИТОГО:</td>
+                <td style="font-weight: 700; background: #e8f0fe;">${totalAccepted.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽</td>
+                <td colspan="3"></td>
+                <td></td>
+            </tr>
+            <tr class="summary-row">
+                <td colspan="6" style="text-align: right; font-weight: 700;">💰 Аванс (заявка на авансирование):</td>
+                <td style="background: #fff8e0;">
+                    <input type="number" id="advanceInput" value="${advanceAmount}" step="0.01" style="background: #fff8e0; font-weight: 600; min-width: 140px;">
+                </td>
+                <td colspan="3"></td>
+                <td></td>
+            </tr>
+            <tr class="summary-row">
+                <td colspan="6" style="text-align: right; font-weight: 700;">💵 Осталось получить за месяц:</td>
+                <td style="font-weight: 700; background: #e8f0fe; ${remainingToReceive < 0 ? 'color: #c62828;' : 'color: #2c7d4e;'}">${remainingToReceive.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽</td>
+                <td colspan="3"></td>
+                <td></td>
+            </tr>
+        `;
+        tfoot.innerHTML = footerHtml;
+        
+        // Добавляем обработчик для поля аванса
+        const advanceInput = document.getElementById('advanceInput');
+        if (advanceInput) {
+            advanceInput.addEventListener('change', (e) => {
+                advanceAmount = parseFloat(e.target.value) || 0;
+                updateFooter();
+            });
+        }
+    }
 
     function renderTable() {
         tbody.innerHTML = '';
@@ -253,20 +368,24 @@
             tdNum.style.fontWeight = '500';
             tr.appendChild(tdNum);
             
-            // 2. Вид помощи
+            // 2. Вид помощи (редактируемый)
             const tdName = document.createElement('td');
-            tdName.innerText = row.name;
-            tdName.style.textAlign = 'left';
+            const inpName = document.createElement('input');
+            inpName.type = 'text';
+            inpName.value = row.name;
+            inpName.style.textAlign = 'left';
+            inpName.addEventListener('change', (e) => { currentData[idx].name = e.target.value || "Новый вид помощи"; });
+            tdName.appendChild(inpName);
             tr.appendChild(tdName);
             
-            // 3. Кол-во (input)
+            // 3. Кол-во
             const tdQty = document.createElement('td');
             const inpQty = document.createElement('input');
             inpQty.type = 'number'; inpQty.value = row.quantity; inpQty.step = '1';
             inpQty.addEventListener('change', (e) => { currentData[idx].quantity = parseFloat(e.target.value) || 0; });
             tdQty.appendChild(inpQty); tr.appendChild(tdQty);
             
-            // 4. Сумма факт (input)
+            // 4. Сумма факт
             const tdSum = document.createElement('td');
             const inpSum = document.createElement('input');
             inpSum.type = 'number'; inpSum.value = row.sumFact; inpSum.step = '0.01';
@@ -278,21 +397,21 @@
             const spanAvg = document.createElement('div'); spanAvg.className = 'readonly-cell';
             tdAvg.appendChild(spanAvg); tr.appendChild(tdAvg);
             
-            // 6. План на месяц (input)
+            // 6. План на месяц
             const tdPlan = document.createElement('td');
             const inpPlan = document.createElement('input');
             inpPlan.type = 'number'; inpPlan.value = row.planMonth; inpPlan.step = '0.01';
             inpPlan.addEventListener('change', (e) => { currentData[idx].planMonth = parseFloat(e.target.value) || 0; });
             tdPlan.appendChild(inpPlan); tr.appendChild(tdPlan);
             
-            // 7. Сумма принятая (input)
+            // 7. Сумма принятая
             const tdAccepted = document.createElement('td');
             const inpAccepted = document.createElement('input');
             inpAccepted.type = 'number'; inpAccepted.value = row.sumAccepted; inpAccepted.step = '0.01';
             inpAccepted.addEventListener('change', (e) => { currentData[idx].sumAccepted = parseFloat(e.target.value) || 0; });
             tdAccepted.appendChild(inpAccepted); tr.appendChild(tdAccepted);
             
-            // 8. Условно принятые (input)
+            // 8. Условно принятые
             const tdCond = document.createElement('td');
             const inpCond = document.createElement('input');
             inpCond.type = 'number'; inpCond.value = row.conditionalPrev; inpCond.step = '0.01';
@@ -309,11 +428,24 @@
             const spanPerc = document.createElement('div'); spanPerc.className = 'readonly-cell';
             tdPerc.appendChild(spanPerc); tr.appendChild(tdPerc);
             
+            // 11. Кнопка удаления
+            const tdDelete = document.createElement('td');
+            tdDelete.className = 'delete-cell';
+            const deleteBtn = document.createElement('button');
+            deleteBtn.innerText = '🗑️';
+            deleteBtn.className = 'btn-delete';
+            deleteBtn.style.padding = '4px 10px';
+            deleteBtn.style.fontSize = '0.7rem';
+            deleteBtn.onclick = () => deleteRow(idx);
+            tdDelete.appendChild(deleteBtn);
+            tr.appendChild(tdDelete);
+            
             tr.setAttribute('data-idx', idx);
             tbody.appendChild(tr);
             row._refs = { spanAvg, spanRes, spanPerc };
         });
         updateCalculations();
+        updateFooter();
     }
     
     function updateCalculations() {
@@ -334,6 +466,7 @@
     }
     
     function exportToExcel() {
+        const { totalAccepted, remainingToReceive } = calculateTotals();
         const wsData = [["№ п/п", "Вид помощи", "Кол-во", "Сумма факт", "Средний тариф", "План на месяц", "Сумма принятая", "Условно принятые", "Резерв выполнения", "% выполнения"]];
         currentData.forEach((row, idx) => {
             const qty = row.quantity;
@@ -356,6 +489,12 @@
                 percent.toFixed(2) + "%"
             ]);
         });
+        // Добавляем итоговые строки
+        wsData.push([]);
+        wsData.push(["ИТОГО:", "", "", "", "", "", totalAccepted.toFixed(2), "", "", ""]);
+        wsData.push(["Аванс:", "", "", "", "", "", advanceAmount.toFixed(2), "", "", ""]);
+        wsData.push(["Осталось получить:", "", "", "", "", "", remainingToReceive.toFixed(2), "", "", ""]);
+        
         const ws = XLSX.utils.aoa_to_sheet(wsData);
         const colWidths = [{wch:6},{wch:35},{wch:12},{wch:18},{wch:14},{wch:18},{wch:18},{wch:18},{wch:16},{wch:12}];
         ws['!cols'] = colWidths;
@@ -384,6 +523,9 @@
             for (let i = 1; i < rows.length; i++) {
                 const r = rows[i];
                 if (!r[idxName] || String(r[idxName]).trim() === "") continue;
+                // Проверяем, не является ли строка итоговой (содержит "ИТОГО" или "Аванс")
+                const nameStr = String(r[idxName]).toLowerCase();
+                if (nameStr.includes("итого") || nameStr.includes("аванс") || nameStr.includes("осталось")) continue;
                 newData.push({
                     name: String(r[idxName]).trim(),
                     quantity: parseFloat(r[idxQty]) || 0,
@@ -399,6 +541,7 @@
         reader.readAsArrayBuffer(file);
     }
     
+    addRowBtn.addEventListener('click', addNewRow);
     importBtn.addEventListener('click', () => fileInput.click());
     fileInput.addEventListener('change', (e) => { if(e.target.files[0]) importFromExcel(e.target.files[0]); fileInput.value = ''; });
     exportBtn.addEventListener('click', exportToExcel);
@@ -406,15 +549,17 @@
         const rowsDom = document.querySelectorAll('#tableBody tr');
         rowsDom.forEach((tr, idx) => {
             const inputs = tr.querySelectorAll('input');
-            if(inputs.length >= 5) {
-                currentData[idx].quantity = parseFloat(inputs[0].value) || 0;
-                currentData[idx].sumFact = parseFloat(inputs[1].value) || 0;
-                currentData[idx].planMonth = parseFloat(inputs[2].value) || 0;
-                currentData[idx].sumAccepted = parseFloat(inputs[3].value) || 0;
-                currentData[idx].conditionalPrev = parseFloat(inputs[4].value) || 0;
+            if(inputs.length >= 6) {
+                currentData[idx].name = inputs[0].value;
+                currentData[idx].quantity = parseFloat(inputs[1].value) || 0;
+                currentData[idx].sumFact = parseFloat(inputs[2].value) || 0;
+                currentData[idx].planMonth = parseFloat(inputs[3].value) || 0;
+                currentData[idx].sumAccepted = parseFloat(inputs[4].value) || 0;
+                currentData[idx].conditionalPrev = parseFloat(inputs[5].value) || 0;
             }
         });
         updateCalculations();
+        updateFooter();
     });
     
     renderTable();
