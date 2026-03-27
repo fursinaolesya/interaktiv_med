@@ -44,7 +44,7 @@
             overflow: hidden;
         }
         .table-wrapper {
-            max-height: 550px;
+            max-height: 600px;
             overflow-y: auto;
             overflow-x: auto;
         }
@@ -60,6 +60,7 @@
             text-align: right;
             vertical-align: middle;
         }
+        /* Закрепляем первые две колонки */
         th:first-child, td:first-child {
             text-align: center;
             background-color: #fafdff;
@@ -67,7 +68,7 @@
             left: 0;
             background: white;
             font-weight: 500;
-            z-index: 1;
+            z-index: 2;
             min-width: 60px;
         }
         th:nth-child(2), td:nth-child(2) {
@@ -76,7 +77,7 @@
             position: sticky;
             left: 60px;
             background: white;
-            z-index: 1;
+            z-index: 2;
         }
         th {
             background-color: #eef3fc;
@@ -84,7 +85,7 @@
             color: #1e3a5f;
             position: sticky;
             top: 0;
-            z-index: 2;
+            z-index: 3;
         }
         .subheader-row th {
             background-color: #e2ecf5;
@@ -94,7 +95,7 @@
             text-align: center;
             position: sticky;
             top: 42px;
-            z-index: 2;
+            z-index: 3;
         }
         input {
             width: 100%;
@@ -122,6 +123,25 @@
         .summary-row td {
             background-color: #e8f0fe;
             font-weight: 600;
+        }
+        .summary-label {
+            text-align: left;
+            font-weight: 700;
+            background-color: #f0f7ff;
+        }
+        .advance-input {
+            background: #fff8e0;
+            font-weight: 600;
+            width: 100%;
+            text-align: right;
+        }
+        .remaining-positive {
+            color: #2c7d4e;
+            font-weight: 700;
+        }
+        .remaining-negative {
+            color: #c62828;
+            font-weight: 700;
         }
         .button-group {
             display: flex;
@@ -189,10 +209,6 @@
         .file-input-hidden {
             display: none;
         }
-        .advance-input {
-            background: #fff8e0;
-            font-weight: 600;
-        }
     </style>
 </head>
 <body>
@@ -233,7 +249,6 @@
                         </tr>
                     </thead>
                     <tbody id="tableBody"></tbody>
-                    <tfoot id="tableFooter"></tfoot>
                 </table>
             </div>
         </div>
@@ -248,7 +263,7 @@
         <div class="info-note">
             💡 <strong>Как использовать:</strong> заполните/отредактируйте таблицу → нажмите «Пересчитать» для обновления расчётов → экспортируйте Excel.<br>
             ➕ Кнопка «Добавить строку» позволяет добавить новый вид помощи. 🗑️ Кнопка удаления позволяет удалить строку.<br>
-            📌 Внизу таблицы отображаются итоговые показатели: Доход за месяц, Аванс (редактируется), Осталось получить за месяц.
+            📌 Внизу таблицы (во втором закреплённом столбце) отображаются итоговые показатели: ИТОГО, Аванс, Осталось получить.
         </div>
     </div>
     <footer>Редактор данных. Все показатели (средний тариф, резерв выполнения, % выполнения) рассчитываются автоматически.</footer>
@@ -273,7 +288,6 @@
     let advanceAmount = 28700000; // аванс по умолчанию
     
     const tbody = document.getElementById('tableBody');
-    const tfoot = document.getElementById('tableFooter');
     const importBtn = document.getElementById('importBtn');
     const exportBtn = document.getElementById('exportBtn');
     const refreshBtn = document.getElementById('refreshCalcBtn');
@@ -319,45 +333,28 @@
         return { totalAccepted, remainingToReceive };
     }
     
-    // Обновление footer с итогами
-    function updateFooter() {
+    // Обновление значений аванса (вызывается из input)
+    function updateAdvance(value) {
+        advanceAmount = parseFloat(value) || 0;
+        // Обновляем отображение остатка в итоговой строке
+        const remainingSpan = document.getElementById('remainingValue');
         const { totalAccepted, remainingToReceive } = calculateTotals();
-        const footerHtml = `
-            <tr class="summary-row">
-                <td colspan="6" style="text-align: right; font-weight: 700;">📊 ИТОГО:</td>
-                <td style="font-weight: 700; background: #e8f0fe;">${totalAccepted.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽</td>
-                <td colspan="3"></td>
-                <td></td>
-            </tr>
-            <tr class="summary-row">
-                <td colspan="6" style="text-align: right; font-weight: 700;">💰 Аванс (заявка на авансирование):</td>
-                <td style="background: #fff8e0;">
-                    <input type="number" id="advanceInput" value="${advanceAmount}" step="0.01" style="background: #fff8e0; font-weight: 600; min-width: 140px;">
-                </td>
-                <td colspan="3"></td>
-                <td></td>
-            </tr>
-            <tr class="summary-row">
-                <td colspan="6" style="text-align: right; font-weight: 700;">💵 Осталось получить за месяц:</td>
-                <td style="font-weight: 700; background: #e8f0fe; ${remainingToReceive < 0 ? 'color: #c62828;' : 'color: #2c7d4e;'}">${remainingToReceive.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ₽</td>
-                <td colspan="3"></td>
-                <td></td>
-            </tr>
-        `;
-        tfoot.innerHTML = footerHtml;
-        
-        // Добавляем обработчик для поля аванса
-        const advanceInput = document.getElementById('advanceInput');
-        if (advanceInput) {
-            advanceInput.addEventListener('change', (e) => {
-                advanceAmount = parseFloat(e.target.value) || 0;
-                updateFooter();
-            });
+        if (remainingSpan) {
+            remainingSpan.innerText = remainingToReceive.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
+            remainingSpan.className = remainingToReceive < 0 ? 'remaining-negative' : 'remaining-positive';
+        }
+        // Обновляем сумму ИТОГО (она могла измениться)
+        const totalSpan = document.getElementById('totalAcceptedValue');
+        if (totalSpan) {
+            totalSpan.innerText = totalAccepted.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
         }
     }
 
     function renderTable() {
         tbody.innerHTML = '';
+        const { totalAccepted, remainingToReceive } = calculateTotals();
+        
+        // Добавляем строки данных
         currentData.forEach((row, idx) => {
             const tr = document.createElement('tr');
             
@@ -444,8 +441,63 @@
             tbody.appendChild(tr);
             row._refs = { spanAvg, spanRes, spanPerc };
         });
+        
+        // Добавляем итоговые строки в body (во второй закрепленный столбец)
+        const summaryTr1 = document.createElement('tr');
+        summaryTr1.className = 'summary-row';
+        const tdNum1 = document.createElement('td'); tdNum1.innerText = ''; summaryTr1.appendChild(tdNum1);
+        const tdLabel1 = document.createElement('td'); tdLabel1.innerText = '📊 ИТОГО (сумма принятая)'; tdLabel1.style.textAlign = 'left'; tdLabel1.style.fontWeight = '700'; summaryTr1.appendChild(tdLabel1);
+        const tdPlaceholder1 = document.createElement('td'); tdPlaceholder1.colSpan = 4; summaryTr1.appendChild(tdPlaceholder1);
+        const tdTotal = document.createElement('td'); 
+        tdTotal.style.fontWeight = '700'; 
+        tdTotal.style.backgroundColor = '#e8f0fe';
+        tdTotal.style.textAlign = 'right';
+        const totalSpan = document.createElement('span');
+        totalSpan.id = 'totalAcceptedValue';
+        totalSpan.innerText = totalAccepted.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
+        tdTotal.appendChild(totalSpan);
+        summaryTr1.appendChild(tdTotal);
+        const tdEmpty1 = document.createElement('td'); tdEmpty1.colSpan = 3; summaryTr1.appendChild(tdEmpty1);
+        tbody.appendChild(summaryTr1);
+        
+        const summaryTr2 = document.createElement('tr');
+        summaryTr2.className = 'summary-row';
+        const tdNum2 = document.createElement('td'); tdNum2.innerText = ''; summaryTr2.appendChild(tdNum2);
+        const tdLabel2 = document.createElement('td'); tdLabel2.innerText = '💰 Аванс (заявка на авансирование)'; tdLabel2.style.textAlign = 'left'; tdLabel2.style.fontWeight = '700'; summaryTr2.appendChild(tdLabel2);
+        const tdPlaceholder2 = document.createElement('td'); tdPlaceholder2.colSpan = 4; summaryTr2.appendChild(tdPlaceholder2);
+        const tdAdvance = document.createElement('td'); 
+        tdAdvance.style.backgroundColor = '#fff8e0';
+        const advanceInput = document.createElement('input');
+        advanceInput.type = 'number';
+        advanceInput.value = advanceAmount;
+        advanceInput.step = '0.01';
+        advanceInput.className = 'advance-input';
+        advanceInput.style.minWidth = '140px';
+        advanceInput.addEventListener('change', (e) => { updateAdvance(e.target.value); });
+        tdAdvance.appendChild(advanceInput);
+        summaryTr2.appendChild(tdAdvance);
+        const tdEmpty2 = document.createElement('td'); tdEmpty2.colSpan = 3; summaryTr2.appendChild(tdEmpty2);
+        tbody.appendChild(summaryTr2);
+        
+        const summaryTr3 = document.createElement('tr');
+        summaryTr3.className = 'summary-row';
+        const tdNum3 = document.createElement('td'); tdNum3.innerText = ''; summaryTr3.appendChild(tdNum3);
+        const tdLabel3 = document.createElement('td'); tdLabel3.innerText = '💵 Осталось получить за месяц'; tdLabel3.style.textAlign = 'left'; tdLabel3.style.fontWeight = '700'; summaryTr3.appendChild(tdLabel3);
+        const tdPlaceholder3 = document.createElement('td'); tdPlaceholder3.colSpan = 4; summaryTr3.appendChild(tdPlaceholder3);
+        const tdRemaining = document.createElement('td'); 
+        tdRemaining.style.fontWeight = '700';
+        tdRemaining.style.backgroundColor = '#e8f0fe';
+        tdRemaining.style.textAlign = 'right';
+        const remainingSpan = document.createElement('span');
+        remainingSpan.id = 'remainingValue';
+        remainingSpan.innerText = remainingToReceive.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
+        remainingSpan.className = remainingToReceive < 0 ? 'remaining-negative' : 'remaining-positive';
+        tdRemaining.appendChild(remainingSpan);
+        summaryTr3.appendChild(tdRemaining);
+        const tdEmpty3 = document.createElement('td'); tdEmpty3.colSpan = 3; summaryTr3.appendChild(tdEmpty3);
+        tbody.appendChild(summaryTr3);
+        
         updateCalculations();
-        updateFooter();
     }
     
     function updateCalculations() {
@@ -463,6 +515,18 @@
                 row._refs.spanPerc.innerText = percent.toFixed(2) + '%';
             }
         });
+        
+        // Обновляем итоговые значения
+        const { totalAccepted, remainingToReceive } = calculateTotals();
+        const totalSpan = document.getElementById('totalAcceptedValue');
+        const remainingSpan = document.getElementById('remainingValue');
+        if (totalSpan) {
+            totalSpan.innerText = totalAccepted.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
+        }
+        if (remainingSpan) {
+            remainingSpan.innerText = remainingToReceive.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' ₽';
+            remainingSpan.className = remainingToReceive < 0 ? 'remaining-negative' : 'remaining-positive';
+        }
     }
     
     function exportToExcel() {
@@ -491,9 +555,9 @@
         });
         // Добавляем итоговые строки
         wsData.push([]);
-        wsData.push(["ИТОГО:", "", "", "", "", "", totalAccepted.toFixed(2), "", "", ""]);
+        wsData.push(["ИТОГО (сумма принятая):", "", "", "", "", "", totalAccepted.toFixed(2), "", "", ""]);
         wsData.push(["Аванс:", "", "", "", "", "", advanceAmount.toFixed(2), "", "", ""]);
-        wsData.push(["Осталось получить:", "", "", "", "", "", remainingToReceive.toFixed(2), "", "", ""]);
+        wsData.push(["Осталось получить за месяц:", "", "", "", "", "", remainingToReceive.toFixed(2), "", "", ""]);
         
         const ws = XLSX.utils.aoa_to_sheet(wsData);
         const colWidths = [{wch:6},{wch:35},{wch:12},{wch:18},{wch:14},{wch:18},{wch:18},{wch:18},{wch:16},{wch:12}];
@@ -523,7 +587,6 @@
             for (let i = 1; i < rows.length; i++) {
                 const r = rows[i];
                 if (!r[idxName] || String(r[idxName]).trim() === "") continue;
-                // Проверяем, не является ли строка итоговой (содержит "ИТОГО" или "Аванс")
                 const nameStr = String(r[idxName]).toLowerCase();
                 if (nameStr.includes("итого") || nameStr.includes("аванс") || nameStr.includes("осталось")) continue;
                 newData.push({
@@ -547,19 +610,22 @@
     exportBtn.addEventListener('click', exportToExcel);
     refreshBtn.addEventListener('click', () => {
         const rowsDom = document.querySelectorAll('#tableBody tr');
-        rowsDom.forEach((tr, idx) => {
-            const inputs = tr.querySelectorAll('input');
-            if(inputs.length >= 6) {
-                currentData[idx].name = inputs[0].value;
-                currentData[idx].quantity = parseFloat(inputs[1].value) || 0;
-                currentData[idx].sumFact = parseFloat(inputs[2].value) || 0;
-                currentData[idx].planMonth = parseFloat(inputs[3].value) || 0;
-                currentData[idx].sumAccepted = parseFloat(inputs[4].value) || 0;
-                currentData[idx].conditionalPrev = parseFloat(inputs[5].value) || 0;
+        // Обходим только строки с данными (не итоговые)
+        for (let i = 0; i < currentData.length; i++) {
+            const tr = rowsDom[i];
+            if (tr) {
+                const inputs = tr.querySelectorAll('input');
+                if (inputs.length >= 6) {
+                    currentData[i].name = inputs[0].value;
+                    currentData[i].quantity = parseFloat(inputs[1].value) || 0;
+                    currentData[i].sumFact = parseFloat(inputs[2].value) || 0;
+                    currentData[i].planMonth = parseFloat(inputs[3].value) || 0;
+                    currentData[i].sumAccepted = parseFloat(inputs[4].value) || 0;
+                    currentData[i].conditionalPrev = parseFloat(inputs[5].value) || 0;
+                }
             }
-        });
+        }
         updateCalculations();
-        updateFooter();
     });
     
     renderTable();
