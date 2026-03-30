@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Инфопрезентация | Циклический график обучения | Т. Мирзоян</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #E0EFFA;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .presentation {
+            width: 100%;
+            max-width: 1300px;
+            height: 90vh;
+            max-height: 850px;
+            background: #ffffff;
+            border-radius: 2rem;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .slides-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slides-wrapper {
+            display: flex;
+            height: 100%;
+            transition: transform 0.4s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+        }
+
+        .slide {
+            flex: 0 0 100%;
+            overflow-y: auto;
+            padding: 2rem 2.5rem;
+            scrollbar-width: thin;
+            background: white;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: #fbfdfe;
+            border-top: 1px solid #AFD6F3;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .nav-btn {
+            background: #0E91DD;
+            border: none;
+            color: white;
+            width: 42px;
+            height: 42px;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-btn:hover {
+            background: #71B5EA;
+        }
+
+        .nav-btn:disabled {
+            background: #AFD6F3;
+            cursor: not-allowed;
+        }
+
+        .dots {
+            display: flex;
+            gap: 0.6rem;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: #AFD6F3;
+            border-radius: 20px;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+
+        .dot.active {
+            width: 24px;
+            background: #0E91DD;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: #0E91DD;
+            margin-bottom: 1rem;
+        }
+
+        .slide-title {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: #0E91DD;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-left: 4px solid #71B5EA;
+            padding-left: 1rem;
+        }
+
+        .stat-badge {
+            font-size: 0.7rem;
+            font-weight: 600;
+            background: #E0EFFA;
+            padding: 0.2rem 0.8rem;
+            border-radius: 20px;
+            display: inline-block;
+            color: #0E91DD;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 1.2rem;
+            margin: 1.2rem 0;
+        }
+
+        .kpi-card {
+            background: #E0EFFA;
+            border-radius: 1.2rem;
+            padding: 1rem;
+            border: 1px solid #AFD6F3;
+            transition: 0.2s;
+        }
+
+        .kpi-number {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #0E91DD;
+            line-height: 1;
+        }
+
+        .flex-stats {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+
+        .pie-visual {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: conic-gradient(#0E91DD 0% 75%, #AFD6F3 75% 100%);
+            margin: 0 auto 0.5rem;
+        }
+
+        .legend {
+            display: flex;
+            gap: 0.8rem;
+            justify-content: center;
+            font-size: 0.75rem;
+        }
+
+        .step-tabs {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            margin: 0.5rem 0 1rem;
+        }
+
+        .step-tab {
+            background: white;
+            border: 1px solid #AFD6F3;
+            padding: 0.3rem 0.9rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #1a3e50;
+        }
+
+        .step-tab.active {
+            background: #0E91DD;
+            border-color: #0E91DD;
+            color: white;
+        }
+
+        .group-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #AFD6F3;
+            font-size: 0.85rem;
+        }
+
+        .highlight-block {
+            background: #E0EFFA;
+            padding: 0.9rem 1rem;
+            border-radius: 1rem;
+            margin: 0.8rem 0;
+            border-left: 3px solid #0E91DD;
+            font-size: 0.9rem;
+        }
+
+        .timeline-hybrid {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin: 1rem 0;
+        }
+
+        .timeline-item {
+            flex: 1;
+            background: #E0EFFA;
+            border-radius: 1rem;
+            padding: 0.8rem;
+            text-align: center;
+        }
+
+        hr {
+            margin: 1rem 0;
+            border: none;
+            border-top: 1px solid #AFD6F3;
+        }
+
+        .small-note {
+            font-size: 0.7rem;
+            color: #2c5a6e;
+        }
+
+        .law-ref {
+            font-family: monospace;
+            background: #E0EFFA;
+            padding: 0.1rem 0.3rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            color: #0E91DD;
+        }
+
+        .two-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        @media (max-width: 700px) {
+            .slide { padding: 1.2rem; }
+            h1 { font-size: 1.6rem; }
+            .slide-title { font-size: 1.3rem; }
+            .two-columns { grid-template-columns: 1fr; }
+        }
+
+        /* дополнительные акценты */
+        a, .link-like {
+            color: #0E91DD;
+        }
+        .kpi-card i, .timeline-item i {
+            color: #0E91DD;
+        }
+        button, .step-tab {
+            transition: all 0.2s ease;
+        }
+        .step-tab:hover:not(.active) {
+            background: #AFD6F3;
+            border-color: #71B5EA;
+        }
+        .nav-btn:hover:not(:disabled) {
+            background: #71B5EA;
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+<div class="presentation">
+    <div class="slides-container">
+        <div class="slides-wrapper" id="slidesWrapper">
+            <!-- Слайд 1: титул + три принципа модели -->
+            <div class="slide">
+                <div style="display: flex; flex-direction: column; justify-content: center; min-height: 100%;">
+                    <span class="stat-badge"><i class="fas fa-chalkboard-user"></i> организационная модель</span>
+                    <h1>Циклический (ступенчатый) график обучения</h1>
+                    <div style="font-size: 0.95rem; color: #2c5a6e; margin-bottom: 1rem;">Минимизация кадровых потерь · соблюдение законодательства · непрерывность помощи</div>
+                    <div class="two-columns" style="margin-top: 0.5rem;">
+                        <div class="kpi-card">
+                            <i class="fas fa-users"></i>
+                            <div class="kpi-number" style="font-size: 1.4rem;">75–80%</div>
+                            <div>персонала на рабочих местах в период обучения</div>
+                        </div>
+                        <div class="kpi-card">
+                            <i class="fas fa-gavel"></i>
+                            <div class="kpi-number" style="font-size: 1.4rem;">ст. 60.2, 187 ТК РФ</div>
+                            <div>юридическая основа совместительства и сохранения зарплаты</div>
+                        </div>
+                    </div>
+                    <div style="background: #E0EFFA; border-radius: 1.2rem; padding: 1rem; margin: 0.5rem 0;">
+                        <div><i class="fas fa-user-md"></i> <strong>Татьяна Мирзоян</strong></div>
+                        <div class="small-note">Заместитель медицинского директора по внутреннему контролю качества и безопасности медицинской деятельности</div>
+                        <div><i class="fas fa-eye"></i> Офтальмологическая клиника ООО «Три-З», Москва</div>
+                    </div>
+                    <div class="small-note" style="margin-top: 1rem;">← → навигация по слайдам</div>
+                </div>
+            </div>
+
+            <!-- Слайд 2: ротация мини-групп + интерактив + детальные данные -->
+            <div class="slide">
+                <div class="slide-title"><i class="fas fa-sync-alt"></i> Ротация «мини-групп»</div>
+                <div class="flex-stats">
+                    <div style="text-align: center; min-width: 130px;">
+                        <div id="pieChart" class="pie-visual"></div>
+                        <div class="legend">
+                            <span><span class="legend-color" style="background:#0E91DD;"></span> на местах</span>
+                            <span><span class="legend-color" style="background:#AFD6F3;"></span> обучение</span>
+                        </div>
+                        <div><span id="workingPercentLabel" class="kpi-number" style="font-size: 1.6rem;">75</span>% персонала на рабочих местах</div>
+                        <div class="small-note">при 4 группах</div>
+                    </div>
+                    <div style="flex:2">
+                        <div class="step-tabs" id="stepTabs">
+                            <button data-step="0" class="step-tab active">1 этап</button>
+                            <button data-step="1" class="step-tab">2 этап</button>
+                            <button data-step="2" class="step-tab">3 этап</button>
+                            <button data-step="3" class="step-tab">4 этап</button>
+                        </div>
+                        <div id="groupListContainer"></div>
+                        <div id="stepDescription" class="highlight-block" style="margin-top: 0.5rem;">
+                            <i class="fas fa-chart-line"></i> <span id="stepDescText">1-й этап: первая группа — обучение, остальные — работа</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="two-columns" style="margin-top: 0.2rem;">
+                    <div class="kpi-card">
+                        <i class="fas fa-chart-pie"></i>
+                        <div class="kpi-number" style="font-size: 1.2rem;">3–4 группы</div>
+                        <div>оптимальное деление штата</div>
+                        <div class="small-note">25% — обучение, 75% — работа</div>
+                    </div>
+                    <div class="kpi-card">
+                        <i class="fas fa-chart-line"></i>
+                        <div class="kpi-number" style="font-size: 1.2rem;">0 очередей</div>
+                        <div>сохранение объёмов помощи по ОМС</div>
+                        <div class="small-note">непрерывность лечебного процесса</div>
+                    </div>
+                </div>
+                <div class="highlight-block">
+                    <i class="fas fa-file-alt"></i> <strong>Механизм:</strong> последовательное направление групп — возврат обученных сотрудников перед отправкой следующих. Исключение простоев и кадрового дефицита.
+                </div>
+            </div>
+
+            <!-- Слайд 3: ступенчатый график с расширенной информацией -->
+            <div class="slide">
+                <div class="slide-title"><i class="fas fa-calendar-week"></i> Гибкий ступенчатый график</div>
+                <div class="timeline-hybrid">
+                    <div class="timeline-item">
+                        <i class="fas fa-sun" style="font-size: 1.8rem; color:#0E91DD;"></i>
+                        <div style="font-weight: 700; margin: 0.5rem 0;">Первая половина дня</div>
+                        <div>Образовательный центр: лекции, семинары, симуляционные тренинги, мастер-классы</div>
+                        <div class="small-note">модульная структура курсов</div>
+                    </div>
+                    <div class="timeline-item">
+                        <i class="fas fa-moon" style="font-size: 1.8rem; color:#0E91DD;"></i>
+                        <div style="font-weight: 700; margin: 0.5rem 0;">Вторая половина дня</div>
+                        <div>Работа в отделении (письменное согласование с образовательной организацией)</div>
+                        <div class="small-note">соблюдение норм трудовой нагрузки</div>
+                    </div>
+                </div>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <div><strong>Локация</strong></div>
+                        <div>Учебный центр в том же населённом пункте</div>
+                    </div>
+                    <div class="kpi-card">
+                        <i class="fas fa-layer-group"></i>
+                        <div><strong>Тип программ</strong></div>
+                        <div>Повышение квалификации с модульной структурой</div>
+                    </div>
+                    <div class="kpi-card">
+                        <i class="fas fa-file-signature"></i>
+                        <div><strong>Согласование</strong></div>
+                        <div>Документальное разрешение образовательной организации</div>
+                    </div>
+                </div>
+                <div class="highlight-block">
+                    <i class="fas fa-chart-simple"></i> <strong>Преимущества формата:</strong> совмещение теории и практики в один день, сокращение отрыва от производства, сохранение заработной платы за сотрудником в полном объёме (ст. 187 ТК РФ).
+                </div>
+            </div>
+
+            <!-- Слайд 4: совместительство + резервные кадры (расширенная информация) -->
+            <div class="slide">
+                <div class="slide-title"><i class="fas fa-handshake"></i> Кадровый резерв: внутреннее совместительство</div>
+                <div class="two-columns">
+                    <div class="kpi-card">
+                        <i class="fas fa-briefcase"></i>
+                        <div class="kpi-number" style="font-size: 1.2rem;">ст. 60.2 ТК РФ</div>
+                        <div>Совмещение должностей, расширение зон обслуживания, временное исполнение обязанностей</div>
+                        <div class="small-note">с доплатой пропорционально объёму</div>
+                    </div>
+                    <div class="kpi-card">
+                        <i class="fas fa-chart-line"></i>
+                        <div class="kpi-number" style="font-size: 1.2rem;">приказ по учреждению</div>
+                        <div>Фиксация доплат и графика замещения</div>
+                        <div class="small-note">полное соблюдение трудовых норм</div>
+                    </div>
+                </div>
+                <div class="slide-title" style="margin-top: 0.2rem; font-size: 1.3rem;"><i class="fas fa-users"></i> Резервные кадры</div>
+                <div class="kpi-grid">
+                    <div class="kpi-card"><i class="fas fa-baby-carriage"></i> Сотрудники после отпуска по уходу за ребёнком — период адаптации с частичной занятостью</div>
+                    <div class="kpi-card"><i class="fas fa-user-clock"></i> Пенсионеры — внешнее совместительство, гибкий график</div>
+                    <div class="kpi-card"><i class="fas fa-graduation-cap"></i> Студенты старших курсов медицинских вузов (допуск к должностям среднего медперсонала согласно <span class="law-ref">Приказу Минздрава № 715н</span>)</div>
+                </div>
+                <div class="highlight-block">
+                    <i class="fas fa-chart-simple"></i> <strong>Результат:</strong> бесшовное замещение отсутствующих сотрудников, соблюдение нормативов укомплектованности, профориентация и приток молодых кадров.
+                </div>
+            </div>
+
+            <!-- Слайд 5: итоги и показатели эффективности с расширенной статистикой -->
+            <div class="slide">
+                <div class="slide-title"><i class="fas fa-chart-line"></i> Эффективность модели</div>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-number">75–80%</div>
+                        <div>сохранение штата в отделении во время обучения</div>
+                        <div class="small-note">без привлечения внешнего персонала</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-number">100%</div>
+                        <div>выполнение плановых объёмов помощи по ОМС</div>
+                        <div class="small-note">отсутствие переносов приёма</div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-number">0</div>
+                        <div>жалоб на очереди в период обучения</div>
+                        <div class="small-note">по данным внутреннего контроля</div>
+                    </div>
+                </div>
+                <div class="two-columns">
+                    <div class="kpi-card">
+                        <i class="fas fa-gavel"></i>
+                        <div class="kpi-number" style="font-size: 1rem;">ст. 187 ТК РФ</div>
+                        <div>сохранение среднего заработка на время обучения</div>
+                    </div>
+                    <div class="kpi-card">
+                        <i class="fas fa-chart-pie"></i>
+                        <div class="kpi-number" style="font-size: 1rem;">циклическая модель</div>
+                        <div>возможность многократного повторения без потери качества</div>
+                    </div>
+                </div>
+                <div class="highlight-block" style="background:#E0EFFA;">
+                    <i class="fas fa-trophy"></i> <strong>Ключевой результат:</strong> устойчивость системы обучения без остановки клинической деятельности, полное соответствие требованиям трудового законодательства и внутренних стандартов качества.
+                </div>
+                <hr>
+                <div class="small-note" style="text-align: center;">© Татьяна Мирзоян · Офтальмологическая клиника ООО «Три-З» · Москва · модель внедрена с 2023 года</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="nav">
+        <div class="nav-buttons">
+            <button class="nav-btn" id="prevBtn"><i class="fas fa-chevron-left"></i></button>
+            <button class="nav-btn" id="nextBtn"><i class="fas fa-chevron-right"></i></button>
+        </div>
+        <div class="dots" id="dotsContainer"></div>
+        <div id="slideCounter" style="font-size: 0.8rem; color:#0E91DD;"></div>
+    </div>
+</div>
+
+<script>
+    // ---------- НАВИГАЦИЯ ПО СЛАЙДАМ ----------
+    const wrapper = document.getElementById('slidesWrapper');
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const dotsContainer = document.getElementById('dotsContainer');
+    const slideCounter = document.getElementById('slideCounter');
+    let currentIndex = 0;
+    const total = slides.length;
+
+    function updateSlideNav() {
+        wrapper.style.transform = `translateX(-${currentIndex * 100}%)`;
+        document.querySelectorAll('.dot').forEach((dot, idx) => {
+            dot.classList.toggle('active', idx === currentIndex);
+        });
+        slideCounter.innerText = `${currentIndex+1} / ${total}`;
+        prevBtn.disabled = (currentIndex === 0);
+        nextBtn.disabled = (currentIndex === total-1);
+    }
+
+    function goToSlide(index) {
+        if (index < 0) index = 0;
+        if (index >= total) index = total-1;
+        currentIndex = index;
+        updateSlideNav();
+    }
+
+    prevBtn.addEventListener('click', () => goToSlide(currentIndex-1));
+    nextBtn.addEventListener('click', () => goToSlide(currentIndex+1));
+
+    for (let i=0; i<total; i++) {
+        const dot = document.createElement('div');
+        dot.classList.add('dot');
+        if (i===0) dot.classList.add('active');
+        dot.addEventListener('click', () => goToSlide(i));
+        dotsContainer.appendChild(dot);
+    }
+    updateSlideNav();
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') { e.preventDefault(); goToSlide(currentIndex-1); }
+        if (e.key === 'ArrowRight') { e.preventDefault(); goToSlide(currentIndex+1); }
+    });
+
+    // ---------- ИНТЕРАКТИВ РОТАЦИИ ----------
+    const groupsData = [
+        { name: "Группа 1", status: "на обучении" },
+        { name: "Группа 2", status: "на рабочем месте" },
+        { name: "Группа 3", status: "на рабочем месте" },
+        { name: "Группа 4", status: "на рабочем месте" }
+    ];
+    let currentStep = 0;
+
+    function updateRotationUI(step) {
+        for (let i=0; i<groupsData.length; i++) {
+            groupsData[i].status = (i === step) ? "🔵 ОЧНОЕ ОБУЧЕНИЕ" : "🟢 НА РАБОЧЕМ МЕСТЕ";
+        }
+        const workingCount = groupsData.length - 1;
+        const workingPercent = (workingCount / groupsData.length) * 100;
+        const pieDiv = document.getElementById('pieChart');
+        if (pieDiv) pieDiv.style.background = `conic-gradient(#0E91DD 0% ${workingPercent}%, #AFD6F3 ${workingPercent}% 100%)`;
+        const percentSpan = document.getElementById('workingPercentLabel');
+        if (percentSpan) percentSpan.innerText = workingPercent;
+
+        const container = document.getElementById('groupListContainer');
+        if (container) {
+            container.innerHTML = groupsData.map(g => `
+                <div class="group-row">
+                    <span><strong>${g.name}</strong></span>
+                    <span>${g.status}</span>
+                </div>
+            `).join('');
+        }
+
+        const descSpan = document.getElementById('stepDescText');
+        const stageTexts = [
+            "1-й этап: первая группа — обучение, группы 2,3,4 — работа. 75% штата на местах.",
+            "2-й этап: вторая группа — обучение, группы 1,3,4 — работа. 75% штата на местах.",
+            "3-й этап: третья группа — обучение, группы 1,2,4 — работа. 75% штата на местах.",
+            "4-й этап: четвёртая группа — обучение, группы 1,2,3 — работа. 75% штата на местах."
+        ];
+        if (descSpan) descSpan.innerText = stageTexts[step];
+
+        document.querySelectorAll('#stepTabs .step-tab').forEach((btn, idx) => {
+            if (idx === step) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+    }
+
+    function initRotation() {
+        const tabs = document.querySelectorAll('#stepTabs .step-tab');
+        if (tabs.length) {
+            tabs.forEach((btn, idx) => {
+                btn.addEventListener('click', () => {
+                    currentStep = idx;
+                    updateRotationUI(currentStep);
+                });
+            });
+        }
+        updateRotationUI(0);
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initRotation);
+    } else {
+        initRotation();
+    }
+</script>
+</body>
+</html>
