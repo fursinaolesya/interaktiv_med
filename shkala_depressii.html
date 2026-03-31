@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Шкала депрессии CES-D | Интерактивный тест</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f4f7fc;
+      font-family: system-ui, -apple-system, 'Segoe UI', 'Roboto', 'Helvetica Neue', sans-serif;
+      line-height: 1.5;
+      padding: 24px 16px;
+      color: #1a2c3e;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 32px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+      overflow: hidden;
+      padding: 24px 20px 40px;
+    }
+
+    h1 {
+      font-size: 1.9rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #1f4870, #2c6e8f);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      margin-bottom: 16px;
+      letter-spacing: -0.3px;
+    }
+
+    .subhead {
+      font-size: 1rem;
+      color: #4a627a;
+      border-left: 4px solid #5c9bc0;
+      padding-left: 16px;
+      margin: 0 0 20px 0;
+      background: #eef4fa;
+      border-radius: 0 20px 20px 0;
+      line-height: 1.4;
+    }
+
+    .instruction {
+      background: #f9fafc;
+      padding: 20px;
+      border-radius: 24px;
+      margin-bottom: 28px;
+      border: 1px solid #dce5ec;
+    }
+
+    .instruction h2, .result-box h2, .questions-header h2 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .scale-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 12px;
+      justify-content: space-between;
+      background: #ffffff;
+      padding: 12px 16px;
+      border-radius: 20px;
+      border: 1px solid #e2edf2;
+    }
+
+    .legend-item {
+      font-size: 0.85rem;
+      font-weight: 500;
+      background: #f0f4f9;
+      padding: 4px 12px;
+      border-radius: 40px;
+    }
+
+    .questions-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin: 28px 0 32px;
+    }
+
+    .question-card {
+      background: white;
+      border-radius: 20px;
+      padding: 12px 16px;
+      border: 1px solid #e2edf2;
+      transition: all 0.2s;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .question-card:hover {
+      background: #fefefd;
+      border-color: #bdd4e2;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+    }
+
+    .q-text {
+      flex: 3;
+      font-weight: 500;
+      font-size: 0.98rem;
+      color: #1e3a4d;
+    }
+
+    .q-num {
+      font-weight: 600;
+      background: #eaf3fa;
+      width: 32px;
+      height: 32px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 40px;
+      margin-right: 12px;
+      font-size: 0.85rem;
+      color: #1f5e7e;
+    }
+
+    select {
+      background: #fefefe;
+      border: 1px solid #cbdde6;
+      border-radius: 40px;
+      padding: 10px 18px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+      width: 110px;
+      transition: 0.1s;
+    }
+
+    select:focus {
+      outline: none;
+      border-color: #2c7da0;
+      box-shadow: 0 0 0 2px rgba(44,125,160,0.2);
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      margin-top: 12px;
+    }
+
+    button {
+      background: #2c7da0;
+      border: none;
+      padding: 12px 28px;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 60px;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    button:hover {
+      background: #1f5e7e;
+      transform: translateY(-1px);
+    }
+
+    button.secondary {
+      background: #e2eaf1;
+      color: #1f5e7e;
+      box-shadow: none;
+    }
+
+    button.secondary:hover {
+      background: #d0dfe9;
+    }
+
+    .result-box {
+      background: linear-gradient(115deg, #f0f7fe 0%, #ffffff 100%);
+      border-radius: 28px;
+      padding: 24px;
+      margin-top: 20px;
+      border: 1px solid #cee0ea;
+    }
+
+    .score {
+      font-size: 3rem;
+      font-weight: 800;
+      color: #1f4870;
+      line-height: 1;
+      margin: 12px 0 8px;
+    }
+
+    .range-tag {
+      display: inline-block;
+      padding: 6px 18px;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      background: #eef2f7;
+      margin-bottom: 20px;
+    }
+
+    hr {
+      margin: 20px 0;
+      border: none;
+      height: 1px;
+      background: #dce5ec;
+    }
+
+    .footer-note {
+      text-align: center;
+      margin-top: 28px;
+      font-size: 0.85rem;
+      color: #5c7c8c;
+      letter-spacing: 0.3px;
+    }
+
+    footer {
+      font-size: 0.75rem;
+      text-align: center;
+      margin-top: 16px;
+      color: #6c8ea0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>📋 Шкала депрессии Центра эпидемиологических исследований</h1>
+  <div class="subhead">
+    ❄️ Этот инструмент часто рекомендуют людям без психиатрического диагноза — 
+    чтобы честно оценить своё состояние за последнюю неделю.
+  </div>
+
+  <!-- Инструкция -->
+  <div class="instruction">
+    <h2>📌 Инструкция</h2>
+    <p>Вспомните последнюю неделю. Оцените, как часто вы испытывали описанные состояния.<br>
+    Выберите один вариант для каждого утверждения:</p>
+    <div class="scale-legend">
+      <span class="legend-item">0 — редко или никогда (менее 1 дня)</span>
+      <span class="legend-item">1 — иногда (1–2 дня)</span>
+      <span class="legend-item">2 — часто (3–4 дня)</span>
+      <span class="legend-item">3 — почти постоянно (5–7 дней)</span>
+    </div>
+  </div>
+
+  <!-- Область вопросов (динамически из JS) -->
+  <div class="questions-header">
+    <h2>📋 Вопросы</h2>
+  </div>
+  <div id="questions-container" class="questions-grid"></div>
+
+  <div class="button-group">
+    <button id="calcBtn">🧮 Посчитать результат</button>
+    <button id="resetBtn" class="secondary">⟳ Сбросить все ответы</button>
+  </div>
+
+  <!-- Результат -->
+  <div id="resultArea" class="result-box" style="display: none;">
+    <h2>📊 Ваш результат</h2>
+    <div id="resultContent"></div>
+  </div>
+
+  <!-- Нижняя подпись: Шкала депрессии CES-D -->
+  <div class="footer-note">
+    Шкала депрессии CES-D
+  </div>
+
+  <footer>
+    ⚠️ Этот тест — не диагноз, а способ лучше понять себя. При высоких баллах или длительном сниженном настроении обратитесь к специалисту (психологу, психотерапевту).
+  </footer>
+</div>
+
+<script>
+  // Список вопросов (20 пунктов в соответствии с CES-D)
+  const questions = [
+    "Меня беспокоило то, что обычно не беспокоит",
+    "У меня не было аппетита",
+    "Я не мог(ла) избавиться от плохого настроения даже с поддержкой близких",
+    "Я чувствовал(а), что я ничем не хуже других",
+    "Мне было трудно сосредоточиться",
+    "Я чувствовал(а) подавленность",
+    "Всё давалось с большим усилием",
+    "Я с надеждой смотрел(а) в будущее",
+    "Мне казалось, что в жизни одни неудачи",
+    "Я испытывал(а) страх",
+    "Мой сон был беспокойным",
+    "Я чувствовал(а) себя счастливым(ой)",
+    "Я говорил(а) меньше обычного",
+    "Я чувствовал(а) одиночество",
+    "Люди были недружелюбны ко мне",
+    "Я наслаждался(лась) жизнью",
+    "У меня были приступы плача",
+    "Мне было грустно",
+    "Мне казалось, что я не нравлюсь людям",
+    "Я не мог(ла) взять себя в руки"
+  ];
+
+  // Номера вопросов для инверсии (1-indexed -> 4,8,12,16)
+  const reverseIndices = [4, 8, 12, 16];
+
+  let selects = [];
+
+  function buildForm() {
+    const container = document.getElementById('questions-container');
+    container.innerHTML = '';
+    selects = [];
+
+    questions.forEach((text, idx) => {
+      const qNumber = idx + 1;
+      const card = document.createElement('div');
+      card.className = 'question-card';
+
+      const textSpan = document.createElement('div');
+      textSpan.className = 'q-text';
+      textSpan.innerHTML = `<span class="q-num">${qNumber}</span> ${text}`;
+
+      const selectEl = document.createElement('select');
+      selectEl.setAttribute('data-qnum', qNumber);
+      for (let val = 0; val <= 3; val++) {
+        const option = document.createElement('option');
+        option.value = val;
+        option.textContent = `${val} — ${val === 0 ? 'редко/никогда' : val === 1 ? 'иногда' : val === 2 ? 'часто' : 'почти постоянно'}`;
+        selectEl.appendChild(option);
+      }
+      selectEl.value = "0";
+      selects.push(selectEl);
+      card.appendChild(textSpan);
+      card.appendChild(selectEl);
+      container.appendChild(card);
+    });
+  }
+
+  function computeScore() {
+    let rawScores = [];
+    for (let i = 0; i < selects.length; i++) {
+      rawScores.push(parseInt(selects[i].value, 10));
+    }
+
+    let total = 0;
+    for (let i = 0; i < rawScores.length; i++) {
+      const qNum = i + 1;
+      let score = rawScores[i];
+      if (reverseIndices.includes(qNum)) {
+        score = 3 - score;
+      }
+      total += score;
+    }
+    return total;
+  }
+
+  function getInterpretation(score) {
+    if (score >= 0 && score <= 15) {
+      return {
+        range: "0–15 баллов — норма",
+        title: "👉 Скорее всего, у вас нет признаков депрессии",
+        meaning: "Ваше состояние сейчас в пределах нормы. Даже если есть усталость или плохое настроение — это не похоже на депрессивное состояние.",
+        actions: [
+          "Продолжать поддерживать себя (сон, питание, движение)",
+          "Не игнорировать стресс и вовремя отдыхать",
+          "Периодически возвращаться к самопроверке (раз в 2–4 недели)"
+        ],
+        note: "📌 Важно: если внутри «всё равно плохо», даже при низком балле — ориентируйтесь не только на тест, но и на своё ощущение.",
+        color: "#2c7da0"
+      };
+    } else if (score >= 16 && score <= 20) {
+      return {
+        range: "16–20 баллов — лёгкая (умеренная) депрессия",
+        title: "⚠️ Лёгкая (умеренная) депрессия",
+        meaning: "Вы уже находитесь в зоне риска. Это не «просто настроение», а состояние, которое требует внимания.",
+        actions: [
+          "Снизить нагрузку и убрать лишние обязательства",
+          "Добавить регулярную физическую активность (даже прогулки)",
+          "Отслеживать сон и питание",
+          "Начать выписывать мысли и состояние (самонаблюдение)",
+          "По возможности — поговорить с психологом"
+        ],
+        note: "📌 Если ничего не менять, состояние может усилиться.",
+        color: "#e68a2e"
+      };
+    } else if (score >= 21 && score <= 25) {
+      return {
+        range: "21–25 баллов — средняя депрессия",
+        title: "🟠 Средняя депрессия",
+        meaning: "Симптомы уже заметно влияют на жизнь: концентрацию, энергию, эмоции.",
+        actions: [
+          "Обязательно обратиться к специалисту (психолог/психотерапевт)",
+          "Не оставаться в изоляции (минимальный контакт с людьми важен)",
+          "Снизить требования к себе (режим «достаточно хорошо»)",
+          "Выстроить базовый режим: сон, еда, простая активность",
+          "Избегать резких решений (увольнение, разрыв и т.д.)"
+        ],
+        note: "📌 Здесь уже не стоит «справляться самостоятельно».",
+        color: "#c96f0e"
+      };
+    } else {
+      return {
+        range: "26–60 баллов — выраженная депрессия",
+        title: "🔴 Выраженная депрессия",
+        meaning: "Состояние серьёзное и требует профессиональной помощи.",
+        actions: [
+          "Как можно скорее обратиться к специалисту (психотерапевт/психиатр)",
+          "Не оставаться одному с этим состоянием",
+          "По возможности сообщить близкому человеку",
+          "Максимально упростить жизнь (только базовые задачи)"
+        ],
+        note: "❗️ Это не слабость и не «вы не справились». Это состояние, с которым нужна помощь.",
+        color: "#bc4742"
+      };
+    }
+  }
+
+  function displayResult() {
+    const totalScore = computeScore();
+    const interp = getInterpretation(totalScore);
+
+    const resultDiv = document.getElementById('resultArea');
+    const contentDiv = document.getElementById('resultContent');
+
+    let html = `
+      <div class="score">${totalScore} / 60</div>
+      <div class="range-tag" style="background: ${interp.color}20; color: ${interp.color}; border: 1px solid ${interp.color}40;">
+        ${interp.range}
+      </div>
+      <div style="font-size: 1.2rem; font-weight: 600; margin-bottom: 12px;">${interp.title}</div>
+      <p><strong>Что это значит:</strong> ${interp.meaning}</p>
+      <div style="margin: 16px 0 8px 0;"><strong>🧭 Что делать:</strong></div>
+      <ul style="margin-left: 20px; margin-bottom: 16px;">
+        ${interp.actions.map(a => `<li>${a}</li>`).join('')}
+      </ul>
+      <div style="background: #fef7e0; padding: 12px; border-radius: 18px; font-size: 0.9rem;">${interp.note}</div>
+      <hr />
+      <p style="font-size: 0.85rem; margin-top: 12px;">✨ Интерпретация основана на стандартных порогах CES-D. 
+      Если результат ≥16 баллов или вы чувствуете подавленность несколько недель — пожалуйста, не игнорируйте это.</p>
+    `;
+    contentDiv.innerHTML = html;
+    resultDiv.style.display = 'block';
+    resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function resetAllAnswers() {
+    for (let i = 0; i < selects.length; i++) {
+      selects[i].value = "0";
+    }
+    const resultArea = document.getElementById('resultArea');
+    resultArea.style.display = 'none';
+  }
+
+  buildForm();
+  document.getElementById('calcBtn').addEventListener('click', displayResult);
+  document.getElementById('resetBtn').addEventListener('click', resetAllAnswers);
+</script>
+</body>
+</html>
