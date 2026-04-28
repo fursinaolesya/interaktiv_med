@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Калькулятор выплат наставнику</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        .calculator-container {
+            max-width: 738px;
+            width: 100%;
+            margin: 20px 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 20px 24px 24px 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        .calculator-container h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+            color: #1a2c3e;
+        }
+        .calculator-container .subhead {
+            font-size: 0.85rem;
+            color: #5a6e7c;
+            border-bottom: 1px solid #e9edf2;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+        .form-row {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+        }
+        .form-row label {
+            width: 200px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            color: #1e2f3e;
+        }
+        .form-row .input-group {
+            flex: 1;
+            min-width: 160px;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            background-color: #fff;
+            transition: 0.15s;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2c7da0;
+            box-shadow: 0 0 0 3px rgba(44,125,160,0.1);
+        }
+        .coeff-hint {
+            font-size: 0.75rem;
+            color: #6c7f8f;
+            margin-top: 4px;
+        }
+        .divider-light {
+            height: 1px;
+            background: #eef2f6;
+            margin: 18px 0;
+        }
+        .result-card {
+            background-color: #f8fafc;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin: 20px 0 12px;
+            border-left: 4px solid #2c7da0;
+        }
+        .result-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 6px 0;
+            font-size: 0.9rem;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+        .result-row:last-child {
+            border-bottom: none;
+        }
+        .result-label {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        .result-value {
+            font-weight: 600;
+            color: #1f4e6e;
+            font-size: 1rem;
+        }
+        .total-row {
+            margin-top: 8px;
+            padding-top: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #0f3b2c;
+            border-top: 2px solid #cbdde9;
+        }
+        .total-row .result-value {
+            font-size: 1.3rem;
+            color: #1e6f5c;
+        }
+        .note {
+            font-size: 0.75rem;
+            color: #6f8faa;
+            margin-top: 16px;
+            text-align: left;
+            border-top: 1px solid #e9edf2;
+            padding-top: 12px;
+        }
+        .custom-input {
+            margin-top: 8px;
+        }
+        .download-link {
+            margin-top: 16px;
+            text-align: right;
+        }
+        .download-link a {
+            font-size: 0.8rem;
+            color: #2c7da0;
+            text-decoration: none;
+            border-bottom: 1px dashed #2c7da0;
+        }
+        .download-link a:hover {
+            border-bottom: 1px solid;
+        }
+        @media (max-width: 600px) {
+            .calculator-container {
+                padding: 16px;
+            }
+            .form-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .form-row label {
+                width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="calculator-container">
+    <h3>Калькулятор выплат наставнику</h3>
+    <div class="subhead">Расчет по модели ГКБ № 2: базовая часть + премия за результат</div>
+
+    <div class="form-row">
+        <label>Оклад наставника (₽)</label>
+        <div class="input-group">
+            <input type="number" id="salary" value="50000" step="1000">
+        </div>
+    </div>
+
+    <div class="form-row">
+        <label>Базовый процент от оклада (%)</label>
+        <div class="input-group">
+            <input type="number" id="basePercent" value="5" step="0.5" min="0">
+            <div class="coeff-hint">Ежемесячная гарантированная выплата за факт наставничества</div>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <label>Премия за контрольную точку (%)</label>
+        <div class="input-group">
+            <input type="number" id="premiumPercent" value="10" step="0.5" min="0">
+            <div class="coeff-hint">Выплачивается при успешном прохождении учеником контрольной точки</div>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <label>Коэффициент сложности (Ксл)</label>
+        <div class="input-group">
+            <select id="complexitySelect">
+                <option value="1.0">1,0 — обычные специальности</option>
+                <option value="1.2" selected>1,2 — хирургия, анестезиология, реаниматология</option>
+                <option value="custom">Свой вариант</option>
+            </select>
+            <div class="custom-input" id="customComplexityBlock" style="display: none;">
+                <input type="number" id="customComplexity" value="1.2" step="0.05" placeholder="Например: 1,3">
+            </div>
+            <div class="coeff-hint">Для хирургов, анестезиологов-реаниматологов — 1,2</div>
+        </div>
+    </div>
+
+    <div class="form-row">
+        <label>Количество учеников</label>
+        <div class="input-group">
+            <input type="number" id="studentsCount" value="1" min="1" max="10" step="1">
+            <div class="coeff-hint">При 2 и более учениках базовая часть умножается на 1 + (количество учеников × 0,1), но не более 1,5</div>
+        </div>
+    </div>
+
+    <div id="studentsResults">
+        <!-- Блоки для учеников будут добавляться динамически -->
+    </div>
+
+    <div class="divider-light"></div>
+
+    <div class="result-card">
+        <div class="result-row">
+            <span class="result-label">Базовая часть (за квартал):</span>
+            <span class="result-value" id="baseAmount">0 ₽</span>
+        </div>
+        <div class="result-row">
+            <span class="result-label">Премия за контрольные точки (квартал):</span>
+            <span class="result-value" id="premiumAmount">0 ₽</span>
+        </div>
+        <div class="result-row total-row">
+            <span class="result-label">ИТОГО за квартал:</span>
+            <span class="result-value" id="totalAmount">0 ₽</span>
+        </div>
+        <div class="result-row">
+            <span class="result-label">Среднемесячная выплата (с учётом премии):</span>
+            <span class="result-value" id="monthlyAvg">0 ₽</span>
+        </div>
+    </div>
+
+    <div class="download-link">
+        <a href="#" id="downloadFormulas">Скачать таблицу с формулами и коэффициентами (Word)</a>
+    </div>
+</div>
+
+<script>
+    function formatMoney(value) {
+        return Math.round(value).toLocaleString('ru-RU') + ' ₽';
+    }
+
+    function getComplexity() {
+        const select = document.getElementById('complexitySelect');
+        if (select.value === 'custom') {
+            let val = parseFloat(document.getElementById('customComplexity').value);
+            if (isNaN(val) || val <= 0) return 1.0;
+            return val;
+        }
+        return parseFloat(select.value);
+    }
+
+    function getKuch(studentsCount) {
+        let kuch = 1 + (studentsCount * 0.1);
+        if (kuch > 1.5) kuch = 1.5;
+        return kuch;
+    }
+
+    function generateStudentBlocks() {
+        let studentsCount = parseInt(document.getElementById('studentsCount').value);
+        if (isNaN(studentsCount) || studentsCount < 1) studentsCount = 1;
+        if (studentsCount > 10) studentsCount = 10;
+        
+        const container = document.getElementById('studentsResults');
+        container.innerHTML = '';
+        
+        for (let i = 1; i <= studentsCount; i++) {
+            const block = document.createElement('div');
+            block.className = 'form-row';
+            block.id = `studentBlock${i}`;
+            block.innerHTML = `
+                <label>Ученик ${i}: освоение компетенций (%)</label>
+                <div class="input-group">
+                    <input type="number" id="result${i}" value="95" min="0" max="100" step="1">
+                    <div class="coeff-hint">≥90% — полная премия, <90% — половина премии</div>
+                </div>
+            `;
+            container.appendChild(block);
+            
+            const input = document.getElementById(`result${i}`);
+            if (input) {
+                input.addEventListener('input', updateCalculator);
+                input.addEventListener('change', updateCalculator);
+            }
+        }
+    }
+
+    function updateCalculator() {
+        let salary = parseFloat(document.getElementById('salary').value);
+        if (isNaN(salary) || salary < 0) salary = 0;
+        
+        let basePercent = parseFloat(document.getElementById('basePercent').value);
+        if (isNaN(basePercent) || basePercent < 0) basePercent = 0;
+        
+        let premiumPercent = parseFloat(document.getElementById('premiumPercent').value);
+        if (isNaN(premiumPercent) || premiumPercent < 0) premiumPercent = 0;
+        
+        let ksl = getComplexity();
+        let studentsCount = parseInt(document.getElementById('studentsCount').value);
+        if (isNaN(studentsCount) || studentsCount < 1) studentsCount = 1;
+        if (studentsCount > 10) studentsCount = 10;
+        
+        let kuch = getKuch(studentsCount);
+        
+        let basePerMonth = (salary * basePercent / 100) * ksl * kuch;
+        let basePerQuarter = basePerMonth * 3;
+        
+        let totalPremium = 0;
+        for (let i = 1; i <= studentsCount; i++) {
+            let resultElem = document.getElementById(`result${i}`);
+            if (resultElem) {
+                let resultVal = parseFloat(resultElem.value);
+                if (isNaN(resultVal)) resultVal = 0;
+                if (resultVal >= 90) {
+                    totalPremium += salary * premiumPercent / 100;
+                } else {
+                    totalPremium += salary * (premiumPercent / 2) / 100;
+                }
+            }
+        }
+        
+        let totalQuarter = basePerQuarter + totalPremium;
+        let monthlyAvg = totalQuarter / 3;
+        
+        document.getElementById('baseAmount').innerText = formatMoney(basePerQuarter);
+        document.getElementById('premiumAmount').innerText = formatMoney(totalPremium);
+        document.getElementById('totalAmount').innerText = formatMoney(totalQuarter);
+        document.getElementById('monthlyAvg').innerText = formatMoney(monthlyAvg);
+    }
+    
+    function handleComplexityChange() {
+        const select = document.getElementById('complexitySelect');
+        const customBlock = document.getElementById('customComplexityBlock');
+        if (select.value === 'custom') {
+            customBlock.style.display = 'block';
+        } else {
+            customBlock.style.display = 'none';
+        }
+        updateCalculator();
+    }
+    
+    document.getElementById('downloadFormulas').addEventListener('click', function(e) {
+        e.preventDefault();
+        
+        const tableHtml = `... (полный HTML таблицы) ...`;
+        
+        const blob = new Blob([tableHtml], { type: 'application/msword' });
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = 'formuly_i_koefficienty_nastavnichestvo.doc';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    });
+    
+    document.getElementById('salary').addEventListener('input', updateCalculator);
+    document.getElementById('salary').addEventListener('change', updateCalculator);
+    document.getElementById('basePercent').addEventListener('input', updateCalculator);
+    document.getElementById('basePercent').addEventListener('change', updateCalculator);
+    document.getElementById('premiumPercent').addEventListener('input', updateCalculator);
+    document.getElementById('premiumPercent').addEventListener('change', updateCalculator);
+    document.getElementById('complexitySelect').addEventListener('change', handleComplexityChange);
+    document.getElementById('customComplexity').addEventListener('input', updateCalculator);
+    document.getElementById('studentsCount').addEventListener('input', function() {
+        generateStudentBlocks();
+        updateCalculator();
+    });
+    document.getElementById('studentsCount').addEventListener('change', function() {
+        generateStudentBlocks();
+        updateCalculator();
+    });
+    
+    generateStudentBlocks();
+    handleComplexityChange();
+    updateCalculator();
+</script>
+</body>
+</html>
