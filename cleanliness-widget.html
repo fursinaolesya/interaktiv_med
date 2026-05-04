@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Классы чистоты помещений</title>
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green-dark:   #3a6b2a;
+    --green-mid:    #4e8c3a;
+    --green-light:  #d4edbc;
+    --green-pale:   #eef7e6;
+    --white:        #ffffff;
+    --text-dark:    #1a2e10;
+    --text-mid:     #4a6040;
+    --text-muted:   #7a9070;
+    --border:       #b8d9a0;
+    --shadow:       rgba(58, 107, 42, 0.12);
+  }
+
+  body {
+    font-family: 'Golos Text', sans-serif;
+    background: #f0f4ee;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .widget {
+    width: 100%;
+    max-width: 560px;
+    background: var(--green-pale);
+    border: 1.5px solid var(--border);
+    border-radius: 20px;
+    padding: 28px 28px 32px;
+    box-shadow: 0 8px 32px var(--shadow), 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .widget-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 20px;
+    letter-spacing: -0.3px;
+  }
+
+  .tabs {
+    display: flex;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+    gap: 4px;
+    margin-bottom: 22px;
+  }
+  .tab {
+    flex: 1;
+    padding: 9px 12px;
+    border: none;
+    border-radius: 7px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    background: transparent;
+    color: var(--text-mid);
+    transition: all 0.22s ease;
+  }
+  .tab.active { background: var(--green-dark); color: var(--white); box-shadow: 0 2px 8px rgba(58,107,42,0.28); }
+  .tab:not(.active):hover { background: var(--green-light); color: var(--green-dark); }
+
+  .field-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-mid);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .select-wrap { position: relative; }
+
+  .select-display {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--white);
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    padding: 11px 14px;
+    cursor: pointer;
+    transition: border-color 0.18s, box-shadow 0.18s;
+    min-height: 46px;
+    user-select: none;
+  }
+  .select-display:hover { border-color: var(--green-mid); }
+  .select-display.open { border-color: var(--green-dark); box-shadow: 0 0 0 3px rgba(78,140,58,0.15); border-radius: 10px 10px 0 0; }
+
+  .select-text { flex: 1; font-size: 15px; color: var(--text-dark); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .select-text.placeholder { color: var(--text-muted); }
+
+  .select-search {
+    flex: 1; border: none; outline: none;
+    font-family: inherit; font-size: 15px; color: var(--text-dark);
+    background: transparent; display: none;
+  }
+  .select-search.visible { display: block; }
+
+  .select-clear {
+    width: 20px; height: 20px; border: none; background: none; cursor: pointer;
+    color: var(--text-muted); display: none; align-items: center; justify-content: center;
+    border-radius: 50%; font-size: 14px; transition: background 0.15s, color 0.15s; flex-shrink: 0;
+  }
+  .select-clear.visible { display: flex; }
+  .select-clear:hover { background: var(--green-light); color: var(--green-dark); }
+
+  .select-arrow { color: var(--text-muted); transition: transform 0.22s; flex-shrink: 0; font-size: 11px; }
+  .select-display.open .select-arrow { transform: rotate(180deg); }
+
+  .dropdown {
+    position: absolute; top: 100%; left: 0; right: 0;
+    background: var(--white);
+    border: 1.5px solid var(--green-dark); border-top: none;
+    border-radius: 0 0 10px 10px;
+    max-height: 260px; overflow-y: auto; z-index: 100; display: none;
+    box-shadow: 0 8px 20px var(--shadow);
+  }
+  .dropdown.open { display: block; animation: dropIn 0.18s ease; }
+
+  @keyframes dropIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .dropdown::-webkit-scrollbar { width: 6px; }
+  .dropdown::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .dropdown-item {
+    padding: 10px 14px; font-size: 14.5px; color: var(--text-dark);
+    cursor: pointer; transition: background 0.13s;
+    border-bottom: 1px solid #f0f5ec; line-height: 1.4;
+  }
+  .dropdown-item:last-child { border-bottom: none; }
+  .dropdown-item:hover { background: var(--green-light); }
+  .dropdown-item.selected { background: var(--green-pale); font-weight: 600; color: var(--green-dark); }
+  .dropdown-empty { padding: 14px; text-align: center; color: var(--text-muted); font-size: 14px; }
+
+  .result {
+    margin-top: 18px; background: var(--white);
+    border: 1.5px solid var(--border); border-radius: 12px;
+    padding: 18px 20px; display: none; animation: fadeUp 0.28s ease;
+  }
+  .result.visible { display: block; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .result-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted); margin-bottom: 8px; }
+
+  .result-class { display: flex; align-items: center; gap: 14px; }
+
+  .class-badge {
+    width: 52px; height: 52px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px; font-weight: 700; flex-shrink: 0;
+  }
+  .badge-A { background: #fde8df; color: #c8440a; }
+  .badge-B { background: #fef3d9; color: #b8820a; }
+  .badge-V { background: #d9f0e5; color: #2a7a4a; }
+  .badge-G { background: #dce7fb; color: #2a4a8a; }
+  .badge-N { background: #ede8fb; color: #6a5a8a; }
+
+  .class-name { font-size: 22px; font-weight: 700; color: var(--text-dark); line-height: 1.2; }
+  .class-desc { font-size: 13px; color: var(--text-muted); margin-top: 2px; }
+
+  .result-list-title { font-size: 14px; font-weight: 700; color: var(--text-dark); margin-bottom: 6px; }
+  .result-count { font-size: 12px; color: var(--text-muted); margin-bottom: 10px; font-weight: 500; }
+
+  .result-list { list-style: none; display: flex; flex-direction: column; gap: 1px; }
+  .result-list li {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 6px 0; border-bottom: 1px solid #f0f5ec;
+    font-size: 14px; color: #1a3a7a; line-height: 1.4;
+  }
+  .result-list li:last-child { border-bottom: none; }
+  .result-list li::before { content: '•'; color: var(--green-mid); font-size: 16px; line-height: 1.3; flex-shrink: 0; }
+
+  @media (max-width: 480px) {
+    body { padding: 12px; align-items: flex-start; padding-top: 20px; }
+    .widget { padding: 20px 16px 24px; border-radius: 16px; }
+    .widget-title { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+<div class="widget">
+  <div class="widget-title">Классы чистоты помещений</div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('room')">По помещению</button>
+    <button class="tab" onclick="switchTab('class')">По классу</button>
+  </div>
+
+  <div id="tab-room">
+    <div class="field-label">Выберите помещение</div>
+    <div class="select-wrap" id="room-wrap">
+      <div class="select-display" id="room-display" onclick="toggleDropdown('room')">
+        <span class="select-text placeholder" id="room-text">Начните вводить или выберите...</span>
+        <input class="select-search" id="room-search" type="text" placeholder="Поиск..." oninput="filterRooms()" autocomplete="off">
+        <button class="select-clear" id="room-clear" onclick="clearSelect('room',event)">✕</button>
+        <span class="select-arrow">▼</span>
+      </div>
+      <div class="dropdown" id="room-dropdown"></div>
+    </div>
+    <div class="result" id="room-result">
+      <div class="result-label">Класс чистоты</div>
+      <div class="result-class">
+        <div class="class-badge" id="result-badge"></div>
+        <div>
+          <div class="class-name" id="result-class-name"></div>
+          <div class="class-desc" id="result-class-desc"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-class" style="display:none">
+    <div class="field-label">Выберите класс</div>
+    <div class="select-wrap" id="class-wrap">
+      <div class="select-display" id="class-display" onclick="toggleDropdown('class')">
+        <span class="select-text placeholder" id="class-text">Выберите класс чистоты...</span>
+        <button class="select-clear" id="class-clear" onclick="clearSelect('class',event)">✕</button>
+        <span class="select-arrow">▼</span>
+      </div>
+      <div class="dropdown" id="class-dropdown"></div>
+    </div>
+    <div class="result" id="class-result">
+      <div class="result-list-title" id="result-list-title"></div>
+      <div class="result-count" id="result-count"></div>
+      <ul class="result-list" id="result-list"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+const DATA = [
+  ["А","Операционная"],["А","Послеоперационная палата"],["А","Реанимационный зал / палата"],
+  ["А","Палата интенсивной терапии"],["А","Родовая"],["А","Манипуляционная-туалетная для новорожденных"],
+  ["А","Помещение для приготовления ЛП в асептических условиях"],
+  ["Б","Процедурная"],["Б","Процедурная бронхоскопии"],["Б","Асептическая перевязочная"],
+  ["Б","Рентгенооперационная, в том числе ангиографическая"],["Б","Малая операционная"],
+  ["Б","Стерилизационная при операционной"],["Б","Послеродовая палата"],
+  ["Б","Палата для ожоговых больных"],
+  ["Б","Палата для лечения пациентов в асептических условиях (в т. ч. для иммунокомпрометированных)"],
+  ["Б","Послеродовая палата с совместным пребыванием ребенка"],
+  ["Б","Палаты для недоношенных, грудных, травмированных, новорожденных (второй этап выхаживания)"],
+  ["Б","ЦСО «чистая» и «стерильная» зоны: контроля, комплектования и упаковки чистых инструментов, помещения для подготовки перевязочных и операционных материалов и белья, стерилизации, экспедиции"],
+  ["Б","В производственных аптеках: ассистентская, дефектарская, заготовочная, фасовочная, закаточная и контрольно-маркировочная, стерилизационная-автоклавная, дистилляционная"],
+  ["В","Палата для взрослых больных"],["В","Помещение для матерей в детских отделениях"],
+  ["В","Шлюз перед палатой для новорожденных"],["В","Кабинет врача"],
+  ["В","Помещение дневного пребывания пациентов"],["В","Кабинет функциональной диагностики"],
+  ["В","Процедурная эндоскопии"],["В","Зал ЛФК"],["В","Процедурная МРТ"],
+  ["В","Процедурная с применением аминазина, лечения нейролептиками"],
+  ["В","Палатная секция инфекционного отделения"],["В","Туберкулезный бокс палатного отделения"],
+  ["В","Боксированная палата"],["В","Шлюзы в боксах и полубоксах инфекционных отделений"],
+  ["Г","Процедурная рентгенодиагностического кабинета"],["Г","Раздевалка рентгенодиагностического кабинета"],
+  ["Г","Процедурная флюорографического кабинета"],["Г","Раздевалка флюорографического кабинета"],
+  ["Г","Комната управления рентгеновских кабинетов/отделений"],["Г","Фотолаборатория"],
+  ["Г","Монтажная и моечная кабинета искусственной почки"],["Г","Монтажная и моечная кабинета эндоскопии"],
+  ["Г","Монтажная и моечная кабинета искусственного кровообращения"],["Г","Растворные-деминерализационные"],
+  ["Г","Помещения ФТО"],["Г","Водогрязелечебница (за исключением родоновых ванн)"],
+  ["Г","Лечебный бассейн"],["Г","Массажный кабинет"],["Г","КДЛ (помещения для исследований)"],
+  ["Г","Секционный зал при патологоанатомическом отделении"],
+  ["Г","Музей при патологоанатомическом отделении"],
+  ["Г","Препараторская при патологоанатомическом отделении"],
+  ["Г","Регистратура"],["Г","Справочный вестибюль"],["Г","Гардеробная"],
+  ["Г","Помещение для приема передач больным"],["Г","Помещение выписки"],["Г","Ожидальная"],
+  ["Г","Буфет"],["Г","Столовая для пациентов"],["Г","Молочная комната"],
+  ["Г","Помещение для мытья и стерилизации столовой и кухонной посуды при буфетных и столовых отделениях"],
+  ["Г","Парикмахерская для обслуживания пациентов"],["Г","Комната для санитарной обработки больных"],
+  ["Г","Душевая"],["Г","Кладовая"],["Г","Технические помещения: компрессорные, насосные и т. п."],
+  ["Г","Мастерская по ремонту аппаратуры"],["Г","Архив"],
+  ["Г","ЦСО «грязная» зона: приема, разборки, мытья и сушки мед. инструментов и ИМН"],
+  ["Г","Помещения дезкамер: приемно-загрузочные, разгрузочные «чистые» отделения"],
+  ["Г","Диспетчерская"],["Г","Комната персонала"],["Г","Комната отдыха пациентов после процедур"],
+  ["Г","Санузел, санитарная комната для пациентов"],["Г","Клизменная"],
+  ["Г","Помещение сортировки и временного хранения грязного белья"],
+  ["Г","Помещения мойки, носилок и клеенок"],["Г","Помещение сушки одежды и обуви выездных бригад"],
+  ["Г","Помещение одевания трупов"],["Г","Помещение выдачи трупов"],
+  ["Г","Кладовая похоронных принадлежностей"],
+  ["Г","Помещение для обработки и подготовки к захоронению инфицированных трупов"],
+  ["Г","Помещение для хранения хлорной извести"],
+  ["Г","Кладовые, в том числе кислот, реактивов и дезсредств"],
+  ["Н","Курительная комната"],["Н","Общественный туалет в МО"],
+  ["Н","Лестничная площадка помещений МО"],["Н","Коридор"],
+];
+
+const CLASS_META = {
+  "А": { label: "А — наивысший",  badge: "А", badgeCls: "badge-A", name: "Класс А", desc: "Наивысшие требования к чистоте" },
+  "Б": { label: "Б — повышенный", badge: "Б", badgeCls: "badge-B", name: "Класс Б", desc: "Повышенные требования к чистоте" },
+  "В": { label: "В — умеренный",  badge: "В", badgeCls: "badge-V", name: "Класс В", desc: "Умеренные требования к чистоте" },
+  "Г": { label: "Г — базовый",    badge: "Г", badgeCls: "badge-G", name: "Класс Г", desc: "Базовые требования к чистоте" },
+  "Н": { label: "Некатегорируемые", badge: "Н", badgeCls: "badge-N", name: "Некатегорируемое", desc: "Помещение без категории чистоты" },
+};
+
+const roomToClass = {};
+const classToRooms = {};
+DATA.forEach(([cls, room]) => {
+  roomToClass[room] = cls;
+  if (!classToRooms[cls]) classToRooms[cls] = [];
+  classToRooms[cls].push(room);
+});
+
+let roomOpen = false, classOpen = false, roomSearch = '', roomSelected = null, classSelected = null;
+
+function switchTab(tab) {
+  document.getElementById('tab-room').style.display = tab === 'room' ? '' : 'none';
+  document.getElementById('tab-class').style.display = tab === 'class' ? '' : 'none';
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', (i===0&&tab==='room')||(i===1&&tab==='class')));
+  closeAll();
+}
+
+function closeAll() {
+  roomOpen = false; classOpen = false;
+  ['room-display','class-display'].forEach(id => document.getElementById(id).classList.remove('open'));
+  ['room-dropdown','class-dropdown'].forEach(id => document.getElementById(id).classList.remove('open'));
+  const rs = document.getElementById('room-search');
+  rs.classList.remove('visible');
+  document.getElementById('room-text').style.display = '';
+}
+
+function toggleDropdown(type) {
+  if (type === 'room') {
+    if (roomOpen) { closeAll(); return; }
+    closeAll();
+    roomOpen = true;
+    roomSearch = '';
+    document.getElementById('room-search').value = '';
+    document.getElementById('room-display').classList.add('open');
+    document.getElementById('room-text').style.display = 'none';
+    const rs = document.getElementById('room-search');
+    rs.classList.add('visible');
+    rs.focus();
+    document.getElementById('room-dropdown').classList.add('open');
+    renderRooms();
+  } else {
+    if (classOpen) { closeAll(); return; }
+    closeAll();
+    classOpen = true;
+    document.getElementById('class-display').classList.add('open');
+    document.getElementById('class-dropdown').classList.add('open');
+    renderClasses();
+  }
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#room-wrap') && !e.target.closest('#class-wrap')) closeAll();
+});
+
+function filterRooms() {
+  roomSearch = document.getElementById('room-search').value;
+  renderRooms();
+}
+
+function renderRooms() {
+  const q = roomSearch.toLowerCase();
+  const rooms = DATA.map(([,r]) => r).filter(r => !q || r.toLowerCase().includes(q));
+  const dd = document.getElementById('room-dropdown');
+  if (!rooms.length) { dd.innerHTML = '<div class="dropdown-empty">Ничего не найдено</div>'; return; }
+  dd.innerHTML = rooms.map(r => {
+    const esc = r.replace(/'/g,"\\'");
+    const hl = q ? r.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'), '<mark style="background:#d4f0b8;border-radius:2px;padding:0 1px">$1</mark>') : r;
+    return `<div class="dropdown-item${r===roomSelected?' selected':''}" onclick="selectRoom('${esc}')">${hl}</div>`;
+  }).join('');
+}
+
+function selectRoom(room) {
+  roomSelected = room;
+  const cls = roomToClass[room];
+  const m = CLASS_META[cls];
+  const rt = document.getElementById('room-text');
+  rt.textContent = room; rt.classList.remove('placeholder');
+  document.getElementById('room-clear').classList.add('visible');
+  const badge = document.getElementById('result-badge');
+  badge.textContent = m.badge; badge.className = 'class-badge ' + m.badgeCls;
+  document.getElementById('result-class-name').textContent = m.name;
+  document.getElementById('result-class-desc').textContent = m.desc;
+  const res = document.getElementById('room-result');
+  res.classList.remove('visible'); void res.offsetWidth; res.classList.add('visible');
+  closeAll();
+}
+
+function renderClasses() {
+  const dd = document.getElementById('class-dropdown');
+  dd.innerHTML = Object.entries(CLASS_META).map(([key, m]) =>
+    `<div class="dropdown-item${key===classSelected?' selected':''}" onclick="selectClass('${key}')">${m.label}</div>`
+  ).join('');
+}
+
+function selectClass(key) {
+  classSelected = key;
+  const rooms = classToRooms[key] || [];
+  const m = CLASS_META[key];
+  const ct = document.getElementById('class-text');
+  ct.textContent = m.label; ct.classList.remove('placeholder');
+  document.getElementById('class-clear').classList.add('visible');
+  document.getElementById('result-list-title').textContent = 'Помещения ' + (key==='Н' ? 'без категории' : `класса ${key}`);
+  document.getElementById('result-count').textContent = `Всего: ${rooms.length} помещений`;
+  document.getElementById('result-list').innerHTML = rooms.map(r => `<li>${r}</li>`).join('');
+  const res = document.getElementById('class-result');
+  res.classList.remove('visible'); void res.offsetWidth; res.classList.add('visible');
+  closeAll();
+}
+
+function clearSelect(type, e) {
+  e.stopPropagation();
+  if (type === 'room') {
+    roomSelected = null;
+    const rt = document.getElementById('room-text');
+    rt.textContent = 'Начните вводить или выберите...'; rt.classList.add('placeholder');
+    document.getElementById('room-clear').classList.remove('visible');
+    document.getElementById('room-result').classList.remove('visible');
+  } else {
+    classSelected = null;
+    const ct = document.getElementById('class-text');
+    ct.textContent = 'Выберите класс чистоты...'; ct.classList.add('placeholder');
+    document.getElementById('class-clear').classList.remove('visible');
+    document.getElementById('class-result').classList.remove('visible');
+  }
+  closeAll();
+}
+</script>
+</body>
+</html>
