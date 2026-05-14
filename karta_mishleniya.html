@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Карта мышления: найди свой когнитивный стиль</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f4f7fc;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 24px 16px;
+            color: #1a2c3e;
+        }
+
+        .container {
+            max-width: 780px;
+            margin: 0 auto;
+        }
+
+        /* карточка теста */
+        .test-card {
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #1e3c4c 0%, #2b5c6f 100%);
+            color: white;
+            padding: 28px 24px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.9;
+            margin-top: 8px;
+        }
+
+        .form-section {
+            padding: 28px 24px 24px;
+        }
+
+        .question-block {
+            background: #fefefe;
+            border-radius: 24px;
+            margin-bottom: 28px;
+            border: 1px solid #e2edf2;
+            padding: 6px 0 6px 0;
+            transition: 0.1s;
+        }
+
+        .question-text {
+            font-weight: 600;
+            font-size: 1.2rem;
+            margin-bottom: 16px;
+            padding: 0 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #174654;
+        }
+
+        .question-text::before {
+            content: "●";
+            color: #3c9bb5;
+            font-size: 1.2rem;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding-left: 8px;
+        }
+
+        .option-radio {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: #f9fdfe;
+            padding: 10px 16px;
+            border-radius: 60px;
+            border: 1px solid #dce9ef;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .option-radio:hover {
+            background: #eef4f8;
+            border-color: #9fcbd9;
+        }
+
+        input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #2c7a8c;
+            margin: 0;
+            flex-shrink: 0;
+        }
+
+        .option-label {
+            font-size: 0.98rem;
+            line-height: 1.4;
+            color: #1e3b47;
+        }
+
+        .btn-submit {
+            background: #226b7e;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+            border-radius: 60px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: 16px;
+            margin-bottom: 12px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .btn-submit:hover {
+            background: #0f5568;
+            transform: scale(0.98);
+        }
+
+        /* результат */
+        .result-card {
+            background: #ffffff;
+            border-radius: 28px;
+            margin-top: 32px;
+            padding: 24px;
+            border-left: 6px solid #46b3cc;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.05);
+            display: none;
+        }
+
+        .result-card.visible {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px);}
+            to { opacity: 1; transform: translateY(0);}
+        }
+
+        .result-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #174654;
+            margin-bottom: 16px;
+            border-left: 4px solid #46b3cc;
+            padding-left: 16px;
+        }
+
+        .mind-map {
+            background: #f2f9fc;
+            border-radius: 24px;
+            padding: 18px 20px;
+            margin: 20px 0;
+            font-family: 'Courier New', 'SF Mono', monospace;
+            font-size: 0.85rem;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            color: #1c4e5e;
+            border: 1px solid #cde3ea;
+        }
+
+        .advice-block {
+            background: #fef7e0;
+            padding: 20px;
+            border-radius: 24px;
+            margin: 20px 0;
+        }
+
+        .advice-block h3 {
+            font-size: 1.25rem;
+            margin-bottom: 12px;
+            color: #b6571a;
+        }
+
+        .advice-block ul {
+            padding-left: 20px;
+            margin-top: 8px;
+        }
+
+        .advice-block li {
+            margin: 10px 0;
+            line-height: 1.4;
+        }
+
+        .footer-note {
+            font-size: 0.75rem;
+            text-align: center;
+            margin-top: 28px;
+            color: #5b7f8c;
+        }
+
+        hr {
+            margin: 16px 0;
+            border: 0;
+            height: 1px;
+            background: #cde3ea;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="test-card">
+        <div class="header">
+            <h1>🧠 Карта мышления</h1>
+            <p>5 вопросов → твой когнитивный профиль + пошаговый разбор</p>
+        </div>
+        <div class="form-section" id="quizForm">
+            <!-- Вопрос 1: сфера -->
+            <div class="question-block">
+                <div class="question-text">1. В какой сфере ты сейчас хочешь пробить «потолок»?</div>
+                <div class="options" id="q1-group">
+                    <label class="option-radio"><input type="radio" name="sphere" value="work"> 💼 Работа / деньги / карьера</label>
+                    <label class="option-radio"><input type="radio" name="sphere" value="learn"> 📚 Обучение / навыки</label>
+                    <label class="option-radio"><input type="radio" name="sphere" value="relations"> 💬 Отношения / коммуникация</label>
+                    <label class="option-radio"><input type="radio" name="sphere" value="self"> 🌱 Саморазвитие / мотивация</label>
+                </div>
+            </div>
+
+            <!-- Вопрос 2: стиль мышления (один основной) -->
+            <div class="question-block">
+                <div class="question-text">2. Какой у тебя ДОМИНИРУЮЩИЙ стиль мышления?</div>
+                <div class="options" id="q2-group">
+                    <label class="option-radio"><input type="radio" name="style" value="visual"> 🖼️ Визуал: вижу картинки, схемы, образы</label>
+                    <label class="option-radio"><input type="radio" name="style" value="verbal"> 🗣️ Вербалист: проговариваю диалоги, текст внутри</label>
+                    <label class="option-radio"><input type="radio" name="style" value="analyst"> 📊 Аналитик: цепочки «если → то», таблицы, цифры</label>
+                    <label class="option-radio"><input type="radio" name="style" value="intuit"> 🌙 Интуит: чувствую ответ, но логика не всегда ясна</label>
+                    <label class="option-radio"><input type="radio" name="style" value="chaos"> 🌪️ Хаос: мысли прыгают, много идей сразу</label>
+                </div>
+            </div>
+
+            <!-- Вопрос 3: что тормозит (главный барьер) -->
+            <div class="question-block">
+                <div class="question-text">3. Что чаще всего ТОРМОЗИТ твоё мышление?</div>
+                <div class="options" id="q3-group">
+                    <label class="option-radio"><input type="radio" name="barrier" value="perfectionism"> 🎯 Перфекционизм (нужно идеально → не начинаю)</label>
+                    <label class="option-radio"><input type="radio" name="barrier" value="fear"> 😨 Страх ошибки / критики</label>
+                    <label class="option-radio"><input type="radio" name="barrier" value="noise"> 📢 Шум — слишком много данных, не могу сфокусироваться</label>
+                    <label class="option-radio"><input type="radio" name="barrier" value="emotions"> 😤 Эмоции (злость, тревога, грусть мешают)</label>
+                    <label class="option-radio"><input type="radio" name="barrier" value="nodeadline"> ⏳ Отсутствие дедлайна (без пожара не включаюсь)</label>
+                </div>
+            </div>
+
+            <!-- Вопрос 4: триггер продуктивности -->
+            <div class="question-block">
+                <div class="question-text">4. Что ЛУЧШЕ ВСЕГО включает твою продуктивность?</div>
+                <div class="options" id="q4-group">
+                    <label class="option-radio"><input type="radio" name="trigger" value="deadline"> 🔥 Дедлайн / «горит»</label>
+                    <label class="option-radio"><input type="radio" name="trigger" value="coffee"> ☕ Кофе, прогулка, смена обстановки</label>
+                    <label class="option-radio"><input type="radio" name="trigger" value="talk"> 🗣️ Разговор с умным собеседником</label>
+                    <label class="option-radio"><input type="radio" name="trigger" value="silence"> 🤫 Тишина и блокнот / бумага</label>
+                    <label class="option-radio"><input type="radio" name="trigger" value="challenge"> 🏆 Конкуренция / публичный вызов</label>
+                </div>
+            </div>
+
+            <!-- Вопрос 5: паттерн достижения целей (дополнительный) -->
+            <div class="question-block">
+                <div class="question-text">5. Как часто ты достигаешь важных целей?</div>
+                <div class="options" id="q5-group">
+                    <label class="option-radio"><input type="radio" name="pattern" value="always"> 🚀 Всегда планомерно, без скачков</label>
+                    <label class="option-radio"><input type="radio" name="pattern" value="often"> 📈 Часто, но иногда прокрастинирую</label>
+                    <label class="option-radio"><input type="radio" name="pattern" value="deadlineOnly"> ⏰ Только когда крайний срок поджимает</label>
+                    <label class="option-radio"><input type="radio" name="pattern" value="rare"> 🌊 Редко, застреваю в размышлениях</label>
+                </div>
+            </div>
+
+            <button class="btn-submit" id="submitBtn">✨ Построить мою карту мышления ✨</button>
+        </div>
+    </div>
+
+    <div id="resultArea" class="result-card">
+        <div class="result-title" id="resultTitle"></div>
+        <div id="mindMapText" class="mind-map"></div>
+        <div id="adviceHTML" class="advice-block"></div>
+        <div style="font-size: 0.85rem; margin-top: 12px; text-align: right;">🧩 твой когнитивный отпечаток</div>
+    </div>
+    <div class="footer-note">
+        ⚡ Тест построен на когнитивных паттернах. Отвечай честно — получишь персональную карту и практические протоколы.
+    </div>
+</div>
+
+<script>
+    (function() {
+        const submitBtn = document.getElementById('submitBtn');
+        const resultDiv = document.getElementById('resultArea');
+
+        // Получить выбранное значение по имени
+        function getSelectedValue(name) {
+            const radios = document.querySelectorAll(`input[name="${name}"]`);
+            for(let radio of radios) {
+                if(radio.checked) return radio.value;
+            }
+            return null;
+        }
+
+        // Генерация карты на основе ответов
+        function generateMindMap(sphere, style, barrier, trigger, pattern) {
+            let mapLines = [];
+            let advices = [];
+            let profileTitle = "";
+
+            // ---- Базовая интерпретация сферы ----
+            let sphereLabel = "";
+            if (sphere === "work") sphereLabel = "💰 Работа / деньги";
+            else if (sphere === "learn") sphereLabel = "📚 Обучение";
+            else if (sphere === "relations") sphereLabel = "💬 Отношения";
+            else sphereLabel = "🌱 Саморазвитие";
+
+            // ---- стиль мышления ----
+            let styleDesc = "";
+            if (style === "visual") styleDesc = "Визуал (картинки, схемы)";
+            else if (style === "verbal") styleDesc = "Вербалист (внутренний диалог)";
+            else if (style === "analyst") styleDesc = "Аналитик (логика, таблицы)";
+            else if (style === "intuit") styleDesc = "Интуит (чувствую, но не всегда объясню)";
+            else styleDesc = "Хаотичный поток мыслей";
+
+            let barrierDesc = "";
+            if (barrier === "perfectionism") barrierDesc = "🎯 Перфекционизм";
+            else if (barrier === "fear") barrierDesc = "😨 Страх ошибки";
+            else if (barrier === "noise") barrierDesc = "📢 Шум / перегрузка данными";
+            else if (barrier === "emotions") barrierDesc = "😤 Эмоции";
+            else barrierDesc = "⏳ Отсутствие дедлайна";
+
+            let triggerDesc = "";
+            if (trigger === "deadline") triggerDesc = "🔥 Дедлайн / аврал";
+            else if (trigger === "coffee") triggerDesc = "☕ Кофе или прогулка";
+            else if (trigger === "talk") triggerDesc = "🗣️ Разговор с умным человеком";
+            else if (trigger === "silence") triggerDesc = "🤫 Тишина + блокнот";
+            else triggerDesc = "🏆 Вызов / конкуренция";
+
+            // ---- формируем карту по схеме Стимул -> Режим -> Барьер -> Триггер -> итог
+            mapLines.push(`🧠 КОГНИТИВНАЯ КАРТА • СФЕРА: ${sphereLabel}`);
+            mapLines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+            mapLines.push(`🎯 СТИМУЛ: Хочу пробить потолок в ${sphereLabel}`);
+            mapLines.push(`↓`);
+            mapLines.push(`🔄 ДОМИНАНТНЫЙ РЕЖИМ: ${styleDesc}`);
+            if (style === "analyst") mapLines.push(`   → Строю цепочки «если-то», таблицы, сравниваю переменные.`);
+            if (style === "visual") mapLines.push(`   → Сначала рисую мысленную картинку успеха.`);
+            if (style === "verbal") mapLines.push(`   → Веду внутренний диалог, прорабатываю возражения.`);
+            if (style === "intuit") mapLines.push(`   → Полагаюсь на «чуйку», но логическое обоснование запаздывает.`);
+            if (style === "chaos") mapLines.push(`   → Мысли перескакивают, генерирую много идей.`);
+            mapLines.push(`↓`);
+            mapLines.push(`🚧 ГЛАВНЫЙ БАРЬЕР: ${barrierDesc}`);
+            // описание барьера
+            if (barrier === "noise") mapLines.push(`   → Слишком много вариантов, вводных, советов → паралич анализа.`);
+            else if (barrier === "perfectionism") mapLines.push(`   → Страх сделать неидеально блокирует первые шаги.`);
+            else if (barrier === "fear") mapLines.push(`   → Оценка других или возможная неудача тормозят действие.`);
+            else if (barrier === "emotions") mapLines.push(`   → Эмоциональный фон перекрывает рациональные решения.`);
+            else mapLines.push(`   → Без внешнего давления сложно собраться, распыляюсь.`);
+            mapLines.push(`↓`);
+            mapLines.push(`⚡ ВКЛЮЧАЮЩИЙ ТРИГГЕР: ${triggerDesc}`);
+            if (trigger === "deadline") mapLines.push(`   → Только когда «горит» — отсекается лишнее, включается фокус.`);
+            else if (trigger === "silence") mapLines.push(`   → В тишине и с бумагой появляется структура.`);
+            else if (trigger === "talk") mapLines.push(`   → Чужая мысль запускает цепочку решений.`);
+            else if (trigger === "coffee") mapLines.push(`   → Смена контекста освежает восприятие.`);
+            else mapLines.push(`   → Элемент соревнования мобилизует ресурсы.`);
+            mapLines.push(`↓`);
+            let patternEffect = "";
+            if (pattern === "deadlineOnly") patternEffect = "⚠️ Работа в основном скачкообразная: ты прорываешься на дедлайнах, но между ними — затишье. Потолок не пробит из-за отсутствия системности.";
+            else if (pattern === "always") patternEffect = "✅ У тебя хорошая самоорганизация, но проверь, не игнорируешь ли ты гибкость. Иногда слишком гладкий план давит.";
+            else if (pattern === "often") patternEffect = "📌 Неплохая динамика, но твой ключевой барьер (барьер) может красть до 30% энергии.";
+            else patternEffect = "🌀 Часто остаёшься в размышлениях — значит, без внешних триггеров теряешь импульс. Нужны якоря.";
+
+            mapLines.push(`🧩 ИТОГОВЫЙ ПАТТЕРН: ${patternEffect}`);
+            mapLines.push(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+
+            // ----- РЕКОМЕНДАЦИИ (индивидуальные протоколы) -----
+            // База под барьер + стиль + триггер
+            advices.push(`<h3>🔍 3 ключевых вывода и протоколы</h3><ul>`);
+
+            // Спецблок для шума + аналитик/визуал (как в запросе пользователя)
+            if (barrier === "noise" && (style === "analyst" || style === "visual") && trigger === "deadline") {
+                advices.push(`<li><strong>🎛️ Протокол «Фильтр шума за 3 минуты»:</strong> Прежде чем анализировать варианты, запиши 3 жестких критерия (срок, бюджет, один ключевой ресурс). Всё, что не попадает под них — в папку «потом». Твой мозг тонет в данных, а критерии дают спасательный круг.</li>`);
+                advices.push(`<li><strong>⏳ Искусственный дедлайн без стресса:</strong> Поскольку настоящий дедлайн — твой главный катализатор, создавай «низкорисковые» сроки. Например: «до пятницы 15:00 выбрать ТОЛЬКО один вариант». Засеки 2 часа на анализ и СТОП. Дедлайн есть, пожара нет.</li>`);
+                advices.push(`<li><strong>✂️ Разделение режимов «Визуал» и «Аналитик»:</strong> Утром 15 минут рисуй идеальную картинку результата без цифр. Днём 30 минут — только аналитика по одному способу. Не смешивай. Конфликт красивой цели и сложных шагов исчезнет.</li>`);
+            } 
+            else if (barrier === "noise") {
+                advices.push(`<li><strong>📉 Правило «Трёх»:</strong> Слишком много вводных? Выпиши не более 3 ключевых факторов, влияющих на результат. Остальное игнорируй на неделю.</li>`);
+                advices.push(`<li><strong>🧹 Ежедневная «уборка шума»:</strong> В начале дня выбери 1 главную задачу (МТЗ) и стикер с фильтром: «Это ведёт к деньгам / результату?».</li>`);
+                if (trigger === "deadline") advices.push(`<li><strong>🕹️ Дедлайн-таймер:</strong> Поставь на задачу 45 минут и делай только её. Создай давление искусственно, но без аварий.</li>`);
+                else advices.push(`<li><strong>🎯 Техника «чистый лист»:</strong> Отключи уведомления, открой блокнот. Запиши ровно 3 следующих микрошага.</li>`);
+            } 
+            else if (barrier === "perfectionism") {
+                advices.push(`<li><strong>🛠️ «Грязный черновик»:</strong> Разреши себе сделать максимально плохую версию за 10 минут. Перфекционист застревает на старте, а грязь можно потом отполировать.</li>`);
+                advices.push(`<li><strong>📦 Правило 70%:</strong> Как только решение на 70% готово — выпускай. Остальное доделаешь по факту.</li>`);
+                if (style === "analyst") advices.push(`<li><strong>📉 Урезать анализ:</strong> Ты склонен пересчитывать всё до мелочей. Введи лимит: максимум 3 варианта для сравнения, дальше выбор вслепую.</li>`);
+            } 
+            else if (barrier === "fear") {
+                advices.push(`<li><strong>🧪 Эксперимент вместо битвы:</strong> Спроси себя: «Что самое плохое случится? Какова вероятность?» И сделай маленький шаг как проверку гипотезы.</li>`);
+                advices.push(`<li><strong>🗣️ Вербализация страха:</strong> Проговори (или запиши в диктофон) свой страх ошибки. Звук снижает накал.</li>`);
+                if (trigger === "talk") advices.push(`<li><strong>💬 Коуч-вопрос другу:</strong> Попроси кого-то спросить: «Что ты потеряешь, если сейчас попробуешь и не получится идеально?».</li>`);
+            }
+            else if (barrier === "emotions") {
+                advices.push(`<li><strong>🌬️ Стоп-сигнал для эмоций:</strong> Как только чувствуешь, что эмоции зашкаливают, сделай 5 глубоких вдохов и задай вопрос: «Какой самый маленький нейтральный шаг я могу сделать?».</li>`);
+                advices.push(`<li><strong>📝 Эмоциональный дамп:</strong> Выпиши на бумагу всё, что чувствуешь (гнев/тревогу), 3 минуты без цензуры. После этого мысли становятся прозрачнее.</li>`);
+            }
+            else if (barrier === "nodeadline") {
+                advices.push(`<li><strong>⏲️ Внешний искусственный аккаунтабилити:</strong> Договорись с другом, что скинешь ему результат до определённого часа, иначе штраф (1000 руб на благотворительность).</li>`);
+                advices.push(`<li><strong>🎯 Чек-лист «утренний коммит»:</strong> Каждый день в 10:00 пиши одну конкретную задачу, которая сдвигает потолок заработка, и ставь таймер 1 час.</li>`);
+                if (trigger === "challenge") advices.push(`<li><strong>🏁 Публичный челлендж:</strong> Объяви в канале, что за 5 дней сделаешь определённое действие. Без дедлайна не включаешься — создай его сам.</li>`);
+            }
+
+            // общие советы в зависимости от стиля
+            if (style === "chaos") {
+                advices.push(`<li><strong>🌀 Хаос в рамки:</strong> Заведи «Карту хаоса» — фиксируй все идеи в один документ, но выделяй каждый день 25 минут на реализацию только одной.</li>`);
+            }
+            if (style === "intuit") {
+                advices.push(`<li><strong>🌙 Интуиции нужен мост:</strong> После того как «почувствовал» ответ, задай себе 2 логических вопроса: «Почему это сработает? Какие 3 риска?» — баланс чутья и анализа.</li>`);
+            }
+            if (style === "verbal") {
+                advices.push(`<li><strong>🎙️ Диалог-принятие решения:</strong> Запиши на диктофон спор двух экспертов внутри тебя. Потом переслушай — выделишь ключевое.</li>`);
+            }
+
+            if (advices.length < 4) {
+                advices.push(`<li><strong>⚡ Микро-привычка на завтра:</strong> Выбери одно простое действие, которое займёт не больше 5 минут, и сделай его до полудня. Малый шаг ломает любую стагнацию.</li>`);
+            }
+            advices.push(`</ul>`);
+
+            // добавим рекомендацию по триггеру
+            if (trigger === "deadline" && barrier !== "noise") {
+                advices.push(`<p style="margin-top: 12px; background:#eef2f5; padding: 10px; border-radius: 20px;"><strong>⏰ Твой топ-триггер — ДЕДЛАЙН.</strong> Используй «обратный отсчёт»: ставь задачи не «сделать отчет», а «закончить через 2 часа 15 минут».</p>`);
+            } else if (trigger === "silence") {
+                advices.push(`<p style="margin-top: 12px; background:#eef2f5; padding: 10px; border-radius: 20px;"><strong>🤫 Тишина — твой суперсила.</strong> Выделяй 45 минут утром до соцсетей для глубокой работы без звуков.</p>`);
+            }
+
+            return { mapText: mapLines.join('\n'), adviceHtml: advices.join(''), title: `🧭 Карта мышления: ${sphereLabel} · ${styleDesc.split(' ')[0]}` };
+        }
+
+        function validateAndGenerate() {
+            const sphere = getSelectedValue('sphere');
+            const style = getSelectedValue('style');
+            const barrier = getSelectedValue('barrier');
+            const trigger = getSelectedValue('trigger');
+            const pattern = getSelectedValue('pattern');
+
+            if (!sphere || !style || !barrier || !trigger || !pattern) {
+                alert('Пожалуйста, ответь на все 5 вопросов, чтобы построить точную карту мышления 🙏');
+                return false;
+            }
+            const { mapText, adviceHtml, title } = generateMindMap(sphere, style, barrier, trigger, pattern);
+            document.getElementById('resultTitle').innerHTML = title;
+            const mindMapElem = document.getElementById('mindMapText');
+            mindMapElem.innerHTML = mapText.replace(/\n/g, '<br>');
+            document.getElementById('adviceHTML').innerHTML = adviceHtml;
+            resultDiv.classList.add('visible');
+            // плавный скролл к результату
+            setTimeout(() => resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
+            return true;
+        }
+
+        submitBtn.addEventListener('click', validateAndGenerate);
+    })();
+</script>
+</body>
+</html>
