@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Интерактив: какие документы нужны для получения справок и выписок</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f0f4f8;
+            padding: 2rem 1rem;
+            color: #1a2c3e;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        .header {
+            background: #0b3b5f;
+            padding: 1.8rem 2rem;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            margin-bottom: 0.5rem;
+        }
+
+        .header p {
+            font-size: 1rem;
+            opacity: 0.85;
+            max-width: 85%;
+        }
+
+        .badge-new {
+            background: #ffcd3c;
+            color: #1e2f3d;
+            padding: 0.2rem 0.8rem;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 0.5rem;
+        }
+
+        .content {
+            padding: 2rem;
+        }
+
+        .questions-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 1.8rem;
+            margin-bottom: 2rem;
+        }
+
+        .question-block {
+            background: #f9fafc;
+            border-radius: 20px;
+            padding: 1.2rem 1.5rem;
+            border: 1px solid #e2e8f0;
+            transition: 0.1s;
+        }
+
+        .question-label {
+            font-weight: 700;
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #0b3b5f;
+        }
+
+        .question-label span {
+            background: #e2edf7;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            font-size: 0.75rem;
+        }
+
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            margin-top: 0.3rem;
+        }
+
+        .option-btn {
+            background: white;
+            border: 1px solid #cbd5e1;
+            border-radius: 60px;
+            padding: 0.6rem 1.2rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #1e2f3d;
+        }
+
+        .option-btn:hover {
+            background: #eef2ff;
+            border-color: #7c9bc0;
+        }
+
+        .option-btn.active {
+            background: #0b3b5f;
+            border-color: #0b3b5f;
+            color: white;
+            box-shadow: 0 4px 8px rgba(11, 59, 95, 0.2);
+        }
+
+        .result-card {
+            background: #eef3fa;
+            border-radius: 24px;
+            padding: 1.8rem;
+            margin: 2rem 0 1.5rem;
+            border-left: 6px solid #0f6b9c;
+        }
+
+        .result-title {
+            font-weight: 800;
+            font-size: 1.3rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .doc-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .doc-list li {
+            margin-bottom: 0.75rem;
+            padding-left: 1.8rem;
+            position: relative;
+            font-size: 0.98rem;
+            line-height: 1.4;
+        }
+
+        .doc-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0.3rem;
+            top: 0;
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #0f6b9c;
+        }
+
+        .extra-note {
+            background: #fff9e0;
+            border-radius: 20px;
+            padding: 1rem 1.5rem;
+            margin-top: 1.2rem;
+            font-size: 0.85rem;
+            border-left: 4px solid #f5b042;
+        }
+
+        .footnote {
+            font-size: 0.8rem;
+            color: #4a627a;
+            border-top: 1px solid #dce5ec;
+            margin-top: 1.8rem;
+            padding-top: 1.5rem;
+        }
+
+        .reset-btn {
+            background: transparent;
+            border: 1px solid #b9cfdf;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .reset-btn:hover {
+            background: #e4edf5;
+        }
+
+        @media (max-width: 650px) {
+            .content {
+                padding: 1.2rem;
+            }
+            .header p {
+                max-width: 100%;
+            }
+            .options {
+                gap: 0.5rem;
+            }
+            .option-btn {
+                padding: 0.45rem 1rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div class="header">
+            <h1>Кто и как получает справки и выписки</h1>
+            <p>Интерактивный помощник по новым правилам — выберите статус заявителя и ситуацию, чтобы узнать точный перечень документов, которые необходимо предоставить.</p>
+            <div class="badge-new">Основано на Приказе №789н, №972н, 323-ФЗ и ГК РФ</div>
+        </div>
+        <div class="content">
+            <div class="questions-grid">
+                <div class="question-block">
+                    <div class="question-label">
+                        1. Кто запрашивает медицинские документы?
+                        <span>обязательно</span>
+                    </div>
+                    <div class="options" id="roleGroup">
+                        <button data-role="patient" class="option-btn">Сам пациент (14+ лет)</button>
+                        <button data-role="parent_under14" class="option-btn">Родитель (ребёнок до 14 лет)</button>
+                        <button data-role="parent_over14" class="option-btn">Родитель (ребёнок 14–17 лет)</button>
+                        <button data-role="guardian" class="option-btn">Опекун (недееспособный / подопечный)</button>
+                        <button data-role="relative" class="option-btn">Супруг(а) / близкий родственник*</button>
+                        <button data-role="proxy" class="option-btn">Представитель по доверенности</button>
+                        <button data-role="other_no_proxy" class="option-btn">Иное лицо (друг, сосед, сожитель)</button>
+                    </div>
+                    <div class="extra-note" style="margin-top: 12px; background:#F1F5F9; font-size:0.8rem;">
+                        *Близкие родственники: супруг(а), родители, дети, братья/сёстры, внуки, бабушки/дедушки (ст.14 СК РФ, 323-ФЗ)
+                    </div>
+                </div>
+
+                <div class="question-block" id="conditionalBlock" style="display: none;">
+                    <div class="question-label">
+                        2. Уточняющие обстоятельства (для некоторых категорий)
+                    </div>
+                    <div class="options" id="additionalOptions"></div>
+                </div>
+            </div>
+
+            <div id="resultArea">
+                <div class="result-card" style="background:#eef3fa;">
+                    <div class="result-title">
+                        Результат проверки
+                    </div>
+                    <div style="font-size:0.95rem; margin-top: 6px;">Выберите категорию заявителя — система покажет, какие документы необходимо запросить в регистратуре.</div>
+                    <div class="footnote" style="margin-top:1rem;">* Во всех случаях обязателен документ, удостоверяющий личность заявителя (паспорт РФ, загранпаспорт, временное удостоверение и др.).</div>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; margin-top: 0.5rem;">
+                <button id="resetBtn" class="reset-btn">Сбросить выбор</button>
+            </div>
+
+            <div class="footnote">
+                <strong>Правовая основа:</strong> Федеральный закон №323-ФЗ (ст.13, ст.22), Приказ Минздрава №789н, №972н, ГК РФ ст.185.1, ст. 27, 54 СК РФ.<br>
+                <strong>Важно:</strong> при отказе в выдаче требуется мотивированное решение главного врача. При отсутствии умысла у регистратора ответственность не наступает.
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function getDocumentRequirements(role, additional) {
+        const baseDocs = ["Паспорт или иной документ, удостоверяющий личность (удостоверение личности военнослужащего, загранпаспорт, вид на жительство — согласно таблице идентификации)"];
+        
+        if (role === "parent_under14") {
+            return {
+                docs: [...baseDocs, "Свидетельство о рождении ребенка (подтверждение родства)", "При смене фамилии — свидетельство о браке или о перемене имени"],
+                note: "Родитель действует как законный представитель без дополнительной доверенности. Согласие ребенка не требуется (ребенок младше 14 лет)."
+            };
+        }
+        else if (role === "parent_over14") {
+            return {
+                docs: [...baseDocs, "Свидетельство о рождении ребенка (подтверждение родства)", "Письменное согласие самого подростка (от 14 лет) на разглашение врачебной тайны, если ребенок в сознании и не запрещает (ст.13 323-ФЗ)", "При смене фамилии — подтверждающие документы"],
+                note: "С 14 лет пациент вправе самостоятельно давать ИДС. Если подросток против — родитель не получит документы, кроме случаев, когда пациент не может выразить волю (реанимация) и нет письменного запрета."
+            };
+        }
+        else if (role === "guardian") {
+            return {
+                docs: [...baseDocs, "Акт органа опеки и попечительства о назначении опекуна (оригинал или заверенная копия)", "(при необходимости) свидетельство о рождении подопечного, если опекунство установлено над несовершеннолетним"],
+                note: "Опекун действует вместо пациента. Запрет на разглашение пациентом не может ограничить опекуна (за исключением случаев, когда опекаемый старше 14 лет и дееспособен — но по определению опека недееспособного)."
+            };
+        }
+        else if (role === "patient") {
+            return {
+                docs: [...baseDocs],
+                note: "Пациент имеет право на полный доступ к своей медицинской документации (копии, выписки, справки) без дополнительных условий. Доверенность не требуется."
+            };
+        }
+        else if (role === "relative") {
+            let banStatus = additional?.ban || "no_ban";
+            let conscious = additional?.conscious || "conscious";
+            
+            if (banStatus === "has_ban") {
+                return {
+                    docs: [...baseDocs, "Документ, подтверждающий родство (свидетельство о браке, о рождении и т.д.)"],
+                    note: "ОТКАЗАНО: Пациент в письменном согласии (ИДС) установил полный запрет на разглашение сведений родственникам, либо указал конкретных лиц, в число которых заявитель не входит. Выдача документов невозможна даже в реанимации (ст.13 323-ФЗ)."
+                };
+            }
+            if (conscious === "conscious_against" && banStatus !== "has_ban") {
+                return {
+                    docs: [...baseDocs, "Документ о родстве"],
+                    note: "ОТКАЗАНО: Пациент находится в сознании и выражает несогласие на выдачу документов родственнику. В соответствии со ст.13 323-ФЗ разглашение сведений без согласия гражданина не допускается."
+                };
+            }
+            
+            let specialNote = "";
+            if (conscious === "unconscious") {
+                specialNote = "Пациент в реанимации/без сознания и не может выразить волю. Закон (323-ФЗ) допускает выдачу документов близкому родственнику при отсутствии письменного запрета. Нотариальная доверенность не нужна.";
+            } else {
+                specialNote = "У пациента нет письменного запрета на разглашение сведений данному родственнику. Выдача документов разрешена без доверенности.";
+            }
+            return {
+                docs: [...baseDocs, "Документ, подтверждающий степень родства (свидетельство о браке, о рождении, для внуков/дедушек — цепочка свидетельств о рождении)"],
+                note: specialNote
+            };
+        }
+        else if (role === "proxy") {
+            let proxyType = additional?.proxyType || "notary";
+            if (proxyType === "simple_written") {
+                return {
+                    docs: [...baseDocs, "Простая письменная доверенность недействительна для получения медицинских документов (врачебная тайна)", "Требуется нотариальная доверенность или доверенность, приравненная к нотариальной (ст.185.1 ГК РФ)"],
+                    note: "Отказать в выдаче: неправильная форма доверенности. Исключения: доверенность от пациента в стационаре соцобслуживания/от военнослужащего/от заключенного."
+                };
+            } else if (proxyType === "social_station" || proxyType === "military" || proxyType === "prison") {
+                return {
+                    docs: [...baseDocs, "Специальная доверенность, заверенная руководителем соцучреждения/командиром/начальником учреждения ФСИН (ст.185.1 ГК РФ)", "Документ, удостоверяющий личность представителя"],
+                    note: "Доверенность действительна без нотариального удостоверения в силу прямого указания закона. Обязательно проверить полномочия (объем прав, указанных в доверенности)."
+                };
+            } else {
+                return {
+                    docs: [...baseDocs, "Нотариально удостоверенная доверенность (оригинал или нотариальная копия). В доверенности должно быть прямо указано право на получение медицинских документов, справок, выписок"],
+                    note: "Простая письменная доверенность не подходит! Выдавать документы можно строго в пределах полномочий, прописанных у нотариуса."
+                };
+            }
+        }
+        else if (role === "other_no_proxy") {
+            let hasConsentInIds = additional?.idsConsent || "no";
+            if (hasConsentInIds === "yes") {
+                return {
+                    docs: [...baseDocs, "Письменное согласие пациента (ИДС), где он лично указал данное лицо как уполномоченное на получение врачебной тайны"],
+                    note: "Выдача документов возможна, только если пациент до утраты сознания внес этого гражданина в информированное добровольное согласие. Без этого — строгий отказ по 323-ФЗ."
+                };
+            } else {
+                return {
+                    docs: [...baseDocs],
+                    note: "ОТКАЗАНО: Иное лицо (не родственник и не законный представитель) не имеет права получать медицинские документы без нотариальной доверенности или прямого указания в ИДС пациента (ст.13 323-ФЗ)."
+                };
+            }
+        }
+        
+        return { docs: baseDocs, note: "Уточните статус заявителя." };
+    }
+
+    function renderAdditionalFields(role) {
+        const container = document.getElementById("additionalOptions");
+        const block = document.getElementById("conditionalBlock");
+        if (!container) return;
+        
+        block.style.display = "none";
+        container.innerHTML = "";
+        
+        if (role === "relative") {
+            block.style.display = "block";
+            container.innerHTML = `
+                <div style="width:100%; margin-bottom:12px;"><strong>Наличие письменного запрета пациента на разглашение врачебной тайны:</strong></div>
+                <div class="options" id="banGroup">
+                    <button data-add="ban_no" class="option-btn">Нет запрета</button>
+                    <button data-add="ban_yes" class="option-btn">Есть полный запрет / не входит в список</button>
+                </div>
+                <div style="margin:12px 0 8px;"><strong>Состояние пациента:</strong></div>
+                <div class="options" id="consciousGroup">
+                    <button data-add="conscious_yes" class="option-btn">В сознании, не против выдачи родственнику (по умолчанию)</button>
+                    <button data-add="conscious_against" class="option-btn">В сознании, активно против выдачи</button>
+                    <button data-add="unconscious" class="option-btn">Без сознания / в реанимации, не может выразить волю</button>
+                </div>
+            `;
+            attachAddEventListeners();
+        } 
+        else if (role === "proxy") {
+            block.style.display = "block";
+            container.innerHTML = `
+                <div><strong>Тип доверенности:</strong></div>
+                <div class="options" id="proxyTypeGroup">
+                    <button data-add="notary" class="option-btn">Нотариальная доверенность</button>
+                    <button data-add="simple_written" class="option-btn">Простая письменная (не заверена нотариусом)</button>
+                    <button data-add="social_station" class="option-btn">Доверенность от пациента в стационаре соцобслуживания</button>
+                    <button data-add="military" class="option-btn">Доверенность от военнослужащего</button>
+                    <button data-add="prison" class="option-btn">Доверенность от заключённого</button>
+                </div>
+            `;
+            attachAddEventListeners();
+        } 
+        else if (role === "other_no_proxy") {
+            block.style.display = "block";
+            container.innerHTML = `
+                <div><strong>Указано ли иное лицо в письменном согласии/ИДС пациента?</strong></div>
+                <div class="options" id="idsConsentGroup">
+                    <button data-add="no" class="option-btn">Нет, не указано</button>
+                    <button data-add="yes" class="option-btn">Да, пациент внес его в ИДС до потери сознания</button>
+                </div>
+            `;
+            attachAddEventListeners();
+        } 
+        else if (role === "parent_over14") {
+            block.style.display = "block";
+            container.innerHTML = `
+                <div><strong>Согласие подростка (14-17 лет) на выдачу документов родителю:</strong></div>
+                <div class="options" id="teenConsentGroup">
+                    <button data-add="teen_agree" class="option-btn">Да, подросток дал письменное согласие</button>
+                    <button data-add="teen_refuse" class="option-btn">Подросток против выдачи родителю (ст.13)</button>
+                    <button data-add="teen_unconscious" class="option-btn">Подросток без сознания / в реанимации (нет запрета в ИДС)</button>
+                </div>
+            `;
+            attachAddEventListeners();
+        }
+        
+        function attachAddEventListeners() {
+            document.querySelectorAll("[data-add]").forEach(btn => {
+                btn.removeEventListener("click", handleAddClick);
+                btn.addEventListener("click", handleAddClick);
+            });
+        }
+    }
+    
+    let currentRole = null;
+    let additionalState = {};
+    
+    function handleAddClick(e) {
+        const btn = e.currentTarget;
+        const value = btn.getAttribute("data-add");
+        const parent = btn.parentElement;
+        if (parent) {
+            parent.querySelectorAll("[data-add]").forEach(b => b.classList.remove("active"));
+        }
+        btn.classList.add("active");
+        
+        if (parent.id === "banGroup") {
+            if (value === "ban_no") additionalState.ban = "no_ban";
+            else if (value === "ban_yes") additionalState.ban = "has_ban";
+        } else if (parent.id === "consciousGroup") {
+            if (value === "conscious_yes") additionalState.conscious = "conscious";
+            else if (value === "conscious_against") additionalState.conscious = "conscious_against";
+            else if (value === "unconscious") additionalState.conscious = "unconscious";
+        } else if (parent.id === "proxyTypeGroup") {
+            additionalState.proxyType = value;
+        } else if (parent.id === "idsConsentGroup") {
+            additionalState.idsConsent = value;
+        } else if (parent.id === "teenConsentGroup") {
+            additionalState.teenConsent = value;
+        }
+        
+        if (currentRole) {
+            updateResult(currentRole, additionalState);
+        }
+    }
+    
+    function updateResult(role, additional) {
+        const req = getDocumentRequirements(role, additional);
+        const resultDiv = document.getElementById("resultArea");
+        if (!resultDiv) return;
+        
+        let docsHtml = `<div class="result-card" style="background:#eef3fa;">
+            <div class="result-title">Перечень документов для получения справок/выписок</div>
+            <ul class="doc-list">`;
+        req.docs.forEach(d => {
+            docsHtml += `<li>${d}</li>`;
+        });
+        docsHtml += `</ul><div class="extra-note" style="margin-top:0.8rem;">${req.note}</div>`;
+        
+        if ((role === "relative" && additional?.ban === "has_ban") ||
+            (role === "parent_over14" && additional?.teenConsent === "teen_refuse") ||
+            (role === "other_no_proxy" && additional?.idsConsent !== "yes")) {
+            docsHtml += `<div style="margin-top:12px; background:#ffe6e5; border-radius:20px; padding:12px; border-left:4px solid #b91c1c;">Решение: отказ мотивирован. Оформляется письменный отказ за подписью главного врача с ссылкой на ст.13 323-ФЗ.</div>`;
+        }
+        
+        docsHtml += `<div class="footnote" style="margin-top:1rem;">* При наличии умысла на подделку документов — уголовная ответственность по ст.327 УК РФ. При отсутствии умысла у регистратора ответственность не наступает.</div>
+        </div>`;
+        resultDiv.innerHTML = docsHtml;
+    }
+    
+    function initRoleButtons() {
+        const roleBtns = document.querySelectorAll("[data-role]");
+        roleBtns.forEach(btn => {
+            btn.addEventListener("click", () => {
+                const role = btn.getAttribute("data-role");
+                currentRole = role;
+                document.querySelectorAll("[data-role]").forEach(b => b.classList.remove("active"));
+                btn.classList.add("active");
+                additionalState = {};
+                renderAdditionalFields(role);
+                setTimeout(() => {
+                    updateResult(role, additionalState);
+                }, 10);
+            });
+        });
+    }
+    
+    document.getElementById("resetBtn")?.addEventListener("click", () => {
+        currentRole = null;
+        additionalState = {};
+        document.querySelectorAll("[data-role]").forEach(b => b.classList.remove("active"));
+        document.getElementById("conditionalBlock").style.display = "none";
+        document.getElementById("additionalOptions").innerHTML = "";
+        document.getElementById("resultArea").innerHTML = `<div class="result-card" style="background:#eef3fa;">
+            <div class="result-title">Результат проверки</div>
+            <div style="font-size:0.95rem; margin-top: 6px;">Выберите категорию заявителя — система покажет, какие документы необходимо запросить в регистратуре.</div>
+            <div class="footnote" style="margin-top:1rem;">* Во всех случаях обязателен документ, удостоверяющий личность заявителя (паспорт РФ, загранпаспорт и др.).</div>
+        </div>`;
+    });
+    
+    initRoleButtons();
+</script>
+</body>
+</html>
