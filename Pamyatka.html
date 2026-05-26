@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Памятка. Передвижка средств между статьями КОСГУ</title>
+    <!-- Google Fonts + Font Awesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eef3fa;
+            font-family: 'Inter', sans-serif;
+            padding: 2rem 1.5rem;
+            color: #1a2c3e;
+        }
+
+        .kosgu-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 20px 35px -12px rgba(0, 0, 0, 0.12);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        /* header */
+        .table-header {
+            padding: 1.5rem 1.8rem;
+            background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+            border-bottom: 1px solid #e2edf2;
+        }
+
+        .title-section {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: baseline;
+            gap: 1rem;
+        }
+
+        h1 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+            background: linear-gradient(145deg, #1e4668, #0f2c44);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        /* скрываем ненужные элементы (бывший badge с "разрешенные корреспонденции") */
+        .badge-info {
+            display: none;
+        }
+
+        /* таблица */
+        .table-wrapper {
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            border-bottom: 1px solid #e2edf2;
+        }
+
+        .kosgu-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 640px;
+        }
+
+        .kosgu-table th {
+            background: #f1f7fc;
+            color: #1e3a5f;
+            font-weight: 600;
+            padding: 1rem 1.2rem;
+            border-bottom: 2px solid #cbdde6;
+            text-align: left;
+            font-size: 0.9rem;
+            position: sticky;
+            top: 0;
+            backdrop-filter: blur(2px);
+        }
+
+        .kosgu-table td {
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid #e9edf2;
+            vertical-align: top;
+            background-color: white;
+        }
+
+        /* стиль для колонки с исходной статьей */
+        .article-cell {
+            font-weight: 600;
+            background-color: #fefcf5;
+            border-right: 2px solid #e9ecef;
+            width: 28%;
+        }
+
+        .transfer-cell {
+            background: #ffffff;
+        }
+
+        /* список статей, на которые можно передвигать */
+        .transfer-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            margin: 0;
+            padding-left: 0;
+            list-style: none;
+        }
+
+        .transfer-list li {
+            background: #f0f6fa;
+            padding: 0.25rem 0.7rem;
+            border-radius: 24px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #0f4c5f;
+            transition: all 0.1s ease;
+            border: 1px solid #e0ecf3;
+        }
+
+        /* hover-эффект для строк */
+        .kosgu-table tbody tr:hover td {
+            background-color: #fbfefd;
+        }
+
+        .kosgu-table tbody tr:hover .article-cell {
+            background-color: #fff9ef;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 1rem;
+            }
+            .table-header {
+                padding: 1rem;
+            }
+            .kosgu-table th, .kosgu-table td {
+                padding: 0.75rem 0.9rem;
+            }
+            .transfer-list li {
+                font-size: 0.75rem;
+            }
+        }
+
+        /* footer */
+        footer {
+            padding: 1rem 1.8rem;
+            font-size: 0.75rem;
+            color: #7f8c8d;
+            background: #fafdff;
+            border-top: 1px solid #e2edf2;
+            display: flex;
+            justify-content: flex-start;
+            flex-wrap: wrap;
+        }
+
+        /* скрываем любые лишние блоки (статистика, поиск и т.д.) */
+        .stats, .filter-bar, .copy-hint {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+<div class="kosgu-container">
+    <div class="table-header">
+        <div class="title-section">
+            <h1><i class="fas fa-exchange-alt" style="color: #2c7da0; margin-right: 8px;"></i> Памятка. Между какими статьями можно делать передвижку средств</h1>
+        </div>
+        <!-- удален блок "Разрешенные корреспонденции (передвижки)" -->
+    </div>
+
+    <div class="table-wrapper">
+        <table class="kosgu-table" id="kosguTable">
+            <thead>
+                <tr>
+                    <!-- Заголовок столбца изменен: "Статья КОСГУ" вместо "Статья КОСГУ (исходная)" -->
+                    <th><i class="fas fa-tag"></i> Статья КОСГУ</th>
+                    <!-- Заголовок столбца изменен: "На какие статьи КОСГУ можно передвигать" -->
+                    <th><i class="fas fa-share"></i> На какие статьи КОСГУ можно передвигать</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <!-- данные загружаются через JS -->
+            </tbody>
+        </table>
+    </div>
+    <footer>
+        <!-- Изменен текст: "Памятка для экономиста" -->
+        <span><i class="far fa-clock"></i> Памятка для экономиста</span>
+        <span style="margin-left: 1rem;"><i class="fas fa-check-circle"></i> Актуальные корреспонденции</span>
+    </footer>
+</div>
+
+<script>
+    // ---- Полные данные на основе исходной таблицы (все строки, без изменений) ----
+    const kosguData = [
+        {
+            source: "210 «Оплата труда и начисления на выплаты по оплате труда»",
+            transfers: [
+                "211 «Заработная плата»",
+                "212 «Прочие выплаты»",
+                "213 «Начисления на выплаты по оплате труда»"
+            ]
+        },
+        {
+            source: "214 «Прочие несоциальные выплаты персоналу в натуральной форме»",
+            transfers: [
+                "220 «Оплата работ, услуг»",
+                "267 «Социальные компенсации персоналу в натуральной форме»",
+                "297 «Иные выплаты текущего характера организациям»",
+                "310 «Увеличение стоимости основных средств»",
+                "320 «Увеличение стоимости нематериальных активов»",
+                "340 «Увеличение стоимости материальных запасов»"
+            ]
+        },
+        {
+            source: "220 «Оплата работ, услуг»",
+            transfers: [
+                "214 «Прочие несоциальные выплаты персоналу в натуральной форме»",
+                "267 «Социальные компенсации персоналу в натуральной форме»",
+                "297 «Иные выплаты текущего характера организациям»",
+                "310 «Увеличение стоимости основных средств»",
+                "320 «Увеличение стоимости нематериальных активов»",
+                "340 «Увеличение стоимости материальных запасов»"
+            ]
+        },
+        {
+            source: "267 «Социальные компенсации персоналу в натуральной форме»",
+            transfers: [
+                "214 «Прочие несоциальные выплаты персоналу в натуральной форме»",
+                "220 «Оплата работ, услуг»",
+                "297 «Иные выплаты текущего характера организациям»",
+                "310 «Увеличение стоимости основных средств»",
+                "320 «Увеличение стоимости нематериальных активов»",
+                "340 «Увеличение стоимости материальных запасов»"
+            ]
+        },
+        {
+            source: "297 «Иные выплаты текущего характера организациям»",
+            transfers: [
+                "214 «Прочие несоциальные выплаты персоналу в натуральной форме»",
+                "220 «Оплата работ, услуг»",
+                "267 «Социальные компенсации персоналу в натуральной форме»",
+                "310 «Увеличение стоимости основных средств»",
+                "320 «Увеличение стоимости нематериальных активов»",
+                "340 «Увеличение стоимости материальных запасов»"
+            ]
+        },
+        {
+            source: "310 «Увеличение стоимости основных средств»",
+            transfers: [
+                "214 «Прочие несоциальные выплаты персоналу в натуральной форме»",
+                "220 «Оплата работ, услуг»",
+                "267 «Социальные компенсации персоналу в натуральной форме»",
+                "297 «Иные выплаты текущего характера организациям»",
+                "320 «Увеличение стоимости нематериальных активов»",
+                "340 «Увеличение стоимости материальных запасов»"
+            ]
+        },
+        {
+            source: "320 «Увеличение стоимости нематериальных активов»",
+            transfers: [
+                "214 «Прочие несоциальные выплаты персоналу в натуральной форме»",
+                "220 «Оплата работ, услуг»",
+                "267 «Социальные компенсации персоналу в натуральной форме»",
+                "297 «Иные выплаты текущего характера организациям»",
+                "310 «Увеличение стоимости основных средств»",
+                "340 «Увеличение стоимости материальных запасов»"
+            ]
+        },
+        {
+            source: "340 «Увеличение стоимости материальных запасов»",
+            transfers: [
+                "214 «Прочие несоциальные выплаты персоналу в натуральной форме»",
+                "220 «Оплата работ, услуг»",
+                "267 «Социальные компенсации персоналу в натуральной форме»",
+                "297 «Иные выплаты текущего характера организациям»",
+                "310 «Увеличение стоимости основных средств»",
+                "320 «Увеличение стоимости нематериальных активов»"
+            ]
+        },
+        {
+            source: "226 «Прочие работы, услуги»",
+            transfers: [
+                "214 «Прочие несоциальные выплаты персоналу в натуральной форме»",
+                "220 «Оплата работ, услуг»",
+                "267 «Социальные компенсации персоналу в натуральной форме»",
+                "297 «Иные выплаты текущего характера организациям»",
+                "310 «Увеличение стоимости основных средств»",
+                "320 «Увеличение стоимости нематериальных активов»",
+                "340 «Увеличение стоимости материальных запасов»"
+            ]
+        }
+    ];
+
+    // Функция для безопасного экранирования HTML
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // Рендер всей таблицы без поиска, фильтров и лишних элементов
+    function renderFullTable() {
+        const tbody = document.getElementById('tableBody');
+        if (!tbody) return;
+        
+        let html = '';
+        for (let i = 0; i < kosguData.length; i++) {
+            const item = kosguData[i];
+            let transfersHtml = '';
+            if (item.transfers && item.transfers.length) {
+                transfersHtml = '<ul class="transfer-list">';
+                for (let t of item.transfers) {
+                    transfersHtml += `<li>${escapeHtml(t)}</li>`;
+                }
+                transfersHtml += '</ul>';
+            } else {
+                transfersHtml = '<span style="color:#9aaebf;">—</span>';
+            }
+            
+            html += `<tr>
+                        <td class="article-cell"><i class="fas fa-bookmark" style="color:#3a7ca5; margin-right: 6px;"></i> ${escapeHtml(item.source)}</td>
+                        <td class="transfer-cell">${transfersHtml}</td>
+                    </tr>`;
+        }
+        tbody.innerHTML = html;
+    }
+    
+    // Инициализация при загрузке страницы
+    document.addEventListener('DOMContentLoaded', () => {
+        renderFullTable();
+        // Все лишние элементы (поиск, статистика, подсказки) уже удалены или скрыты через CSS
+    });
+</script>
+</body>
+</html>
