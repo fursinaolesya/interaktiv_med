@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Интерактив: какие документы запросить у заявителя (справки и заключения по новым правилам)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Главный контейнер теперь сам управляет скроллом при помещении во фрейм */
+        .interactive-scroll {
+            max-height: 85vh;          /* 85% от высоты окна (или фрейма) */
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-right: 6px;        /* небольшой отступ для скроллбара */
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: #eef2f5;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            padding: 20px 16px;
+            color: #1a2c3e;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            background: #003057;
+            color: white;
+            padding: 18px 24px;
+        }
+
+        .card-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .card-header p {
+            font-size: 0.9rem;
+            opacity: 0.85;
+        }
+
+        .card-content {
+            padding: 24px 26px;
+        }
+
+        .step-group {
+            background: #f9fafc;
+            border-radius: 20px;
+            padding: 18px 22px;
+            margin-bottom: 24px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .step-title {
+            font-weight: 700;
+            font-size: 1.15rem;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #003057;
+            border-left: 4px solid #2c7da0;
+            padding-left: 14px;
+        }
+
+        .radio-group, .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px 24px;
+            margin-top: 8px;
+        }
+
+        .radio-group label, .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            background: white;
+            padding: 6px 16px;
+            border-radius: 40px;
+            border: 1px solid #cbd5e1;
+            cursor: pointer;
+            transition: all 0.15s;
+            font-size: 0.9rem;
+        }
+
+        .radio-group input, .checkbox-group input {
+            width: 17px;
+            height: 17px;
+            margin: 0;
+            accent-color: #003057;
+        }
+
+        .radio-group label:has(input:checked), 
+        .checkbox-group label:has(input:checked) {
+            background: #eef2ff;
+            border-color: #003057;
+            box-shadow: 0 2px 6px rgba(0,48,87,0.1);
+        }
+
+        .info-hint {
+            font-size: 0.78rem;
+            color: #5b6e8c;
+            margin-top: 10px;
+            background: #f0f4f9;
+            padding: 7px 12px;
+            border-radius: 16px;
+        }
+
+        .result-area {
+            background: #eef2fa;
+            border-radius: 24px;
+            padding: 18px 22px;
+            margin-top: 20px;
+            border-left: 5px solid #003057;
+        }
+
+        .result-title {
+            font-weight: 800;
+            font-size: 1.15rem;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #003057;
+        }
+
+        .document-list {
+            background: white;
+            border-radius: 18px;
+            padding: 14px 18px;
+            margin: 12px 0;
+            list-style-type: none;
+        }
+
+        .document-list li {
+            padding: 6px 0;
+            border-bottom: 1px solid #e9edf2;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .document-list li:last-child {
+            border-bottom: none;
+        }
+
+        .black-bullet {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background-color: #1e2f3e;
+            border-radius: 50%;
+            margin-right: 10px;
+            vertical-align: middle;
+            flex-shrink: 0;
+            margin-top: 8px;
+        }
+        .list-item-text {
+            flex: 1;
+        }
+
+        .warning-note {
+            background: #fff6e0;
+            border-left: 4px solid #e6a017;
+            padding: 10px 14px;
+            border-radius: 14px;
+            margin-top: 14px;
+            font-size: 0.85rem;
+        }
+
+        .flex-buttons {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 22px;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        button {
+            background: #003057;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 40px;
+            color: white;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.15s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            background: #1f4e6e;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #4a627a;
+        }
+
+        .btn-secondary:hover {
+            background: #2c4c6e;
+        }
+
+        hr {
+            margin: 16px 0;
+            border-color: #e2e8f0;
+        }
+
+        footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #5f7f9e;
+            margin-top: 16px;
+            padding-bottom: 8px;
+        }
+
+        @media (max-width: 680px) {
+            .card-content {
+                padding: 18px;
+            }
+            .radio-group label, .checkbox-group label {
+                padding: 4px 12px;
+                font-size: 0.8rem;
+            }
+            .step-group {
+                padding: 14px 16px;
+            }
+            .result-area {
+                padding: 14px 18px;
+            }
+        }
+
+        /* Кастомный скролл для аккуратности */
+        .interactive-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .interactive-scroll::-webkit-scrollbar-track {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        .interactive-scroll::-webkit-scrollbar-thumb {
+            background: #8ba0bc;
+            border-radius: 10px;
+        }
+        .interactive-scroll::-webkit-scrollbar-thumb:hover {
+            background: #5b6e8c;
+        }
+    </style>
+</head>
+<body>
+<div class="interactive-scroll">
+    <div class="container">
+        <div class="card">
+            <div class="card-header">
+                <h1>📋 Кто и с какими документами может получить справки / заключения</h1>
+                <p>По новым правилам с 1 сентября 2026 · Интерактив для регистратуры</p>
+            </div>
+            <div class="card-content">
+                <!-- Блок 1: Категория заявителя -->
+                <div class="step-group">
+                    <div class="step-title">1. Кто запрашивает медицинские документы?</div>
+                    <div class="radio-group" id="categoryGroup">
+                        <label><input type="radio" name="category" value="patient"> Пациент (лично)</label>
+                        <label><input type="radio" name="category" value="legalRep"> Законный представитель (родитель/опекун ребёнка до 18 лет)</label>
+                        <label><input type="radio" name="category" value="closeRelative"> Близкий родственник (супруг, дети, братья/сёстры, внуки, дедушки/бабушки)</label>
+                        <label><input type="radio" name="category" value="proxy"> Представитель по доверенности (друг, сосед, дальний родственник и др.)</label>
+                    </div>
+                    <div class="info-hint">
+                        ⚠️ Внимание: дяди, тёти, племянники, сожители — не являются близкими родственниками. Им нужна доверенность или согласие пациента.
+                    </div>
+                </div>
+
+                <!-- Блок 2: Дополнительные обстоятельства (особые условия) — убран чекбокс "ребёнок 15-17 лет" -->
+                <div class="step-group">
+                    <div class="step-title">2. Дополнительные обстоятельства (если применимо)</div>
+                    <div class="checkbox-group" id="circumstancesGroup">
+                        <label><input type="checkbox" value="patientReanimation"> Пациент в реанимации / без сознания (запрос от близкого родственника)</label>
+                        <label><input type="checkbox" value="writtenConsentExists"> Пациент дал письменное согласие на разглашение врачебной тайны (в ИДС или отдельно)</label>
+                        <label><input type="checkbox" value="banConsent"> В согласии пациент указал полный запрет на разглашение</label>
+                        <label><input type="checkbox" value="emancipation"> Ребёнок эмансипирован (ст.27 ГК РФ) — до 18 лет, документы получает самостоятельно</label>
+                    </div>
+                    <div class="info-hint">
+                        ⚠️ Если отмечен пункт «В согласии пациент указал полный запрет на разглашение» — откажите в выдаче даже родственникам, кроме самого пациента (при его дееспособности).
+                    </div>
+                </div>
+
+                <!-- Результат: перечень документов для запроса -->
+                <div class="result-area" id="resultBox">
+                    <div class="result-title">📄 Перечень документов, которые необходимо запросить у заявителя</div>
+                    <div id="documentsOutput">
+                        <ul class="document-list">
+                            <li><span class="black-bullet"></span><span class="list-item-text">Выберите категорию и обстоятельства</span></li>
+                        </ul>
+                    </div>
+                    <div id="specialNote"></div>
+                </div>
+
+                <div class="flex-buttons">
+                    <button id="generateBtn">🔍 Сформировать чек-лист документов</button>
+                    <button id="downloadBtn" class="btn-secondary">⬇️ Скачать результат (интерактив-памятка)</button>
+                </div>
+                <div class="info-hint" style="margin-top: 18px;">
+                    🔹 Новый порядок: выдачу документа обязательно отражать в медкарте пациента (бумажной или в МИС).<br>
+                    🔹 При личном обращении — паспорт или иной документ, удостоверяющий личность, обязателен для всех.
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            © Справочная система «Главный врач» · Алгоритм на основе новых правил (вступают в силу с 01.09.2026)<br>
+            Интерактив помогает регистратору быстро определить, какие документы запросить, и избежать нарушений врачебной тайны.
+        </footer>
+    </div>
+</div>
+
+<script>
+    // Функция получения выбранной категории
+    function getSelectedCategory() {
+        const radios = document.querySelectorAll('input[name="category"]');
+        for (let radio of radios) {
+            if (radio.checked) return radio.value;
+        }
+        return null;
+    }
+
+    // Получение выбранных чекбоксов (значения)
+    function getSelectedCircumstances() {
+        const checks = document.querySelectorAll('#circumstancesGroup input[type="checkbox"]');
+        const values = [];
+        checks.forEach(ch => {
+            if (ch.checked) values.push(ch.value);
+        });
+        return values;
+    }
+
+    // Проверка на блокирующий запрет (полный запрет разглашения тайны)
+    function hasBanConsent(checks) {
+        return checks.includes('banConsent');
+    }
+
+    function isCloseRelativeCategory(category) {
+        return category === 'closeRelative';
+    }
+
+    function isLegalRep(category) {
+        return category === 'legalRep';
+    }
+
+    function isPatientSelf(category) {
+        return category === 'patient';
+    }
+
+    function isProxy(category) {
+        return category === 'proxy';
+    }
+
+    // Генерация результата
+    function generateResult() {
+        const category = getSelectedCategory();
+        const circumstances = getSelectedCircumstances();
+        const banActive = hasBanConsent(circumstances);
+        
+        const docsOutputDiv = document.getElementById('documentsOutput');
+        const specialNoteDiv = document.getElementById('specialNote');
+        
+        specialNoteDiv.innerHTML = '';
+        
+        // Случай: если выбран полный запрет (кроме самого пациента)
+        if (banActive && category !== 'patient') {
+            docsOutputDiv.innerHTML = `
+                <div class="warning-note" style="background:#fce4e4; border-left-color:#c00;">
+                    <strong>❌ ОТКАЗ В ВЫДАЧЕ МЕДИЦИНСКИХ ДОКУМЕНТОВ</strong><br>
+                    В согласии пациент указал полный запрет на разглашение врачебной тайны и/или перечень лиц, куда заявитель не входит.<br>
+                    Выдача справок и заключений невозможна (даже близким родственникам). Действуйте согласно ч. 4 ст. 13 323-ФЗ.
+                </div>
+                <ul class="document-list" style="margin-top:12px;">
+                    <li><span class="black-bullet"></span><span class="list-item-text">Сообщите ответственному лицу (руководителю медорганизации).</span></li>
+                    <li><span class="black-bullet"></span><span class="list-item-text">Оформите мотивированный отказ по установленной форме.</span></li>
+                </ul>
+            `;
+            return;
+        }
+        
+        if (!category) {
+            docsOutputDiv.innerHTML = `<ul class="document-list"><li><span class="black-bullet"></span><span class="list-item-text">Сначала выберите категорию заявителя (кто запрашивает).</span></li></ul>`;
+            return;
+        }
+        
+        // Базовый обязательный документ для всех
+        let requiredDocs = ["Паспорт гражданина РФ или иной документ, удостоверяющий личность (для всех заявителей)"];
+        let additionalDocs = [];
+        let extraNote = "";
+        
+        // 1. Пациент лично
+        if (isPatientSelf(category)) {
+            additionalDocs.push("Доп. документы не требуются (только паспорт).");
+            if (circumstances.includes('emancipation')) {
+                extraNote += " При эмансипации несовершеннолетний пользуется полными правами, родители теряют право на получение его меддокументов без его согласия. ";
+                let emancipationDocs = "Для подтверждения эмансипации (если несовершеннолетний младше 18 лет и заявляет о полной дееспособности) необходимо запросить: свидетельство о браке (при вступлении в брак), либо постановление (решение) органа опеки и попечительства об объявлении несовершеннолетнего полностью дееспособным, либо решение суда об эмансипации. Эти документы подтверждают право самостоятельно получать медицинские документы без участия родителей.";
+                additionalDocs.push(emancipationDocs);
+            }
+        }
+        
+        // 2. Законный представитель (родитель/опекун ребёнка до 18 лет)
+        else if (isLegalRep(category)) {
+            additionalDocs.push("Свидетельство о рождении ребенка (подтверждение родства/опеки)");
+            additionalDocs.push("При смене фамилии — документы, подтверждающие изменение (свидетельство о браке/перемене имени)");
+            additionalDocs.push("Для опекуна: акт (решение) органа опеки и попечительства об установлении опеки (Федеральный закон № 48-ФЗ)");
+            // Пояснение про возраст 15-17 лет (без отдельного чекбокса)
+            additionalDocs.push("Пояснение: пациенты от 15 до 17 лет вправе самостоятельно получать медицинские документы (кроме наркологической помощи — с 16 лет). Однако родитель (законный представитель) также имеет право получить документы за ребенка, согласия не требуется (исключение — случаи эмансипации).");
+            
+            if (circumstances.includes('emancipation')) {
+                extraNote += " ⚠️ Если ребенок эмансипирован (ст. 27 ГК РФ), законный представитель НЕ имеет права получать документы без согласия такого пациента. Эмансипация доказывается: свидетельством о браке, постановлением органа опеки или решением суда. При предъявлении этих документов несовершеннолетним — родитель не вправе получить выписки/справки без его согласия.";
+                additionalDocs.push("При наличии у ребенка документов об эмансипации — родитель/опекун утрачивает право; выдавать документы можно только самому эмансипированному либо по его доверенности.");
+            }
+        }
+        
+        // 3. Близкие родственники 
+        else if (isCloseRelativeCategory(category)) {
+            additionalDocs.push("Документы, подтверждающие степень родства (свидетельство о браке, о рождении, об установлении отцовства и т.д.)");
+            additionalDocs.push("В случае запроса из реанимации: если пациент не может выразить волю (без сознания) — документы выдаются без отдельного согласия, при отсутствии письменного запрета.");
+            if (circumstances.includes('patientReanimation')) {
+                extraNote += "🏥 Пациент в реанимации/без сознания: близкий родственник имеет право получить справки и выписки (если пациент ранее не запретил разглашение). Проверьте отсутствие запрета.";
+            } else {
+                extraNote += "Рекомендуется проверить наличие письменного согласия пациента на разглашение тайны, если это не экстренная ситуация (п. 4 ст. 13 323-ФЗ).";
+            }
+            if (circumstances.includes('writtenConsentExists')) {
+                extraNote += " У заявителя есть письменное согласие пациента — дополнительное основание для выдачи.";
+            }
+            if (!circumstances.includes('patientReanimation') && !circumstances.includes('writtenConsentExists')) {
+                extraNote += " В обычной ситуации без согласия пациента близким родственникам документы не выдаются (за исключением реанимации/бессознательного состояния). Запрашивайте согласие либо действуйте по внутренним СОПам.";
+            }
+        }
+        
+        // 4. Представитель по доверенности
+        else if (isProxy(category)) {
+            additionalDocs.push("Нотариальная доверенность (ст. 185.1 ГК РФ) — за исключением трёх случаев: пациент в стационаре соцобслуживания, военнослужащий, гражданин в местах лишения свободы. В этих случаях доверенность заверяется руководителем/командиром/начальником учреждения.");
+            additionalDocs.push("При запросе от представителя (не близкого родственника) обязательна доверенность. Без нотариальной доверенности выдача невозможна, если пациент не указал его в письменном согласии.");
+            if (circumstances.includes('patientReanimation')) {
+                extraNote += "⚠️ Даже в реанимации представитель по доверенности (не близкий родственник) может получить документы ТОЛЬКО при наличии нотариальной доверенности либо если пациент ранее указал его в письменном согласии на разглашение.";
+            }
+            if (circumstances.includes('writtenConsentExists')) {
+                extraNote += " Представитель предъявил письменное согласие пациента (в т.ч. если в ИДС указан конкретный гражданин). Доверенность всё равно необходима, если лицо не является близким родственником. Уточните.";
+            }
+        }
+        
+        // Формируем итоговый список с чёрными буллитами
+        let finalHtml = `<ul class="document-list">`;
+        
+        requiredDocs.forEach(doc => {
+            finalHtml += `<li><span class="black-bullet"></span><span class="list-item-text">${escapeHtml(doc)}</span></li>`;
+        });
+        additionalDocs.forEach(doc => {
+            finalHtml += `<li><span class="black-bullet"></span><span class="list-item-text">${escapeHtml(doc)}</span></li>`;
+        });
+        finalHtml += `</ul>`;
+        
+        if (extraNote) {
+            finalHtml += `<div class="warning-note"><strong>⚖️ Особые указания:</strong><br>${escapeHtml(extraNote)}</div>`;
+        }
+        
+        // памятка регистратору с 📌 и для реанимации ⚠️ (при необходимости)
+        let memoText = "📌 Памятка регистратору: факт выдачи справки/заключения ОБЯЗАТЕЛЬНО отразить в медицинской карте пациента (дата, подпись, кому выдан). Журнал выдачи можно вести как вспомогательный. При отказе — только по решению руководителя, с письменным мотивированным отказом.";
+        if (circumstances.includes('patientReanimation') && !isProxy(category) && isCloseRelativeCategory(category)) {
+            memoText = "⚠️ Даже в реанимации: если пациент в сознании и способен выразить волю, документы выдаются только при его добровольном согласии или при наличии ранее данного письменного согласия. Близкий родственник получает документы, если пациент без сознания и нет запрета. " + memoText;
+        }
+        if (circumstances.includes('patientReanimation') && isProxy(category)) {
+            memoText = "⚠️ Даже в реанимации представитель по доверенности должен предъявить нотариальную доверенность. Если такой доверенности нет — отказ. " + memoText;
+        }
+        
+        finalHtml += `<hr style="margin:15px 0;">`;
+        finalHtml += `<div style="font-size:0.85rem; background:#ffffffd9; border-radius:16px; padding:10px;">${escapeHtml(memoText)}</div>`;
+        
+        docsOutputDiv.innerHTML = finalHtml;
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+            return c;
+        });
+    }
+    
+    // Скачивание результата
+    function downloadResult() {
+        let content = "ИНТЕРАКТИВ: ПЕРЕЧЕНЬ ДОКУМЕНТОВ ДЛЯ ВЫДАЧИ СПРАВОК И ЗАКЛЮЧЕНИЙ (новые правила с 01.09.2026)\n";
+        content += "------------------------------------------------------------\n";
+        const category = getSelectedCategory();
+        const circumstances = getSelectedCircumstances();
+        let categoryText = "";
+        switch(category) {
+            case 'patient': categoryText = "Пациент (лично)"; break;
+            case 'legalRep': categoryText = "Законный представитель (родитель/опекун)"; break;
+            case 'closeRelative': categoryText = "Близкий родственник"; break;
+            case 'proxy': categoryText = "Представитель по доверенности"; break;
+            default: categoryText = "Не выбрана";
+        }
+        content += `Категория заявителя: ${categoryText}\n`;
+        if (circumstances.length) {
+            content += `Доп. обстоятельства: ${circumstances.map(c => {
+                if(c === 'patientReanimation') return "Пациент в реанимации/без сознания";
+                if(c === 'writtenConsentExists') return "Есть письменное согласие на разглашение";
+                if(c === 'banConsent') return "В согласии пациент указал полный запрет на разглашение";
+                if(c === 'emancipation') return "Эмансипация несовершеннолетнего";
+                return c;
+            }).join(", ")}\n`;
+        } else {
+            content += `Доп. обстоятельства: не указаны\n`;
+        }
+        
+        if (category && hasBanConsent(circumstances) && category !== 'patient') {
+            content += "\n*** РЕЗУЛЬТАТ: ОТКАЗ В ВЫДАЧЕ (полный запрет разглашения тайны) ***\n";
+            content += "Причина: в согласии пациент указал полный запрет на разглашение сведений. Оформить мотивированный отказ.\n";
+        } else if (!category) {
+            content += "Ошибка: не выбрана категория заявителя.\n";
+        } else {
+            content += "\n=== Перечень документов, которые необходимо запросить ===\n";
+            content += "- Паспорт или иной документ, удостоверяющий личность (всегда).\n";
+            if (isLegalRep(category)) {
+                content += "- Свидетельство о рождении ребенка / акт органа опеки (для опекуна).\n";
+                content += "- При смене фамилии — подтверждающие документы.\n";
+                content += "- Пояснение: пациенты 15-17 лет вправе сами получать документы, но родитель также имеет право (кроме эмансипации).\n";
+                if (circumstances.includes('emancipation')) content += "⚠️ При эмансипации ребёнка (свидетельство о браке/решение суда/постановление опеки) родитель права не имеет, выдавать только эмансипированному лицу.\n";
+            }
+            else if (isCloseRelativeCategory(category)) {
+                content += "- Документы, подтверждающие родство (св-во о браке/рождении и т.п.).\n";
+                if (!circumstances.includes('patientReanimation') && !circumstances.includes('writtenConsentExists')) {
+                    content += "- Желательно запросить письменное согласие пациента.\n";
+                }
+                if (circumstances.includes('patientReanimation')) content += "- Пациент в реанимации — выдача возможна (при отсутствии запрета).\n";
+            }
+            else if (isProxy(category)) {
+                content += "- Нотариальная доверенность (либо приравненная).\n";
+            }
+            else if (isPatientSelf(category)) {
+                content += "- Иных подтверждающих документов не требуется.\n";
+                if (circumstances.includes('emancipation')) {
+                    content += "- Дополнительно: для подтверждения эмансипации несовершеннолетним предъявляются: свидетельство о браке, постановление органа опеки или решение суда об эмансипации.\n";
+                }
+            }
+            content += "\nВажно: Факт выдачи справки/заключения зафиксировать в медицинской карте пациента (с указанием даты, подписи, кому выдан).\n";
+        }
+        
+        content += "\nСформировано через интерактив по рекомендациям «Главный врач» 28.05.2026\n";
+        const blob = new Blob([content], {type: "text/plain;charset=utf-8"});
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.href = url;
+        link.download = "cheklist_dokumentov_spravki.txt";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+    
+    const generateBtn = document.getElementById('generateBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    generateBtn.addEventListener('click', generateResult);
+    downloadBtn.addEventListener('click', downloadResult);
+    window.addEventListener('DOMContentLoaded', () => {
+        generateResult();
+    });
+</script>
+</body>
+</html>
