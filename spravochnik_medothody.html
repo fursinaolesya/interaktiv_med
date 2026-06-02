@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Справочник по классам спорных медотходов | Главная медсестра</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #eef2f5;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            line-height: 1.5;
+            color: #1a2c3e;
+            padding: 24px 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #0b3b4f 0%, #1a5f6e 100%);
+            color: white;
+            padding: 28px 32px;
+        }
+
+        .header h1 {
+            font-size: 1.9rem;
+            font-weight: 600;
+            letter-spacing: -0.3px;
+        }
+
+        .control-panel {
+            padding: 20px 28px;
+            background: #f9fbfd;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .search-box {
+            flex: 2;
+            min-width: 220px;
+            display: flex;
+            align-items: center;
+            background: white;
+            border-radius: 48px;
+            border: 1px solid #cbd5e1;
+            padding: 6px 16px;
+            transition: 0.2s;
+        }
+
+        .search-box:focus-within {
+            border-color: #1a5f6e;
+            box-shadow: 0 0 0 3px rgba(26,95,110,0.2);
+        }
+
+        .search-box input {
+            border: none;
+            padding: 10px 6px;
+            width: 100%;
+            font-size: 0.95rem;
+            background: transparent;
+            outline: none;
+        }
+
+        .class-filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            background: #f1f5f9;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #1e2f3e;
+        }
+
+        .filter-btn.active {
+            background: #1a5f6e;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        .filter-btn[data-class="А"]:hover { background: #c3e0e7; }
+        .filter-btn[data-class="Б"]:hover { background: #ffe0b5; }
+        .filter-btn[data-class="В"]:hover { background: #fcd9d9; }
+        .filter-btn[data-class="Г"]:hover { background: #e0e7f0; }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 0 28px;
+            background: #ffffff;
+            border-bottom: 1px solid #e2edf2;
+        }
+
+        .tab-btn {
+            padding: 14px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            border-radius: 40px 40px 0 0;
+            transition: 0.2s;
+            color: #2c5a6b;
+        }
+
+        .tab-btn.active {
+            background: #f0f7fa;
+            color: #0f4b5c;
+            border-bottom: 3px solid #1a8f9f;
+        }
+
+        .table-wrapper {
+            padding: 20px 28px 32px;
+            overflow-x: auto;
+        }
+
+        .waste-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+
+        .waste-table th {
+            background: #eef3f7;
+            padding: 14px 12px;
+            text-align: left;
+            font-weight: 700;
+            color: #0f3b48;
+            border-bottom: 2px solid #cbdce3;
+        }
+
+        .waste-table td {
+            padding: 12px 12px;
+            border-bottom: 1px solid #e9edf2;
+            vertical-align: top;
+        }
+
+        .class-badge {
+            display: inline-block;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            text-align: center;
+            min-width: 52px;
+            background: #eef2f6;
+        }
+
+        .class-A { background: #d4e6f1; color: #005c8a; border-left: 3px solid #2c9ab3; }
+        .class-Б { background: #fee3c0; color: #ad4b1c; border-left: 3px solid #e67e22; }
+        .class-В { background: #fadbd8; color: #b03a2e; border-left: 3px solid #e74c3c; }
+        .class-Г { background: #e2eafc; color: #2c3e66; border-left: 3px solid #5d6d7e; }
+
+        .comment-text {
+            color: #2c4b5c;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+
+        .empty-row td {
+            text-align: center;
+            padding: 40px;
+            color: #6c8d9c;
+            font-style: italic;
+        }
+
+        .legend {
+            margin: 8px 28px 20px;
+            padding: 14px 20px;
+            background: #f9fcfd;
+            border-radius: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 0.8rem;
+            border: 1px solid #dde6ec;
+        }
+
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        @media (max-width: 760px) {
+            .header h1 { font-size: 1.4rem; }
+            .control-panel { flex-direction: column; align-items: stretch; }
+            .tabs { overflow-x: auto; flex-wrap: nowrap; }
+            .tab-btn { white-space: nowrap; }
+            .waste-table th, .waste-table td { font-size: 0.8rem; padding: 8px 6px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>📋 Справочник по классам спорных медотходов</h1>
+    </div>
+
+    <div class="control-panel">
+        <div class="search-box">
+            🔍 <input type="text" id="searchInput" placeholder="Поиск по виду отходов или комментарию..." autocomplete="off">
+        </div>
+        <div class="class-filters" id="classFilters">
+            <button class="filter-btn active" data-class="all">Все классы</button>
+            <button class="filter-btn" data-class="А">Класс А</button>
+            <button class="filter-btn" data-class="Б">Класс Б</button>
+            <button class="filter-btn" data-class="В">Класс В</button>
+            <button class="filter-btn" data-class="Г">Класс Г</button>
+        </div>
+    </div>
+
+    <div class="tabs" id="tabsContainer"></div>
+
+    <div class="legend">
+        <span><span class="class-badge class-A">А</span> — эпидбезопасные (ТКО, упаковка, не загрязнённое)</span>
+        <span><span class="class-badge class-Б">Б</span> — эпидопасные (биожидкости, инструменты, маски, перчатки)</span>
+        <span><span class="class-badge class-В">В</span> — чрезвычайно эпидопасные (микроорганизмы 1-2 групп, живые вакцины)</span>
+        <span><span class="class-badge class-Г">Г</span> — токсикологически опасные (ртуть, лекарства, парафин, ботулотоксин)</span>
+    </div>
+
+    <div class="table-wrapper">
+        <table class="waste-table" id="wasteTable">
+            <thead>
+                <tr><th>Вид медицинских отходов</th><th>Класс</th><th>Комментарий / Обоснование</th></tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // ---------------------- ДАННЫЕ СПРАВОЧНИКА (все таблицы из ТЗ) ----------------------
+    const departmentsData = {
+        "procedure": {
+            name: "🩺 Процедурный кабинет",
+            rows: [
+                { item: "Ампулы (без токсичных веществ)", class: "А", comment: "Письмо Роспотребнадзора от 26.06.2023 № 09-8943-2023-40: без токсичных веществ — класс А." },
+                { item: "Ампулы (с токсичными веществами)", class: "Г", comment: "Эксперты рекомендуют утилизировать как отходы класса Г (письмо Роспотребнадзора)." },
+                { item: "Ампулы от инактивированных вакцин", class: "А", comment: "Нет токсичных веществ, Роспотребнадзор рекомендует класс А." },
+                { item: "Ампулы от туберкулина", class: "А", comment: "Нет токсичных веществ, класс А." },
+                { item: "Аппараты для измерения АД", class: "А", comment: "Если не содержат токсических элементов. Поверхности дезинфицировать после использования." },
+                { item: "Бактерицидные лампы", class: "Г", comment: "Содержат ртуть → класс Г (п. 129 СанПиН 2.1.3684-21)." },
+                { item: "Ботулотоксин", class: "Г", comment: "Чрезвычайно токсичное вещество, без живого возбудителя → класс Г." },
+                { item: "Вата и салфетки использованные", class: "Б", comment: "Контакт с биологическими жидкостями → класс Б." },
+                { item: "Диаскинтест (непригодный)", class: "Г", comment: "Токсикологически опасные отходы (белок, не патоген). Относится к классу Г." },
+                { item: "Живые вакцины, непригодные к использованию", class: "В", comment: "Класс В (п. 157 СанПиН 2.1.3684-21)." },
+                { item: "Иглы, шприцы использованные", class: "Б", comment: "Контакт с биологическими жидкостями → класс Б." },
+                { item: "Колпачки от игл", class: "А", comment: "Не загрязнены биожидкостями → класс А." },
+                { item: "Маски использованные", class: "Б", comment: "Потенциально контаминированы микроорганизмами 3-4 гр. патогенности → класс Б." },
+                { item: "Неиспользованная вакцина БЦЖ", class: "В", comment: "Живая вакцина, непригодная → класс В." },
+                { item: "Отходы после взятия мазка на ПЦР", class: "Б", comment: "Загрязнены кровью или биожидкостями → класс Б." },
+                { item: "Перчатки использованные", class: "Б", comment: "Потенциально контаминированы → класс Б." },
+                { item: "Перчатки (после пациента с микроорганизмами 1-2 групп)", class: "В", comment: "Чрезвычайно эпидопасные → класс В." },
+                { item: "Упаковка от спиртовых салфеток", class: "А", comment: "Не контактировала с биожидкостями → класс А." },
+                { item: "Электронный термометр", class: "А", comment: "Без токсических элементов, дезинфекция после контакта с кожей." }
+            ]
+        },
+        "inpatient": {
+            name: "🏥 Поликлиника и стационар",
+            rows: [
+                { item: "Абсорбирующее бельё неиспользованное", class: "А", comment: "Не имело контакта с пациентом." },
+                { item: "Абсорбирующее бельё использованное (без загрязнений)", class: "А", comment: "Не загрязнено биологическими жидкостями." },
+                { item: "Абсорбирующее бельё использованное (загрязнено)", class: "Б", comment: "Загрязнено биожидкостями → класс Б." },
+                { item: "Абсорбирующее бельё после пациента с 1-2 гр. патогенности", class: "В", comment: "Микроорганизмы 1-2 групп → класс В." },
+                { item: "Бактерицидные лампы", class: "Г", comment: "Ртутьсодержащие → класс Г." },
+                { item: "Вата и салфетки использованные", class: "Б", comment: "Биологические жидкости пациента." },
+                { item: "Ветошь использованная", class: "Б", comment: "Потенциально контаминирована." },
+                { item: "Гигрометр (в т.ч. разбитый)", class: "Г", comment: "Ртутьсодержащие приборы → класс Г." },
+                { item: "Гипс, гипсовые бинты использованные", class: "Б", comment: "Контакт с биожидкостями → класс Б." },
+                { item: "Грязь лечебная (без контакта с биожидкостями)", class: "А", comment: "Эпидбезопасные отходы." },
+                { item: "Грязь лечебная (контакт с биожидкостями пациента)", class: "Б", comment: "Эпидопасные." },
+                { item: "Жидкие отходы пациентов (моча, мокрота, фекалии)", class: "Б", comment: "Класс Б, допускается слив в канализацию с обеззараживанием." },
+                { item: "Иглы, шприцы использованные", class: "Б", comment: "Загрязнены биожидкостями." },
+                { item: "Компьютерная техника, оборудование", class: "Г", comment: "Отходы I-IV класса опасности → класс Г, передача лицензиатам." },
+                { item: "Кровь и её компоненты для гемотрансфузий", class: "Б", comment: "Эпидопасные отходы." },
+                { item: "Маски использованные", class: "Б", comment: "Потенциально контаминированы." },
+                { item: "Металлолом", class: "А", comment: "Безопасные отходы." },
+                { item: "Мочевые катетеры", class: "Б", comment: "Загрязнены мочой. При ООИ → класс В." },
+                { item: "Насадки на УЗИ", class: "Б", comment: "Контакт с биожидкостями." },
+                { item: "Одноразовые халаты использованные", class: "Б", comment: "Потенциально загрязнены." },
+                { item: "Халаты (после микроорганизмов 1-2 групп)", class: "В", comment: "Высокий риск → класс В." },
+                { item: "Отходы аспирационных банок", class: "Б", comment: "Содержат экссудат." },
+                { item: "Парафин", class: "Г", comment: "4 класс опасности → класс Г." },
+                { item: "Перчатки использованные", class: "Б", comment: "Класс Б." },
+                { item: "Перчатки (после 1-2 групп патогенности)", class: "В", comment: "Чрезвычайно опасные." },
+                { item: "Рентгеновская плёнка, фиксаж", class: "Г", comment: "Токсикологически опасные." },
+                { item: "Флаконы, банки из-под дезсредств", class: "А", comment: "Упаковка без контакта с биожидкостями." },
+                { item: "Флаконы от кремов, масел", class: "А", comment: "Класс А." },
+                { item: "Шины медицинские", class: "А", comment: "Не контаминированы." },
+                { item: "Шпатели", class: "Б", comment: "Контакт со слизистыми / биожидкостями." },
+                { item: "Шпатели (1-2 гр. патогенности)", class: "В", comment: "Особо опасные." },
+                { item: "Электронный термометр", class: "А", comment: "Без ртути, дезинфекция." }
+            ]
+        },
+        "surgery": {
+            name: "🔪 Хирургия",
+            rows: [
+                { item: "Гипс, гипсовые бинты использованные", class: "Б", comment: "Контакт с биологическими жидкостями." },
+                { item: "Кровь и её компоненты", class: "Б", comment: "Биологические жидкости класса Б." },
+                { item: "Маски", class: "Б", comment: "Потенциально контаминированы." },
+                { item: "Одноразовые халаты", class: "Б", comment: "Загрязнены биожидкостями." },
+                { item: "Халаты (микроорганизмы 1-2 групп)", class: "В", comment: "Высокий риск." },
+                { item: "Органы, ткани (операционные отходы)", class: "Б", comment: "Органические отходы класса Б." },
+                { item: "Перчатки", class: "Б", comment: "Эпидопасные." },
+                { item: "Перчатки (1-2 гр. патогенности)", class: "В", comment: "Класс В." },
+                { item: "Упаковка от спиртовых салфеток", class: "А", comment: "Безопасная упаковка." }
+            ]
+        },
+        "ems": {
+            name: "🚑 Станция скорой помощи",
+            rows: [
+                { item: "Биологические жидкости пациентов", class: "Б", comment: "Класс Б." },
+                { item: "Биожидкости (после 1-2 гр. патогенности)", class: "В", comment: "Чрезвычайно эпидопасные." },
+                { item: "Вата, салфетки использованные", class: "Б", comment: "Контакт с биожидкостями." },
+                { item: "Гипс, гипсовые бинты", class: "Б", comment: "Загрязнены." },
+                { item: "Иглы, шприцы использованные", class: "Б", comment: "Класс Б." },
+                { item: "Маски", class: "Б", comment: "Контаминированы." },
+                { item: "Перчатки", class: "Б", comment: "Эпидопасность." },
+                { item: "Перчатки (1-2 группы патогенности)", class: "В", comment: "Класс В." },
+                { item: "Разбитое ртутьсодержащее оборудование", class: "Г", comment: "Ртуть → класс Г." },
+                { item: "Упаковки от лекарств, ИМН", class: "А", comment: "Без контакта с биологическими жидкостями." }
+            ]
+        },
+        "tb": {
+            name: "🫁 Тубдиспансер",
+            rows: [
+                { item: "Бактерицидные лампы", class: "Г", comment: "Ртутьсодержащие." },
+                { item: "Бытовые отходы (чистая зона, нет контакта)", class: "А", comment: "Эпидемиологически безопасные, как ТКО." },
+                { item: "Вата, салфетки использованные", class: "Б", comment: "Биологические жидкости." },
+                { item: "Диаскинтест", class: "Г", comment: "Токсикологически опасный белок." },
+                { item: "Жидкие отходы пациентов", class: "Б", comment: "Мокрота, моча, класс Б." },
+                { item: "Маски", class: "Б", comment: "Контаминированы." },
+                { item: "Отходы КДЛ противотуберкулёзного диспансера", class: "В", comment: "Микробиологические лаборатории → класс В." },
+                { item: "Перчатки", class: "Б", comment: "Эпидопасные." },
+                { item: "Перчатки (1-2 группы патогенности)", class: "В", comment: "Особо опасные." },
+                { item: "Упаковки от лекарств, ИМН", class: "А", comment: "Без контакта." }
+            ]
+        },
+        "dentistry": {
+            name: "🦷 Стоматология",
+            rows: [
+                { item: "Бактерицидные лампы", class: "Г", comment: "Ртуть." },
+                { item: "Гигрометр (разбитый)", class: "Г", comment: "Ртутьсодержащие." },
+                { item: "Иглы, шприцы использованные", class: "Б", comment: "Биологические жидкости." },
+                { item: "Маски", class: "Б", comment: "Класс Б." },
+                { item: "Перчатки", class: "Б", comment: "Загрязнены." },
+                { item: "Перчатки (после 1-2 групп)", class: "В", comment: "Чрезвычайно опасные." },
+                { item: "Удалённые зубы", class: "Б", comment: "Органические операционные отходы." },
+                { item: "Упаковки от лекарств, ИМН", class: "А", comment: "Безопасная упаковка." }
+            ]
+        },
+        "cosmetology": {
+            name: "💄 Косметология",
+            rows: [
+                { item: "Бактерицидные лампы", class: "Г", comment: "Ртутьсодержащие." },
+                { item: "Ботулотоксин", class: "Г", comment: "Чрезвычайно токсичное вещество." },
+                { item: "Вата, салфетки, загрязнённые кровью", class: "Б", comment: "Класс Б." },
+                { item: "Иглы, шприцы", class: "Б", comment: "Контакт с биожидкостями." },
+                { item: "Маски", class: "Б", comment: "Потенциально контаминированы." },
+                { item: "Парафин", class: "Г", comment: "4 класс опасности." },
+                { item: "Перчатки", class: "Б", comment: "Эпидопасность." },
+                { item: "Упаковки от косметических средств, перчаток", class: "А", comment: "Не загрязнены биологическими жидкостями." },
+                { item: "Флаконы от кремов, масел", class: "А", comment: "Класс А." }
+            ]
+        }
+    };
+
+    let currentDept = "procedure";
+    let currentClassFilter = "all";
+    let searchTerm = "";
+
+    const tabsContainer = document.getElementById("tabsContainer");
+    const tableBody = document.getElementById("tableBody");
+    const searchInput = document.getElementById("searchInput");
+    const filterBtns = document.querySelectorAll(".filter-btn");
+
+    function renderTabs() {
+        tabsContainer.innerHTML = "";
+        for (const [key, dept] of Object.entries(departmentsData)) {
+            const btn = document.createElement("button");
+            btn.className = `tab-btn ${currentDept === key ? "active" : ""}`;
+            btn.textContent = dept.name;
+            btn.dataset.dept = key;
+            btn.addEventListener("click", () => {
+                currentDept = key;
+                currentClassFilter = "all";
+                searchTerm = "";
+                searchInput.value = "";
+                updateActiveFilterBtn("all");
+                renderTabs();
+                renderTable();
+            });
+            tabsContainer.appendChild(btn);
+        }
+    }
+
+    function updateActiveFilterBtn(activeClass) {
+        filterBtns.forEach(btn => {
+            const cls = btn.dataset.class;
+            if ((activeClass === "all" && cls === "all") || cls === activeClass) {
+                btn.classList.add("active");
+            } else {
+                btn.classList.remove("active");
+            }
+        });
+    }
+
+    function getFilteredRows() {
+        const allRows = departmentsData[currentDept].rows;
+        let filtered = [...allRows];
+        if (currentClassFilter !== "all") {
+            filtered = filtered.filter(row => row.class === currentClassFilter);
+        }
+        if (searchTerm.trim() !== "") {
+            const term = searchTerm.trim().toLowerCase();
+            filtered = filtered.filter(row => 
+                row.item.toLowerCase().includes(term) || 
+                row.comment.toLowerCase().includes(term)
+            );
+        }
+        return filtered;
+    }
+
+    function renderTable() {
+        const filtered = getFilteredRows();
+        if (filtered.length === 0) {
+            tableBody.innerHTML = `<tr class="empty-row"><td colspan="3">🚫 По вашему запросу ничего не найдено. Попробуйте изменить фильтр или поиск.</td></tr>`;
+            return;
+        }
+        let html = "";
+        for (const row of filtered) {
+            let classBadge = `<span class="class-badge class-${row.class}">${row.class}</span>`;
+            html += `<tr>
+                        <td style="font-weight:500;">${escapeHtml(row.item)}</td>
+                        <td>${classBadge}</td>
+                        <td class="comment-text">${escapeHtml(row.comment)}</td>
+                      </tr>`;
+        }
+        tableBody.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            currentClassFilter = btn.dataset.class;
+            updateActiveFilterBtn(currentClassFilter);
+            renderTable();
+        });
+    });
+
+    searchInput.addEventListener("input", (e) => {
+        searchTerm = e.target.value;
+        renderTable();
+    });
+
+    renderTabs();
+    renderTable();
+</script>
+</body>
+</html>
