@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Классификатор медицинских отходов</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  background-color: #f5f7f9;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px;
+  min-height: 100vh;
+}
+
+.widget-container {
+  width: 100%;
+  max-width: 550px;
+  background-color: #eef7eb;
+  border: 1px solid #bad8b4;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 8px 32px rgba(43, 136, 109, 0.04);
+}
+
+.widget-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.widget-logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+}
+
+.widget-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1a3b11;
+  text-align: left;
+}
+
+.tabs {
+  display: flex;
+  background: #ffffff;
+  border: 1px solid #c2dbbc;
+  border-radius: 30px;
+  padding: 4px;
+  margin-bottom: 24px;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  color: #4a7c3f;
+  cursor: pointer;
+  border-radius: 30px;
+  transition: all 0.2s ease;
+}
+
+.tab-btn.active {
+  background-color: #2b886d;
+  color: #ffffff;
+}
+
+.input-label {
+  display: block;
+  font-size: 12px;
+  color: #556860;
+  margin-bottom: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.search-container {
+  position: relative;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.search-input, .custom-select {
+  width: 100%;
+  padding: 12px 48px 12px 16px;
+  background: #ffffff;
+  border: 1px solid #cbdcd5;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 15px;
+  color: #24332e;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-input:focus, .custom-select:focus {
+  border-color: #2b886d;
+  box-shadow: 0 0 0 3px rgba(43, 136, 109, 0.12);
+}
+
+.custom-select {
+  appearance: none;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%234a7c3f' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 16px center;
+  background-size: 20px;
+}
+
+.controls-icons {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #93ab9e;
+}
+
+.clear-btn {
+  cursor: pointer;
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 1;
+  color: #93ab9e;
+  padding: 0 4px;
+  transition: color 0.2s ease;
+}
+
+.clear-btn:hover {
+  color: #b91c1c;
+}
+
+.dropdown-arrow {
+  font-size: 10px;
+  color: #93ab9e;
+  pointer-events: none;
+}
+
+.dropdown-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid #cbdcd5;
+  border-radius: 12px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 1000;
+  display: none;
+  box-shadow: 0 8px 24px rgba(43, 136, 109, 0.08);
+  margin-top: 6px;
+}
+
+.dropdown-list.visible {
+  display: block;
+}
+
+.dropdown-item {
+  padding: 12px 16px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #24332e;
+  border-bottom: 1px solid #f0f4f2;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.dropdown-item:last-child {
+  border-bottom: none;
+}
+
+.dropdown-item:hover, .dropdown-item.selected {
+  background-color: #2b886d;
+  color: #ffffff;
+}
+
+.result-card {
+  background: #ffffff;
+  border: 1px solid #cbdcd5;
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 16px;
+  display: none;
+  box-shadow: 0 4px 15px rgba(43, 136, 109, 0.02);
+  animation: fadeIn 0.25s ease-out;
+}
+
+.result-card.visible {
+  display: block;
+}
+
+.result-content-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.result-badge {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+}
+
+/* Badge Hazard Color Schemes */
+.badge-1 {
+  background-color: #fef2f2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+.badge-2 {
+  background-color: #fff7ed;
+  color: #c2410c;
+  border-color: #fed7aa;
+}
+
+.badge-3 {
+  background-color: #fefce8;
+  color: #854d0e;
+  border-color: #fef08a;
+}
+
+.badge-4 {
+  background-color: #f0fdf4;
+  color: #2b886d;
+  border-color: #bbf7d0;
+}
+
+.result-info-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.result-class-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #24332e;
+}
+
+.result-class-desc {
+  font-size: 14px;
+  color: #647d75;
+}
+
+.result-code-row {
+  border-top: 1px solid #e7f1ed;
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.result-code-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #93ab9e;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.result-code-value {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 16px;
+  font-weight: 700;
+  color: #4a5c56;
+  letter-spacing: 0.03em;
+}
+
+/* Waste list by class (tab 2) */
+.waste-list {
+  list-style: none;
+  padding: 0;
+  margin-top: 12px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.waste-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.waste-list::-webkit-scrollbar-track {
+  background: #f1f6f4;
+  border-radius: 4px;
+}
+
+.waste-list::-webkit-scrollbar-thumb {
+  background: #cbdcd5;
+  border-radius: 4px;
+}
+
+.waste-list::-webkit-scrollbar-thumb:hover {
+  background: #93ab9e;
+}
+
+.waste-list li {
+  padding: 10px 0;
+  font-size: 14px;
+  color: #24332e;
+  border-bottom: 1px solid #e7f1ed;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.waste-list li:last-child {
+  border-bottom: none;
+}
+
+.waste-li-name {
+  font-weight: 500;
+  padding-right: 12px;
+  line-height: 1.4;
+}
+
+.waste-li-code {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 12px;
+  color: #647d75;
+  background: #f1f6f4;
+  padding: 2px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+</style>
+</head>
+<body>
+  <div class="widget-container">
+    <div class="widget-header">
+      <img id="widget-logo" class="widget-logo" src="logo_gms_crv.png" alt="ГМС Логотип">
+      <div class="widget-title">Классификатор медицинских отходов</div>
+    </div>
+    
+    <div class="tabs">
+      <button id="tab-waste" class="tab-btn active">По названию</button>
+      <button id="tab-classes" class="tab-btn">По классу</button>
+    </div>
+
+    <!-- Вкладка 1: По названию -->
+    <div id="content-waste">
+      <label class="input-label">Выберите отходы</label>
+      <div class="search-container">
+        <input type="text" id="waste-search" class="search-input" placeholder="Начните вводить или выберите из списка..." autocomplete="off">
+        <div class="controls-icons">
+          <span id="waste-clear" class="clear-btn" style="display:none">×</span>
+          <span class="dropdown-arrow">▼</span>
+        </div>
+        <div id="waste-dropdown" class="dropdown-list"></div>
+      </div>
+
+      <div id="waste-result" class="result-card">
+        <div class="result-label">Класс опасности</div>
+        <div class="result-content-row">
+          <div id="waste-result-badge" class="result-badge">I</div>
+          <div class="result-info-text">
+            <div id="waste-result-class-title" class="result-class-title">I класс</div>
+            <div id="waste-result-class-desc" class="result-class-desc">чрезвычайно опасные</div>
+          </div>
+        </div>
+        <div class="result-code-row">
+          <div class="result-code-label">Код по ФККО</div>
+          <div id="waste-result-code-value" class="result-code-value">4 71 920 00 52 1</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Вкладка 2: По классу -->
+    <div id="content-classes" style="display: none;">
+      <label class="input-label">Выберите класс</label>
+      <div class="search-container">
+        <select id="class-select" class="custom-select">
+          <option value="" disabled selected>Выберите класс...</option>
+          <option value="1">I класс — чрезвычайно опасные</option>
+          <option value="2">II класс — высокоопасные</option>
+          <option value="3">III класс — умеренно опасные</option>
+          <option value="4">IV класс — малоопасные</option>
+        </select>
+      </div>
+
+      <div id="class-result" class="result-card">
+        <div class="result-label" id="class-result-title">Отходы данного класса</div>
+        <ul id="class-result-list" class="waste-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+
+const wasteData = [{"name": "отходы ртутных термометров", "class": "1", "fkko": "4 71 920 00 52 1"}, {"name": "детали лабораторных приборов, содержащие ртуть, утратившие потребительские свойства", "class": "1", "fkko": "4 71 931 11 52 1"}, {"name": "барометр ртутный, утративший потребительские свойства", "class": "1", "fkko": "4 71 941 11 52 1"}, {"name": "СИЗ органов дыхания от паров ртути и ртутьсодержащих соединений отработанные", "class": "1", "fkko": "4 71 411 11 52 1"}, {"name": "перчатки резиновые, загрязненные ртутью", "class": "2", "fkko": "4 71 421 11 52 2"}, {"name": "источники бесперебойного питания, утратившие потребительские свойства", "class": "2", "fkko": "4 81 211 02 53 2"}, {"name": "отходы неповрежденных литий-ионных аккумуляторов", "class": "2", "fkko": "4 82 201 31 53 2"}, {"name": "аккумуляторные батареи источников бесперебойного питания свинцово-кислотные, утратившие потребительские свойства, с электролитом", "class": "2", "fkko": "4 82 212 11 53 2"}, {"name": "аккумуляторные батареи источников бесперебойного питания свинцово-кислотные, утратившие потребительские свойства, без электролита", "class": "2", "fkko": "4 82 212 12 52 2"}, {"name": "пленка рентгеновская отработанная", "class": "3", "fkko": "4 17 161 11 52 3"}, {"name": "отходы фиксажных растворов при обработке рентгеновской пленки", "class": "3", "fkko": "4 17 212 01 10 3"}, {"name": "лампа накаливания галогенная с вольфрамовой нитью, утратившая потребительские свойства", "class": "3", "fkko": "4 82 413 11 52 3"}, {"name": "электрический медицинский аквадистиллятор, утративший потребительские свойства", "class": "3", "fkko": "4 88 121 11 52 3"}, {"name": "отходы текстильных изделий для уборки помещений", "class": "4", "fkko": "4 02 395 11 60 4"}, {"name": "отходы упаковочных материалов из бумаги и картона, загрязненные средствами моющими, чистящими и полирующими", "class": "4", "fkko": "4 05 919 01 60 4"}, {"name": "упаковка из бумаги и/или картона, загрязненная органическими ПАВ", "class": "4", "fkko": "4 05 919 02 60 4"}, {"name": "упаковка из бумаги и/или картона, загрязненная хлорсодержащими дезинфицирующими средствами", "class": "4", "fkko": "4 05 919 06 60 4"}, {"name": "перчатки резиновые, загрязненные средствами моющими, чистящими", "class": "4", "fkko": "4 33 611 11 51 4"}, {"name": "перчатки латексные, загрязненные дезинфицирующими средствами", "class": "4", "fkko": "4 33 611 12 51 4"}, {"name": "тара полиэтиленовая, загрязненная ПАВ", "class": "4", "fkko": "4 38 119 01 51 4"}, {"name": "тара полиэтиленовая, загрязненная средствами моющими, чистящими и полирующими", "class": "4", "fkko": "4 38 119 11 51 4"}, {"name": "упаковка полиэтиленовая, загрязненная дезинфицирующими средствами", "class": "4", "fkko": "4 38 119 12 51 4"}, {"name": "тара стеклянная, загрязненная дезинфицирующими средствами, содержащими хлор", "class": "4", "fkko": "4 51 819 71 51 4"}, {"name": "компьютеры стационарные и портативные и их комплектующие", "class": "4", "fkko": "4 81 200 00 00 0"}, {"name": "телевизор", "class": "4", "fkko": "4 81 420 00 00 0"}, {"name": "секундомер механический, утративший потребительские свойства", "class": "4", "fkko": "4 81 581 15 52 4"}, {"name": "весы бытовые электронные, утратившие потребительские свойства", "class": "4", "fkko": "4 81 582 11 52 4"}, {"name": "бактерицидный облучатель закрытого типа, утративший потребительские свойства", "class": "4", "fkko": "4 81 651 11 52 4"}, {"name": "светодиодная лампа, утратившая потребительские свойства", "class": "4", "fkko": "4 82 415 01 52 4"}, {"name": "холодильник бытовой, не содержащий озоноразрушающих веществ, утративший потребительские свойства", "class": "4", "fkko": "4 82 511 11 52 4"}, {"name": "сушилка для рук, утратившая потребительские свойства", "class": "4", "fkko": "4 82 523 21 52 4"}, {"name": "водонагреватель бытовой, утративший потребительские свойства", "class": "4", "fkko": "4 82 524 21 52 4"}, {"name": "кулер для воды с охлаждением и нагревом, утративший потребительские свойства", "class": "4", "fkko": "4 82 529 11 52 4"}, {"name": "манометр, утративший потребительские свойства", "class": "4", "fkko": "4 82 652 11 52 4"}, {"name": "кондиционер бытовой, не содержащий озоноразрушающих веществ, утративший потребительские свойства", "class": "4", "fkko": "4 82 713 11 52 4"}, {"name": "сплит-система кондиционирования бытовая, не содержащая озоноразрушающих веществ, утратившая потребительские свойства", "class": "4", "fkko": "4 82 713 15 52 4"}, {"name": "респиратор фильтрующий противогазоаэрозольный, утративший потребительские свойства", "class": "4", "fkko": "4 91 103 21 52 4"}, {"name": "зола от сжигания медицинских отходов, содержащая преимущественно оксиды кремния и кальция", "class": "4", "fkko": "7 47 841 11 49 4"}, {"name": "отходы обезвреживания медицинских отходов классов А, Б, В методом влажного жара (протеиновым лизисом) измельченные", "class": "4", "fkko": "7 47 844 21 71 4"}, {"name": "приборы электроизмерительные лабораторные переносные и комбинированные, утратившие потребительские свойства", "class": "4", "fkko": "4 82 643 51 52 4"}];
+const logoBase64 = "data:image/png;base64,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";
+document.addEventListener('DOMContentLoaded', () => {
+  // DOM Elements
+  const tabWaste = document.getElementById('tab-waste');
+  const tabClasses = document.getElementById('tab-classes');
+  const contentWaste = document.getElementById('content-waste');
+  const contentClasses = document.getElementById('content-classes');
+  
+  const wasteSearch = document.getElementById('waste-search');
+  const wasteDropdown = document.getElementById('waste-dropdown');
+  const wasteClear = document.getElementById('waste-clear');
+  const wasteResult = document.getElementById('waste-result');
+  
+  const wasteResultBadge = document.getElementById('waste-result-badge');
+  const wasteResultClassTitle = document.getElementById('waste-result-class-title');
+  const wasteResultClassDesc = document.getElementById('waste-result-class-desc');
+  const wasteResultCodeValue = document.getElementById('waste-result-code-value');
+  
+  const classSelect = document.getElementById('class-select');
+  const classResult = document.getElementById('class-result');
+  const classResultTitle = document.getElementById('class-result-title');
+  const classResultList = document.getElementById('class-result-list');
+  const widgetLogo = document.getElementById('widget-logo');
+
+  // Hazard Class descriptors mapping
+  const classInfo = {
+    '1': { title: 'I класс', desc: 'чрезвычайно опасные', roman: 'I' },
+    '2': { title: 'II класс', desc: 'высокоопасные', roman: 'II' },
+    '3': { title: 'III класс', desc: 'умеренно опасные', roman: 'III' },
+    '4': { title: 'IV класс', desc: 'малоопасные', roman: 'IV' }
+  };
+
+  // State Variables
+  let allWastes = [];
+
+  // Initialize and check data
+  function init() {
+    if (typeof wasteData === 'undefined') {
+      console.error("wasteData is not loaded");
+      return;
+    }
+
+    // Use base64 logo if bundled
+    if (typeof logoBase64 !== 'undefined' && logoBase64 && widgetLogo) {
+      widgetLogo.src = logoBase64;
+    }
+
+    // Sort wastes alphabetically
+    allWastes = [...wasteData].sort((a, b) => a.name.localeCompare(b.name));
+
+    // Tab Listeners
+    tabWaste.addEventListener('click', () => switchTab('waste'));
+    tabClasses.addEventListener('click', () => switchTab('classes'));
+
+    // Waste Dropdown Event Listeners
+    wasteSearch.addEventListener('input', handleSearchInput);
+    wasteSearch.addEventListener('click', handleSearchClick);
+    wasteClear.addEventListener('click', handleSearchClear);
+    
+    // Keyboard navigation inside dropdown
+    wasteSearch.addEventListener('keydown', handleSearchKeydown);
+
+    // Class selection listener
+    classSelect.addEventListener('change', handleClassChange);
+
+    // Click outside to close dropdown
+    document.addEventListener('click', (e) => {
+      if (!wasteSearch.contains(e.target) && !wasteDropdown.contains(e.target)) {
+        closeDropdown();
+      }
+    });
+  }
+
+  // --- Tab Logic ---
+  function switchTab(tab) {
+    if (tab === 'waste') {
+      tabWaste.classList.add('active');
+      tabClasses.classList.remove('active');
+      contentWaste.style.display = 'block';
+      contentClasses.style.display = 'none';
+    } else {
+      tabClasses.classList.add('active');
+      tabWaste.classList.remove('active');
+      contentClasses.style.display = 'block';
+      contentWaste.style.display = 'none';
+    }
+  }
+
+  // --- Dropdown Logic ---
+  let focusedIndex = -1;
+
+  function renderDropdown(query = '') {
+    wasteDropdown.innerHTML = '';
+    focusedIndex = -1;
+    const q = query.trim().toLowerCase();
+    
+    // Filter items based on query
+    const filtered = q 
+      ? allWastes.filter(item => item.name.toLowerCase().includes(q)) 
+      : allWastes;
+
+    if (filtered.length > 0) {
+      filtered.forEach((item, index) => {
+        const div = document.createElement('div');
+        div.className = 'dropdown-item';
+        div.textContent = item.name;
+        div.dataset.index = index;
+        
+        div.addEventListener('click', (e) => {
+          e.stopPropagation();
+          selectWaste(item);
+        });
+
+        wasteDropdown.appendChild(div);
+      });
+      wasteDropdown.classList.add('visible');
+    } else {
+      closeDropdown();
+    }
+  }
+
+  function selectWaste(item) {
+    wasteSearch.value = item.name;
+    closeDropdown();
+    wasteClear.style.display = 'inline';
+    
+    // Display result card
+    const info = classInfo[item.class] || { title: `${item.class} класс`, desc: '', roman: item.class };
+    
+    // Update badge class and text
+    wasteResultBadge.textContent = info.roman;
+    wasteResultBadge.className = `result-badge badge-${item.class}`;
+    
+    // Update labels
+    wasteResultClassTitle.textContent = info.title;
+    wasteResultClassDesc.textContent = info.desc;
+    wasteResultCodeValue.textContent = item.fkko || '—';
+    
+    // Make card visible
+    wasteResult.classList.add('visible');
+  }
+
+  function handleSearchInput() {
+    const val = wasteSearch.value;
+    wasteClear.style.display = val ? 'inline' : 'none';
+    renderDropdown(val);
+    if (!val) {
+      wasteResult.classList.remove('visible');
+    }
+  }
+
+  function handleSearchClick(e) {
+    e.stopPropagation();
+    renderDropdown(wasteSearch.value);
+  }
+
+  function handleSearchClear(e) {
+    e.stopPropagation();
+    wasteSearch.value = '';
+    wasteClear.style.display = 'none';
+    closeDropdown();
+    wasteResult.classList.remove('visible');
+    wasteSearch.focus();
+  }
+
+  function closeDropdown() {
+    wasteDropdown.classList.remove('visible');
+  }
+
+  function handleSearchKeydown(e) {
+    const items = wasteDropdown.querySelectorAll('.dropdown-item');
+    if (!wasteDropdown.classList.contains('visible') || items.length === 0) {
+      if (e.key === 'ArrowDown') {
+        renderDropdown(wasteSearch.value);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      focusedIndex = (focusedIndex + 1) % items.length;
+      updateFocusedItem(items);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      focusedIndex = (focusedIndex - 1 + items.length) % items.length;
+      updateFocusedItem(items);
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (focusedIndex >= 0 && focusedIndex < items.length) {
+        items[focusedIndex].click();
+      }
+    } else if (e.key === 'Escape') {
+      closeDropdown();
+    }
+  }
+
+  function updateFocusedItem(items) {
+    items.forEach((item, index) => {
+      if (index === focusedIndex) {
+        item.classList.add('selected');
+        // Scroll item into view inside dropdown
+        item.scrollIntoView({ block: 'nearest' });
+      } else {
+        item.classList.remove('selected');
+      }
+    });
+  }
+
+  // --- Class Tab Logic ---
+  function handleClassChange(e) {
+    const selectedCls = e.target.value;
+    if (!selectedCls) {
+      classResult.classList.remove('visible');
+      return;
+    }
+
+    // Filter waste items by class
+    const filteredWastes = [...wasteData]
+      .filter(item => item.class === selectedCls)
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    const info = classInfo[selectedCls] || { title: `${selectedCls} класс` };
+    classResultTitle.textContent = `Отходы ${info.title.toLowerCase()} — ${info.desc}`;
+
+    // Populate List
+    classResultList.innerHTML = '';
+    filteredWastes.forEach(item => {
+      const li = document.createElement('li');
+      
+      const nameSpan = document.createElement('span');
+      nameSpan.className = 'waste-li-name';
+      nameSpan.textContent = item.name;
+
+      const codeSpan = document.createElement('span');
+      codeSpan.className = 'waste-li-code';
+      codeSpan.textContent = item.fkko || '—';
+
+      li.appendChild(nameSpan);
+      li.appendChild(codeSpan);
+      classResultList.appendChild(li);
+    });
+
+    classResult.classList.add('visible');
+  }
+
+  // Start widget
+  init();
+});
+
+
+</script>
+</body>
+</html>
