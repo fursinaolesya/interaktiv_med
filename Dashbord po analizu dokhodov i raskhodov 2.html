@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дашборд по анализу доходов и расходов</title>
+    <!-- SheetJS / XLSX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
+    </script>
+    <!-- Chart.js 4 -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js">
+    </script>
+    <!-- html2canvas + jspdf для PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js">
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+    </script>
+    <!-- плагин для подписей на кольцевых диаграммах -->
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js">
+    </script>
+    <style>
+        /* ----- reset & base ----- */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+            background: #f8fafc;
+            padding: 24px;
+            color: #0b1e33;
+        }
+
+        .dashboard {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* ----- header ----- */
+        .header-flex {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .title-group h1 {
+            font-size: 28px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.3px;
+        }
+
+        /* ----- upload panel ----- */
+        .upload-panel {
+            background: #ffffff;
+            border-radius: 24px;
+            padding: 20px 24px;
+            margin-bottom: 28px;
+            box-shadow: 0 6px 14px rgba(0, 20, 40, 0.04);
+            border: 1px solid #e6edf5;
+        }
+
+        .upload-panel .panel-title {
+            font-weight: 500;
+            color: #0b1e33;
+            margin-bottom: 12px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .upload-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px 16px;
+        }
+
+        .upload-list {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 12px;
+            flex: 1;
+        }
+
+        .upload-list label {
+            background: #f1f5f9;
+            padding: 5px 14px;
+            border-radius: 40px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: background 0.15s, border 0.15s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .upload-list label:hover {
+            background: #e2e8f0;
+            border-color: #b0c4db;
+        }
+
+        .upload-list input[type="file"] {
+            display: none;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+
+        .btn {
+            background: #f1f5f9;
+            border: 1px solid #cbd5e1;
+            padding: 6px 20px;
+            border-radius: 40px;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 13px;
+            transition: 0.15s;
+            color: #0b1e33;
+        }
+
+        .btn:hover {
+            background: #e2e8f0;
+        }
+
+        .btn-primary {
+            background: #1e4f8a;
+            border-color: #1e4f8a;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #163d6b;
+            border-color: #163d6b;
+        }
+
+        .btn-success {
+            background: #10b981;
+            border-color: #10b981;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            border-color: #059669;
+        }
+
+        /* ----- KPI cards ----- */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin: 24px 0 28px;
+        }
+
+        .kpi-card {
+            background: white;
+            padding: 16px 18px;
+            border-radius: 20px;
+            border: 1px solid #eef2f8;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .kpi-card .kpi-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: #64748b;
+        }
+
+        .kpi-card .kpi-value {
+            font-size: 26px;
+            font-weight: 600;
+            margin-top: 4px;
+            color: #0b1e33;
+        }
+
+        /* ----- charts grid ----- */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin: 24px 0;
+        }
+
+        .charts-row-3col {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 20px;
+            margin: 24px 0;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 18px 16px 14px;
+            border: 1px solid #eef2f8;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+
+        .card-header {
+            font-size: 16px;
+            font-weight: 500;
+            color: #0b1e33;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 10px;
+            margin-bottom: 14px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chart-wrapper-sm {
+            position: relative;
+            height: 170px;
+            width: 100%;
+        }
+
+        /* переключатель для топ-10 */
+        .toggle-group {
+            display: flex;
+            gap: 6px;
+            background: #f1f5f9;
+            border-radius: 40px;
+            padding: 3px;
+        }
+
+        .toggle-group button {
+            border: none;
+            background: transparent;
+            padding: 4px 14px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 500;
+            color: #334155;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+
+        .toggle-group button.active {
+            background: white;
+            color: #0b1e33;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+        }
+
+        .toggle-group button:hover:not(.active) {
+            color: #0b1e33;
+        }
+
+        .footer-note {
+            margin-top: 40px;
+            font-size: 13px;
+            color: #94a3b8;
+            text-align: center;
+            border-top: 1px solid #e2e8f0;
+            padding-top: 20px;
+        }
+
+        /* ----- responsive ----- */
+        @media (max-width: 920px) {
+            .charts-row,
+            .charts-row-3col {
+                grid-template-columns: 1fr 1fr;
+            }
+            .upload-list label {
+                white-space: normal;
+                font-size: 11px;
+                padding: 4px 10px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .charts-row,
+            .charts-row-3col {
+                grid-template-columns: 1fr;
+            }
+            .header-flex {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+            .upload-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn-group {
+                margin-left: 0;
+                justify-content: center;
+            }
+        }
+
+        /* печать / PDF */
+        @media print {
+            .upload-panel {
+                display: none !important;
+            }
+            .btn-group {
+                display: none !important;
+            }
+            body {
+                background: white;
+                padding: 16px;
+            }
+            .card {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
+            .charts-row,
+            .charts-row-3col {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard" id="dashboardRoot">
+
+        <!-- header -->
+        <div class="header-flex">
+            <div class="title-group">
+                <h1>📊 Дашборд по анализу доходов и расходов</h1>
+            </div>
+        </div>
+
+        <!-- upload -->
+        <div class="upload-panel" id="uploadPanel">
+            <div class="panel-title">📤 Загрузите соответствующие заполненные отчёты (Excel)</div>
+            <div class="upload-row">
+                <div class="upload-list">
+                    <label for="f-omc">Анализ выполнения плана по ОМС <input type="file" id="f-omc" accept=".xlsx,.xls" /></label>
+                    <label for="f-gos">Анализ выполнения плана по госзаданию <input type="file" id="f-gos" accept=".xlsx,.xls" /></label>
+                    <label for="f-plat">Анализ выполнения плана по платным услугам <input type="file" id="f-plat" accept=".xlsx,.xls" /></label>
+                    <label for="f-dohod">Анализ доходов по источникам финансирования <input type="file" id="f-dohod" accept=".xlsx,.xls" /></label>
+                    <label for="f-rashod">Анализ расходов по источникам финансирования <input type="file" id="f-rashod" accept=".xlsx,.xls" /></label>
+                    <label for="f-okup">Анализ окупаемости по источникам финансирования <input type="file" id="f-okup" accept=".xlsx,.xls" /></label>
+                    <label for="f-rent">Анализ окупаемости отделений <input type="file" id="f-rent" accept=".xlsx,.xls" /></label>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-primary" id="buildBtn">Сформировать дашборд</button>
+                    <button class="btn btn-success" id="downloadPdfBtn">Скачать дашборд (PDF)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI -->
+        <div class="kpi-grid" id="kpiGrid">
+            <div class="kpi-card"><div class="kpi-label">Всего доходов (тыс. руб)</div><div class="kpi-value" id="kpiIncome">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Всего расходов (тыс. руб)</div><div class="kpi-value" id="kpiExpense">—</div></div>
+            <div class="kpi-card"><div class="kpi-label">Экономия / перерасход</div><div class="kpi-value" id="kpiBalance">—</div></div>
+        </div>
+
+        <!-- charts row 1 -->
+        <div class="charts-row">
+            <div class="card"><div class="card-header">🍩 Доля доходов</div><div class="chart-wrapper-sm"><canvas id="chDoughnutIncome"></canvas></div></div>
+            <div class="card"><div class="card-header">📊 План / факт (доходы)</div><div class="chart-wrapper-sm"><canvas id="chBarIncome"></canvas></div></div>
+            <div class="card"><div class="card-header">🍩 Доля расходов</div><div class="chart-wrapper-sm"><canvas id="chDoughnutExpense"></canvas></div></div>
+        </div>
+
+        <!-- charts row 2 -->
+        <div class="charts-row-3col">
+            <div class="card"><div class="card-header">📊 План / факт (расходы)</div><div class="chart-wrapper-sm"><canvas id="chBarExpense"></canvas></div></div>
+            <div class="card"><div class="card-header">📊 Окупаемость по источникам</div><div class="chart-wrapper-sm"><canvas id="chProfitability"></canvas></div></div>
+            <div class="card">
+                <div class="card-header">
+                    <span>📊 Топ‑10 расходов</span>
+                    <div class="toggle-group" id="topToggle">
+                        <button class="active" data-source="omc">ОМС</button>
+                        <button data-source="gos">Госзадание</button>
+                        <button data-source="plat">Платные</button>
+                    </div>
+                </div>
+                <div class="chart-wrapper-sm"><canvas id="chTopExpenses"></canvas></div>
+            </div>
+        </div>
+
+        <div class="footer-note">Данные загружены из Excel-отчётов • Система «Экономика ЛПУ»</div>
+    </div>
+
+    <script>
+        (function() {
+            // ---------- state (7 отчётов) ----------
+            const files = {
+                omc: null,
+                gos: null,
+                plat: null,
+                dohod: null,
+                rashod: null,
+                okup: null,
+                rent: null
+            };
+
+            let chartIncomeDoughnut, chartIncomeBar, chartExpenseDoughnut, chartExpenseBar, chartProfitability,
+                chartTopExpenses;
+            let currentTopSource = 'omc';
+
+            // ---------- helpers ----------
+            const toNum = v => (typeof v === 'number' && !isNaN(v)) ? v : 0;
+
+            // ---------- file loader ----------
+            function loadExcel(file, key) {
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const wb = XLSX.read(data, { type: 'array', cellDates: false });
+                        const ws = wb.Sheets[wb.SheetNames[0]];
+                        files[key] = ws;
+                    } catch (_) {
+                        console.warn('Ошибка парсинга', key);
+                    }
+                };
+                reader.readAsArrayBuffer(file);
+            }
+
+            // ---------- attach events ----------
+            document.getElementById('f-omc').addEventListener('change', e => loadExcel(e.target.files[0], 'omc'));
+            document.getElementById('f-gos').addEventListener('change', e => loadExcel(e.target.files[0], 'gos'));
+            document.getElementById('f-plat').addEventListener('change', e => loadExcel(e.target.files[0], 'plat'));
+            document.getElementById('f-dohod').addEventListener('change', e => loadExcel(e.target.files[0], 'dohod'));
+            document.getElementById('f-rashod').addEventListener('change', e => loadExcel(e.target.files[0], 'rashod'));
+            document.getElementById('f-okup').addEventListener('change', e => loadExcel(e.target.files[0], 'okup'));
+            document.getElementById('f-rent').addEventListener('change', e => loadExcel(e.target.files[0], 'rent'));
+
+            // Кнопка "Сформировать дашборд"
+            document.getElementById('buildBtn').addEventListener('click', refreshDashboard);
+
+            // Кнопка "Скачать дашборд (PDF)"
+            document.getElementById('downloadPdfBtn').addEventListener('click', downloadPdf);
+
+            // переключение топ-10
+            document.querySelectorAll('#topToggle button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('#topToggle button').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentTopSource = this.dataset.source;
+                    renderTopExpenses();
+                });
+            });
+
+            // ---------- рендер топ-10 расходов ----------
+            function renderTopExpenses() {
+                const wsRash = files.rashod;
+                let items = [];
+
+                if (wsRash) {
+                    const rows = XLSX.utils.sheet_to_json(wsRash, { header: 1 });
+                    let colIdx = -1;
+                    if (currentTopSource === 'omc') colIdx = 3;
+                    else if (currentTopSource === 'gos') colIdx = 6;
+                    else if (currentTopSource === 'plat') colIdx = 9;
+
+                    for (let r = 0; r < rows.length; r++) {
+                        const row = rows[r];
+                        if (!row || row.length < 10) continue;
+                        const label = String(row[0] || '').trim();
+                        if (label && !label.includes('Итого') && !label.includes('ИТОГО')) {
+                            const val = toNum(row[colIdx]);
+                            if (val > 0) {
+                                items.push({ label: label, value: val });
+                            }
+                        }
+                    }
+                }
+
+                if (items.length === 0) {
+                    const demo = {
+                        omc: [
+                            { label: 'Зарплата', value: 84272600 },
+                            { label: 'Медикаменты', value: 21893950 },
+                            { label: 'Коммуналка', value: 3692400 },
+                            { label: 'Питание', value: 1845000 },
+                            { label: 'Мягкий инвентарь', value: 920000 },
+                            { label: 'Транспорт', value: 650000 },
+                            { label: 'Связь', value: 420000 },
+                            { label: 'Обучение', value: 310000 },
+                            { label: 'Хоз. товары', value: 280000 },
+                            { label: 'Прочие', value: 150000 }
+                        ],
+                        gos: [
+                            { label: 'Зарплата', value: 1800730 },
+                            { label: 'Медикаменты', value: 1382050 },
+                            { label: 'Коммуналка', value: 34560 },
+                            { label: 'Питание', value: 21000 },
+                            { label: 'Мягкий инвентарь', value: 8500 },
+                            { label: 'Транспорт', value: 6200 },
+                            { label: 'Связь', value: 4100 },
+                            { label: 'Обучение', value: 3200 },
+                            { label: 'Хоз. товары', value: 2800 },
+                            { label: 'Прочие', value: 1200 }
+                        ],
+                        plat: [
+                            { label: 'Зарплата', value: 15081720 },
+                            { label: 'Медикаменты', value: 1804140 },
+                            { label: 'Коммуналка', value: 164100 },
+                            { label: 'Питание', value: 82000 },
+                            { label: 'Мягкий инвентарь', value: 41000 },
+                            { label: 'Транспорт', value: 28000 },
+                            { label: 'Связь', value: 18000 },
+                            { label: 'Обучение', value: 12000 },
+                            { label: 'Хоз. товары', value: 9000 },
+                            { label: 'Прочие', value: 6000 }
+                        ]
+                    };
+                    items = demo[currentTopSource] || demo.omc;
+                }
+
+                items.sort((a, b) => b.value - a.value);
+                const top = items.slice(0, 10);
+                const labels = top.map(i => i.label.length > 16 ? i.label.slice(0, 14) + '…' : i.label);
+                const values = top.map(i => i.value);
+
+                if (chartTopExpenses) chartTopExpenses.destroy();
+
+                const ctx = document.getElementById('chTopExpenses').getContext('2d');
+                chartTopExpenses = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Расходы (тыс. руб)',
+                            data: values,
+                            backgroundColor: '#2563eb',
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => (ctx.parsed.x / 1000).toFixed(1) + ' тыс. руб'
+                                }
+                            },
+                            datalabels: {
+                                display: false
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                ticks: { callback: v => (v / 1000).toFixed(0) + ' тыс. руб' }
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+            }
+
+            // ---------- main render ----------
+            function refreshDashboard() {
+                // ---- 1. Доходы (отчёт 04) ----
+                let income = { labels: [], plan: [], fact: [] };
+                const wsDoh = files.dohod;
+                if (wsDoh) {
+                    const rows = XLSX.utils.sheet_to_json(wsDoh, { header: 1 });
+                    for (let r = 0; r < rows.length; r++) {
+                        const row = rows[r];
+                        if (!row || row.length < 5) continue;
+                        const label = String(row[1] || '').trim();
+                        if (label.includes('ОМС')) { income.labels.push('ОМС');
+                            income.plan.push(toNum(row[2]));
+                            income.fact.push(toNum(row[4])); } else if (label.includes('Госзадание')) { income.labels.push(
+                                'Госзадание');
+                            income.plan.push(toNum(row[2]));
+                            income.fact.push(toNum(row[4])); } else if (label.includes('Платные')) { income.labels.push(
+                                'Платные');
+                            income.plan.push(toNum(row[2]));
+                            income.fact.push(toNum(row[4])); }
+                    }
+                }
+                if (income.labels.length === 0) {
+                    income.labels = ['ОМС', 'Госзадание', 'Платные'];
+                    income.plan = [161228679, 3483507, 29546323];
+                    income.fact = [151977860, 3264970, 29383263];
+                }
+                const totalIncome = income.fact.reduce((a, b) => a + b, 0);
+
+                // ---- 2. Расходы (отчёт 05) ----
+                let expense = { labels: ['ОМС', 'Госзадание', 'Платные'], plan: [], fact: [] };
+                let totalExpense = 0;
+                const wsRash = files.rashod;
+                if (wsRash) {
+                    const rows = XLSX.utils.sheet_to_json(wsRash, { header: 1 });
+                    let foundTotal = false;
+                    for (let r = 0; r < rows.length; r++) {
+                        const row = rows[r];
+                        if (!row || row.length < 6) continue;
+                        const label = String(row[0] || '').trim();
+                        if (label === 'Итого' || label === 'ИТОГО') {
+                            expense.plan = [toNum(row[2]), toNum(row[5]), toNum(row[8])];
+                            expense.fact = [toNum(row[3]), toNum(row[6]), toNum(row[9])];
+                            totalExpense = expense.fact.reduce((a, b) => a + b, 0);
+                            foundTotal = true;
+                            break;
+                        }
+                    }
+                    if (!foundTotal) {
+                        let pOmc = 0,
+                            fOmc = 0,
+                            pGos = 0,
+                            fGos = 0,
+                            pPlat = 0,
+                            fPlat = 0;
+                        for (let r = 0; r < rows.length; r++) {
+                            const row = rows[r];
+                            if (!row || row.length < 6) continue;
+                            const label = String(row[0] || '').trim();
+                            if (label && !label.includes('Итого')) {
+                                pOmc += toNum(row[2]);
+                                fOmc += toNum(row[3]);
+                                pGos += toNum(row[5]);
+                                fGos += toNum(row[6]);
+                                pPlat += toNum(row[8]);
+                                fPlat += toNum(row[9]);
+                            }
+                        }
+                        if (pOmc > 0 || fOmc > 0) {
+                            expense.plan = [pOmc, pGos, pPlat];
+                            expense.fact = [fOmc, fGos, fPlat];
+                            totalExpense = fOmc + fGos + fPlat;
+                        }
+                    }
+                }
+                if (expense.plan.length === 0) {
+                    expense.plan = [118273640, 4617680, 19385285];
+                    expense.fact = [118273640, 4617680, 19385285];
+                    totalExpense = 118273640 + 4617680 + 19385285;
+                }
+
+                // ---- UPDATE KPI ----
+                document.getElementById('kpiIncome').textContent = (totalIncome / 1000).toFixed(1);
+                document.getElementById('kpiExpense').textContent = (totalExpense / 1000).toFixed(1);
+                document.getElementById('kpiBalance').textContent = ((totalIncome - totalExpense) / 1000).toFixed(1);
+
+                // ---- CHARTS destroy old ----
+                if (chartIncomeDoughnut) chartIncomeDoughnut.destroy();
+                if (chartIncomeBar) chartIncomeBar.destroy();
+                if (chartExpenseDoughnut) chartExpenseDoughnut.destroy();
+                if (chartExpenseBar) chartExpenseBar.destroy();
+                if (chartProfitability) chartProfitability.destroy();
+
+                // ----- палитра синих оттенков -----
+                const bluePalette = ['#0b3d91', '#1a5fb4', '#2a7bd6', '#4a9bf5', '#7bb8f7', '#a8d0fa', '#d0e6fc'];
+                const blueLight = '#93c5fd';
+                const blueDark = '#2563eb';
+                const blueMedium = '#3b82f6';
+                const blueStrong = '#1e4f8a';
+
+                // 1. Доля доходов (синие оттенки)
+                const ctx1 = document.getElementById('chDoughnutIncome').getContext('2d');
+                chartIncomeDoughnut = new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: income.labels,
+                        datasets: [{ data: income.fact, backgroundColor: bluePalette.slice(0, income.labels.length) }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { font: { size: 10 } } },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => {
+                                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                        const pct = total ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                                        return ctx.label + ': ' + pct + '%';
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+
+                // 2. План/факт доходы (синие оттенки)
+                const ctx2 = document.getElementById('chBarIncome').getContext('2d');
+                chartIncomeBar = new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: income.labels,
+                        datasets: [
+                            { label: 'План', data: income.plan, backgroundColor: blueLight },
+                            { label: 'Факт', data: income.fact, backgroundColor: blueDark }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top', labels: { font: { size: 10 } } },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y / 1000).toFixed(1) +
+                                        ' тыс. руб'
+                                }
+                            },
+                            datalabels: {
+                                display: false
+                            }
+                        },
+                        scales: { y: { beginAtZero: true, ticks: { callback: v => (v / 1000).toFixed(0) + ' тыс. руб' } } }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+
+                // 3. Доля расходов (синие оттенки)
+                const ctx3 = document.getElementById('chDoughnutExpense').getContext('2d');
+                chartExpenseDoughnut = new Chart(ctx3, {
+                    type: 'doughnut',
+                    data: {
+                        labels: expense.labels,
+                        datasets: [{ data: expense.fact, backgroundColor: bluePalette.slice(0, expense.labels.length) }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { font: { size: 10 } } },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => {
+                                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                        const pct = total ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+                                        return ctx.label + ': ' + pct + '%';
+                                    }
+                                }
+                            },
+                            datalabels: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+
+                // 4. План/факт расходы (синие оттенки)
+                const ctx4 = document.getElementById('chBarExpense').getContext('2d');
+                chartExpenseBar = new Chart(ctx4, {
+                    type: 'bar',
+                    data: {
+                        labels: expense.labels,
+                        datasets: [
+                            { label: 'План', data: expense.plan, backgroundColor: blueLight },
+                            { label: 'Факт', data: expense.fact, backgroundColor: blueDark }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top', labels: { font: { size: 10 } } },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y / 1000).toFixed(1) +
+                                        ' тыс. руб'
+                                }
+                            },
+                            datalabels: {
+                                display: false
+                            }
+                        },
+                        scales: { y: { beginAtZero: true, ticks: { callback: v => (v / 1000).toFixed(0) + ' тыс. руб' } } }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+
+                // 5. Окупаемость по источникам (синие оттенки)
+                const ctx5 = document.getElementById('chProfitability').getContext('2d');
+                const srcLabels = income.labels;
+                const srcIncome = income.fact;
+                const srcExpense = expense.fact.slice(0, srcLabels.length);
+                while (srcExpense.length < srcLabels.length) srcExpense.push(0);
+                chartProfitability = new Chart(ctx5, {
+                    type: 'bar',
+                    data: {
+                        labels: srcLabels,
+                        datasets: [
+                            { label: 'Доходы', data: srcIncome, backgroundColor: blueDark },
+                            { label: 'Расходы', data: srcExpense, backgroundColor: blueMedium }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top', labels: { font: { size: 10 } } },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => ctx.dataset.label + ': ' + (ctx.parsed.y / 1000).toFixed(1) +
+                                        ' тыс. руб'
+                                }
+                            },
+                            datalabels: {
+                                display: false
+                            }
+                        },
+                        scales: { y: { beginAtZero: true, ticks: { callback: v => (v / 1000).toFixed(0) + ' тыс. руб' } } }
+                    },
+                    plugins: [ChartDataLabels]
+                });
+
+                // 6. Топ-10 расходов (синий)
+                renderTopExpenses();
+            }
+
+            // ---------- PDF export ----------
+            function downloadPdf() {
+                const btn = document.getElementById('downloadPdfBtn');
+                const originalText = btn.textContent;
+                btn.textContent = '⏳ Генерация PDF...';
+                btn.disabled = true;
+
+                const root = document.getElementById('dashboardRoot');
+
+                html2canvas(root, {
+                    scale: 2,
+                    useCORS: true,
+                    allowTaint: true,
+                    backgroundColor: '#ffffff',
+                    logging: false,
+                    windowWidth: 1600,
+                }).then(canvas => {
+                    const imgData = canvas.toDataURL('image/png');
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('l', 'mm', 'a4');
+                    const pdfWidth = pdf.internal.pageSize.getWidth();
+                    const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+                    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+                    pdf.save('Dashbord_analiz_dohodov_rashodov.pdf');
+
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                }).catch(err => {
+                    console.error('PDF generation error:', err);
+                    alert('Ошибка при создании PDF. Попробуйте ещё раз.');
+                    btn.textContent = originalText;
+                    btn.disabled = false;
+                });
+            }
+
+            // initial render with demo data
+            setTimeout(refreshDashboard, 200);
+        })();
+    </script>
+</body>
+</html>

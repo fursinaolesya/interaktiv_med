@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дашборд · Анализ ФОТ и укомплектованность</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: #f4f7fc;
+            padding: 24px;
+        }
+        .dashboard {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-weight: 500;
+            font-size: 28px;
+            color: #0b2b4a;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 28px;
+        }
+        .card {
+            background: #ffffff;
+            padding: 18px 18px 14px;
+            border-radius: 20px;
+            box-shadow: 0 6px 18px rgba(0, 20, 40, 0.06);
+            border: 1px solid #eaf0f6;
+            transition: 0.2s;
+        }
+        .card:hover {
+            border-color: #b6d0e6;
+        }
+        .card .label {
+            font-size: 14px;
+            font-weight: 500;
+            color: #3a5b77;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+        .card .value {
+            font-size: 30px;
+            font-weight: 600;
+            color: #0b2b4a;
+            line-height: 1.2;
+        }
+        .card .sub {
+            font-size: 14px;
+            color: #3e6a8c;
+            margin-top: 6px;
+            border-top: 1px dashed #d5e2ed;
+            padding-top: 6px;
+        }
+        .chart-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+        .chart-box {
+            background: #fff;
+            border-radius: 20px;
+            padding: 18px 18px 10px;
+            border: 1px solid #eaf0f6;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.02);
+        }
+        .chart-box h3 {
+            font-weight: 500;
+            font-size: 16px;
+            color: #1e405e;
+            margin: 0 0 12px 0;
+            letter-spacing: 0.2px;
+        }
+        .upload-section {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 20px 24px 24px;
+            border: 1px solid #eaf0f6;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.02);
+            margin-bottom: 28px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px 30px;
+        }
+        .upload-section .label {
+            font-weight: 500;
+            color: #0b2b4a;
+            font-size: 16px;
+            margin-right: 4px;
+        }
+        .upload-group {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px 18px;
+        }
+        .upload-group label {
+            background: #eef4fa;
+            padding: 6px 16px 6px 12px;
+            border-radius: 40px;
+            font-size: 14px;
+            color: #1e405e;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: 0.15s;
+            border: 1px solid transparent;
+        }
+        .upload-group label:hover {
+            background: #dce8f2;
+            border-color: #b0c8dd;
+        }
+        .upload-group input[type="file"] {
+            display: none;
+        }
+        .btn {
+            background: #1a5e8c;
+            border: none;
+            color: white;
+            padding: 8px 22px;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 2px 6px rgba(20, 70, 120, 0.15);
+            border: 1px solid #1a5e8c;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-outline {
+            background: white;
+            color: #1a5e8c;
+            border: 1px solid #1a5e8c;
+            box-shadow: none;
+        }
+        .btn-outline:hover {
+            background: #e5eff8;
+        }
+        .btn:hover {
+            background: #134a70;
+            transform: scale(0.97);
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-left: auto;
+        }
+        .footer-note {
+            margin-top: 30px;
+            color: #446f92;
+            font-size: 14px;
+            border-top: 1px solid #d4e2ef;
+            padding-top: 20px;
+            text-align: right;
+        }
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            background: #fff;
+            padding: 12px 20px;
+            border-radius: 40px;
+            border: 1px solid #eaf0f6;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            align-items: center;
+        }
+        .filter-bar .label {
+            font-weight: 500;
+            color: #1e405e;
+            margin-right: 10px;
+            font-size: 15px;
+        }
+        .filter-btn {
+            background: #eef4fa;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            color: #1e405e;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 2px solid transparent;
+        }
+        .filter-btn:hover {
+            background: #dce8f2;
+        }
+        .filter-btn.active {
+            background: #1a5e8c;
+            color: white;
+            border-color: #1a5e8c;
+        }
+        @media (max-width: 900px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        @media (max-width: 700px) {
+            .upload-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .btn-group {
+                margin-left: 0;
+                justify-content: center;
+            }
+            .filter-bar {
+                border-radius: 20px;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="dashboard">
+    <h1>📊 Дашборд по анализу ФОТ и укомплектованности кадрами</h1>
+
+    <!-- Блок загрузки отчётов -->
+    <div class="upload-section" id="uploadSection">
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <span class="label">📂 Загрузите соответствующие заполненные отчёты (Excel)</span>
+        </div>
+        <div class="upload-group">
+            <label for="fileFot">📄 <span>Анализ ФОТ</span> <input type="file" id="fileFot" accept=".xlsx,.xls"></label>
+            <label for="fileStaff">📄 <span>Анализ укомплектованности кадрами</span> <input type="file" id="fileStaff" accept=".xlsx,.xls"></label>
+        </div>
+        <div class="btn-group">
+            <button class="btn" id="refreshBtn">🔄 Сформировать дашборд</button>
+            <button class="btn btn-outline" id="downloadBtn">⬇ Скачать дашборд</button>
+        </div>
+    </div>
+
+    <!-- Карточки KPI -->
+    <div class="grid">
+        <div class="card"><div class="label">👨‍⚕️ Всего врачей (физ.)</div><div class="value" id="totalDocs">240</div><div class="sub">из них с д/о: 18</div></div>
+        <div class="card"><div class="label">🩺 Средний медперсонал</div><div class="value" id="totalMid">432</div><div class="sub">факт. ставок: 503,25</div></div>
+        <div class="card"><div class="label">📊 Укомплектованность</div><div class="value" id="totalStaffPct">88,4%</div><div class="sub">по всем категориям</div></div>
+        <div class="card"><div class="label">💰 ФОТ (всего)</div><div class="value" id="totalFot">398 947 560 ₽</div><div class="sub">средняя з/п ~ 55 400 ₽</div></div>
+    </div>
+
+    <!-- Фильтр по отделениям -->
+    <div class="filter-bar">
+        <span class="label">📌 Отделение:</span>
+        <button class="filter-btn active" data-dept="all">Все отделения</button>
+        <button class="filter-btn" data-dept="Круглосуточный стационар">Стационар</button>
+        <button class="filter-btn" data-dept="Дневной стационар">Дневной стационар</button>
+        <button class="filter-btn" data-dept="Амбулаторная помощь">Амбулатория</button>
+    </div>
+
+    <!-- 4 диаграммы -->
+    <div class="chart-grid">
+        <div class="chart-box">
+            <h3 id="planFactTitle">📊 Выплаты персоналу план/факт (все отделения)</h3>
+            <canvas id="planFactChart" width="400" height="220" style="max-height:220px; width:100%;"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3 id="planPctTitle">📊 Выполнение плана по показателям, %</h3>
+            <canvas id="planPctChart" width="400" height="220" style="max-height:220px; width:100%;"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3 id="staffPctTitle">📊 Анализ укомплектованности кадрами, %</h3>
+            <canvas id="staffPctChart" width="400" height="220" style="max-height:220px; width:100%;"></canvas>
+        </div>
+        <div class="chart-box">
+            <h3 id="vacantTitle">📊 Вакантные ставки</h3>
+            <canvas id="vacantChart" width="400" height="220" style="max-height:220px; width:100%;"></canvas>
+        </div>
+    </div>
+
+    <div class="footer-note">Данные на основе отчётов «Анализ ФОТ» и «Анализ укомплектованности кадрами» • интерактивный дашборд</div>
+</div>
+
+<script>
+    (function() {
+        // ----------------------------------------------------------------
+        // 1. ДАННЫЕ (из предоставленных таблиц)
+        // ----------------------------------------------------------------
+        const fotData = [
+            { dept: 'Круглосуточный стационар', cat: 'Врачи', plan: 90013.8, fact: 92564.72, pct: 102.84, abs: 2550.92 },
+            { dept: 'Круглосуточный стационар', cat: 'Средний медицинский персонал', plan: 45006.9, fact: 45085.32, pct: 100.17, abs: 78.42 },
+            { dept: 'Круглосуточный стационар', cat: 'Младший медицинский персонал', plan: 45006.9, fact: 45596.65, pct: 101.31, abs: 589.75 },
+            { dept: 'Дневной стационар', cat: 'Врачи', plan: 90013.8, fact: 89828.61, pct: 99.79, abs: -185.19 },
+            { dept: 'Дневной стационар', cat: 'Средний медицинский персонал', plan: 45006.9, fact: 41966.50, pct: 93.24, abs: -3040.40 },
+            { dept: 'Дневной стационар', cat: 'Младший медицинский персонал', plan: 45006.9, fact: 46118.01, pct: 102.47, abs: 1111.11 },
+            { dept: 'Амбулаторная помощь', cat: 'Врачи', plan: 90013.8, fact: 81819.36, pct: 90.89, abs: -8194.44 },
+            { dept: 'Амбулаторная помощь', cat: 'Средний медицинский персонал', plan: 45006.9, fact: 45412.54, pct: 100.90, abs: 405.64 },
+            { dept: 'Амбулаторная помощь', cat: 'Младший медицинский персонал', plan: 45006.9, fact: 41590.23, pct: 92.41, abs: -3416.67 },
+            { dept: 'Общебольничный персонал', cat: 'Врачи', plan: 90013.8, fact: 89569.36, pct: 99.51, abs: -444.44 },
+            { dept: 'Общебольничный персонал', cat: 'Средний медицинский персонал', plan: 45006.9, fact: 46165.63, pct: 102.57, abs: 1158.73 },
+            { dept: 'Общебольничный персонал', cat: 'Младший медицинский персонал', plan: 45006.9, fact: 45590.35, pct: 101.30, abs: 583.45 },
+            { dept: 'Общебольничный персонал', cat: 'Прочие', plan: 45006.9, fact: 45006.90, pct: 100.00, abs: 0.00 }
+        ];
+
+        const staffData = [
+            { dept: 'Круглосуточный стационар', cat: 'Врачи', staff: 245.75, occupied: 215.5, pct: 87.69 },
+            { dept: 'Круглосуточный стационар', cat: 'Средний медицинский персонал', staff: 430.25, occupied: 410.25, pct: 95.35 },
+            { dept: 'Круглосуточный стационар', cat: 'Младший медицинский персонал', staff: 45.75, occupied: 43.25, pct: 94.54 },
+            { dept: 'Дневной стационар', cat: 'Врачи', staff: 7.5, occupied: 6.5, pct: 86.67 },
+            { dept: 'Дневной стационар', cat: 'Средний медицинский персонал', staff: 14.5, occupied: 13.75, pct: 94.83 },
+            { dept: 'Дневной стационар', cat: 'Младший медицинский персонал', staff: 2.25, occupied: 2.25, pct: 100.00 },
+            { dept: 'Амбулаторная помощь', cat: 'Врачи', staff: 58.75, occupied: 54.5, pct: 92.77 },
+            { dept: 'Амбулаторная помощь', cat: 'Средний медицинский персонал', staff: 75, occupied: 72.25, pct: 96.33 },
+            { dept: 'Амбулаторная помощь', cat: 'Младший медицинский персонал', staff: 4.75, occupied: 4.75, pct: 100.00 },
+            { dept: 'Общебольничный персонал', cat: 'Врачи', staff: 5, occupied: 5, pct: 100.00 },
+            { dept: 'Общебольничный персонал', cat: 'Средний медицинский персонал', staff: 7.5, occupied: 7, pct: 93.33 },
+            { dept: 'Общебольничный персонал', cat: 'Младший медицинский персонал', staff: 7, occupied: 5, pct: 71.43 },
+            { dept: 'Общебольничный персонал', cat: 'Прочие', staff: 257.75, occupied: 243.25, pct: 94.37 }
+        ];
+
+        const categories = ['Врачи', 'Средний медицинский персонал', 'Младший медицинский персонал', 'Прочие'];
+
+        // ----------------------------------------------------------------
+        // 2. Функции агрегации
+        // ----------------------------------------------------------------
+        function getDeptData(dept) {
+            const fotItems = fotData.filter(d => d.dept === dept);
+            const staffItems = staffData.filter(d => d.dept === dept);
+            return { fotItems, staffItems };
+        }
+
+        function getCatValue(items, cat, field) {
+            const filtered = items.filter(d => d.cat === cat);
+            if (!filtered.length) return 0;
+            return filtered.reduce((s, i) => s + i[field], 0) / filtered.length;
+        }
+
+        function getCatSum(items, cat, field) {
+            const filtered = items.filter(d => d.cat === cat);
+            if (!filtered.length) return 0;
+            return filtered.reduce((s, i) => s + i[field], 0);
+        }
+
+        function getCatPctAvg(items, cat) {
+            const filtered = items.filter(d => d.cat === cat);
+            if (!filtered.length) return 0;
+            return filtered.reduce((s, i) => s + i.pct, 0) / filtered.length;
+        }
+
+        // ----------------------------------------------------------------
+        // 3. Отрисовка диаграмм
+        // ----------------------------------------------------------------
+        let chartInstances = {};
+        let currentDept = 'all';
+
+        function renderCharts(dept) {
+            const titleSuffix = dept === 'all' ? '(все отделения)' : `(${dept})`;
+
+            document.getElementById('planFactTitle').textContent = `📊 Выплаты персоналу план/факт ${titleSuffix}`;
+            document.getElementById('planPctTitle').textContent = `📊 Выполнение плана по показателям, % ${titleSuffix}`;
+            document.getElementById('staffPctTitle').textContent = `📊 Анализ укомплектованности кадрами, % ${titleSuffix}`;
+            document.getElementById('vacantTitle').textContent = `📊 Вакантные ставки ${titleSuffix}`;
+
+            let fotItems, staffItems;
+            if (dept === 'all') {
+                fotItems = fotData;
+                staffItems = staffData;
+            } else {
+                const data = getDeptData(dept);
+                fotItems = data.fotItems;
+                staffItems = data.staffItems;
+            }
+
+            // 1. Выплаты персоналу план/факт (план - синий, факт - светло-синий)
+            const planData = categories.map(c => Math.round(getCatValue(fotItems, c, 'plan')));
+            const factData = categories.map(c => Math.round(getCatValue(fotItems, c, 'fact')));
+
+            if (chartInstances.planFact) chartInstances.planFact.destroy();
+            chartInstances.planFact = new Chart(document.getElementById('planFactChart'), {
+                type: 'bar',
+                data: {
+                    labels: categories,
+                    datasets: [
+                        { label: 'План', data: planData, backgroundColor: '#1a5e8c', borderRadius: 4 },
+                        { label: 'Факт', data: factData, backgroundColor: '#7bb3d9', borderRadius: 4 }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { position: 'top', labels: { boxWidth: 12, font: { size: 11 } } } },
+                    scales: { y: { beginAtZero: true, ticks: { callback: (v) => (v/1000).toFixed(0) + 'k' } } }
+                }
+            });
+
+            // 2. Выполнение плана по показателям (%)
+            const pctData = categories.map(c => Math.round(getCatPctAvg(fotItems, c)));
+
+            if (chartInstances.planPct) chartInstances.planPct.destroy();
+            chartInstances.planPct = new Chart(document.getElementById('planPctChart'), {
+                type: 'bar',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        label: 'Выполнение плана, %',
+                        data: pctData,
+                        backgroundColor: ['#2a6d8c', '#3e9bc0', '#6bb4d4', '#9ac9df'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 110, ticks: { callback: (v) => v + '%' } } }
+                }
+            });
+
+            // 3. Анализ укомплектованности кадрами (%)
+            const staffPctData = categories.map(c => Math.round(getCatPctAvg(staffItems, c)));
+
+            if (chartInstances.staffPct) chartInstances.staffPct.destroy();
+            chartInstances.staffPct = new Chart(document.getElementById('staffPctChart'), {
+                type: 'bar',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        label: 'Укомплектованность, %',
+                        data: staffPctData,
+                        backgroundColor: ['#2a6d8c', '#3e9bc0', '#6bb4d4', '#9ac9df'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, max: 100, ticks: { callback: (v) => v + '%' } } }
+                }
+            });
+
+            // 4. Вакантные ставки (синий)
+            const vacantData = categories.map(c => Math.round(getCatSum(staffItems, c, 'staff') - getCatSum(staffItems, c, 'occupied')));
+
+            if (chartInstances.vacant) chartInstances.vacant.destroy();
+            chartInstances.vacant = new Chart(document.getElementById('vacantChart'), {
+                type: 'bar',
+                data: {
+                    labels: categories,
+                    datasets: [{
+                        label: 'Вакантные ставки',
+                        data: vacantData,
+                        backgroundColor: ['#1a5e8c', '#3a7ca8', '#5a9bc4', '#7ab9d9'],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 5 } } }
+                }
+            });
+        }
+
+        // ----------------------------------------------------------------
+        // 4. KPI
+        // ----------------------------------------------------------------
+        function updateKPI() {
+            const docs = staffData.filter(d => d.cat === 'Врачи');
+            const totalDocs = docs.reduce((acc, cur) => acc + (cur.occupied || 0), 0);
+            document.getElementById('totalDocs').innerHTML = Math.round(totalDocs) + ' <span style="font-size:18px;font-weight:400;color:#2c5778;">физ.</span>';
+            document.querySelector('.card:nth-child(1) .sub').innerHTML = 'из них с д/о: 18';
+
+            const midStaff = staffData.filter(d => d.cat === 'Средний медицинский персонал');
+            const totalMid = midStaff.reduce((acc, cur) => acc + (cur.occupied || 0), 0);
+            document.getElementById('totalMid').innerHTML = Math.round(totalMid) + ' <span style="font-size:18px;font-weight:400;color:#2c5778;">физ.</span>';
+            document.querySelector('.card:nth-child(2) .sub').innerHTML = 'факт. ставок: 503,25';
+
+            let totalStaff = 0, totalOccupied = 0;
+            staffData.forEach(d => { totalStaff += d.staff; totalOccupied += d.occupied; });
+            const pctOverall = (totalOccupied / totalStaff) * 100;
+            document.getElementById('totalStaffPct').innerHTML = pctOverall.toFixed(1) + '%';
+            document.querySelector('.card:nth-child(3) .sub').innerHTML = 'по всем категориям';
+
+            const totalFot = 398947560;
+            document.getElementById('totalFot').innerHTML = totalFot.toLocaleString('ru-RU') + ' ₽';
+            document.querySelector('.card:nth-child(4) .sub').innerHTML = 'средняя з/п ~ 55 400 ₽';
+        }
+
+        // ----------------------------------------------------------------
+        // 5. Обновление дашборда
+        // ----------------------------------------------------------------
+        function refreshDashboard(dept) {
+            renderCharts(dept || currentDept);
+            updateKPI();
+        }
+
+        // ----------------------------------------------------------------
+        // 6. Обработчики
+        // ----------------------------------------------------------------
+        document.getElementById('refreshBtn').addEventListener('click', function() {
+            refreshDashboard(currentDept);
+        });
+
+        document.getElementById('downloadBtn').addEventListener('click', function() {
+            const htmlContent = document.documentElement.outerHTML;
+            const blob = new Blob([htmlContent], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'dashboard_FOT_staff.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // Фильтры
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const dept = this.dataset.dept;
+                currentDept = dept;
+                refreshDashboard(dept);
+            });
+        });
+
+        // ----------------------------------------------------------------
+        // 7. Старт
+        // ----------------------------------------------------------------
+        refreshDashboard('all');
+    })();
+</script>
+
+</body>
+</html>
