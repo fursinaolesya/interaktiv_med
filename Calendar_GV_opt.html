@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Календарь поручений главного врача</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        body {
+            background: #f4f7fc;
+            padding: 16px;
+            color: #1e293b;
+        }
+
+        .app {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #0b2b5c, #1a4a8a);
+            color: #fff;
+            border-radius: 16px;
+            padding: 20px 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 8px 24px rgba(10, 30, 70, 0.2);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            font-weight: 600;
+            font-size: 24px;
+            letter-spacing: 0.3px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h1 small {
+            font-size: 15px;
+            font-weight: 400;
+            opacity: 0.8;
+            margin-left: 6px;
+        }
+
+        .header .badge {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(4px);
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header .badge span {
+            background: #facc15;
+            color: #0b2b5c;
+            font-weight: 700;
+            padding: 0 10px;
+            border-radius: 30px;
+            font-size: 12px;
+            line-height: 22px;
+        }
+
+        /* Filters */
+        .filters {
+            background: #fff;
+            border-radius: 16px;
+            padding: 14px 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px 20px;
+        }
+
+        .filters label {
+            font-weight: 500;
+            font-size: 13px;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .filters select,
+        .filters input {
+            padding: 6px 12px;
+            border-radius: 30px;
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            font-size: 13px;
+            color: #1e293b;
+            outline: none;
+            transition: 0.2s;
+            min-width: 120px;
+        }
+
+        .filters select:focus,
+        .filters input:focus {
+            border-color: #1a4a8a;
+            box-shadow: 0 0 0 3px rgba(26, 74, 138, 0.12);
+        }
+
+        .filters .search-wrap {
+            position: relative;
+            flex: 1 1 180px;
+        }
+
+        .filters .search-wrap input {
+            width: 100%;
+            padding-left: 32px;
+            min-width: 100px;
+        }
+
+        .filters .search-wrap::before {
+            content: "🔍";
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 14px;
+            opacity: 0.5;
+        }
+
+        .filter-reset {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 4px 12px;
+            border-radius: 30px;
+            transition: 0.2s;
+            margin-left: auto;
+        }
+
+        .filter-reset:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+        }
+
+        /* Board — 3 колонки с прокруткой */
+        .board {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .board {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 700px) {
+            .board {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .column {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 640px; /* фиксированная высота для прокрутки */
+        }
+
+        .column-header {
+            padding: 14px 18px;
+            font-weight: 600;
+            font-size: 16px;
+            border-bottom: 2px solid #f1f5f9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fafcff;
+            flex-shrink: 0;
+        }
+
+        .column-header .count {
+            background: #e2e8f0;
+            border-radius: 30px;
+            padding: 0 12px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #334155;
+            line-height: 26px;
+        }
+
+        .column-body {
+            padding: 14px 16px 16px;
+            overflow-y: auto; /* ← ПРОКРУТКА */
+            flex: 1;
+        }
+
+        .column-body::-webkit-scrollbar {
+            width: 5px;
+        }
+        .column-body::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        .column-body::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        /* Task card */
+        .task-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+            border-left: 5px solid #94a3b8;
+            transition: all 0.15s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .task-card:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+        }
+
+        .task-card.priority-critical {
+            border-left-color: #dc2626;
+            background: #fef2f2;
+        }
+        .task-card.priority-critical .tag {
+            background: #dc2626;
+            color: #fff;
+        }
+
+        .task-card.priority-important {
+            border-left-color: #f59e0b;
+            background: #fffbeb;
+        }
+        .task-card.priority-important .tag {
+            background: #f59e0b;
+            color: #fff;
+        }
+
+        .task-card.priority-strategic {
+            border-left-color: #3b82f6;
+            background: #f0f7ff;
+        }
+        .task-card.priority-strategic .tag {
+            background: #3b82f6;
+            color: #fff;
+        }
+
+        .task-card .title {
+            font-weight: 600;
+            font-size: 15px;
+            margin-bottom: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .task-card .title .tag {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 10px;
+            border-radius: 30px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .task-card .desc {
+            font-size: 13px;
+            color: #475569;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .task-card .meta {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 12px;
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        .task-card .meta .responsible {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+
+        .task-card .meta .responsible .name {
+            background: #eef2f6;
+            padding: 1px 8px;
+            border-radius: 30px;
+            font-size: 11px;
+            color: #1e293b;
+        }
+
+        .task-card .deadline-badge {
+            font-size: 11px;
+            background: #e2e8f0;
+            padding: 1px 10px;
+            border-radius: 30px;
+            color: #334155;
+            font-weight: 500;
+        }
+
+        .task-card .fine {
+            font-size: 11px;
+            font-weight: 500;
+            color: #b91c1c;
+            background: #fee2e2;
+            padding: 1px 10px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+
+        .task-card .source-link {
+            font-size: 11px;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px dashed #e2e8f0;
+        }
+
+        .task-card .source-link a {
+            color: #1a4a8a;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .task-card .source-link a:hover {
+            text-decoration: underline;
+        }
+
+        .task-card .detail-hint {
+            font-size: 11px;
+            color: #94a3b8;
+            margin-top: 4px;
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: #fff;
+            border-radius: 20px;
+            max-width: 560px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 28px 32px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.3);
+            animation: modalIn 0.2s ease;
+        }
+
+        @keyframes modalIn {
+            from {
+                transform: scale(0.95) translateY(20px);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal .close {
+            float: right;
+            background: transparent;
+            border: none;
+            font-size: 26px;
+            line-height: 1;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .modal .close:hover {
+            color: #0f172a;
+            transform: rotate(90deg);
+        }
+
+        .modal h2 {
+            font-size: 22px;
+            margin-bottom: 4px;
+            color: #0b2b5c;
+        }
+
+        .modal .sub {
+            font-size: 13px;
+            color: #64748b;
+            margin-bottom: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+        }
+
+        .modal .sub .tag {
+            font-weight: 600;
+            font-size: 11px;
+            padding: 2px 12px;
+            border-radius: 30px;
+            text-transform: uppercase;
+        }
+
+        .modal .section {
+            margin-top: 16px;
+        }
+
+        .modal .section h4 {
+            font-weight: 600;
+            font-size: 14px;
+            color: #334155;
+            margin-bottom: 4px;
+        }
+
+        .modal .section p {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #1e293b;
+        }
+
+        .modal .section .resp-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 4px;
+        }
+
+        .modal .section .resp-list .resp-item {
+            background: #eef2f6;
+            padding: 3px 14px;
+            border-radius: 30px;
+            font-size: 13px;
+            color: #1e293b;
+        }
+
+        .modal .footer-meta {
+            margin-top: 20px;
+            padding-top: 14px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 13px;
+            color: #64748b;
+        }
+
+        .modal .source-link-full {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #e2e8f0;
+            font-size: 13px;
+        }
+
+        .modal .source-link-full a {
+            color: #1a4a8a;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .modal .source-link-full a:hover {
+            text-decoration: underline;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 30px 16px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .empty-state span {
+            font-size: 32px;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            .header {
+                padding: 16px 18px;
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .header h1 {
+                font-size: 20px;
+                flex-wrap: wrap;
+            }
+            .filters {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 12px 16px;
+            }
+            .filters .search-wrap {
+                flex: 1;
+            }
+            .modal {
+                padding: 20px 18px;
+            }
+            .column {
+                max-height: 480px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app" id="app">
+        <!-- Header -->
+        <header class="header">
+            <h1>
+                📋 Календарь поручений
+                <small>главному врачу</small>
+            </h1>
+            <div class="badge">
+                🗓️ Изменения с 1 сентября 2026
+                <span>20 изменений</span>
+            </div>
+        </header>
+
+        <!-- Filters -->
+        <div class="filters">
+            <label>
+                Приоритет
+                <select id="filterPriority">
+                    <option value="all">Все</option>
+                    <option value="critical">Критические (до 20 авг)</option>
+                    <option value="important">Важные (до 1 окт)</option>
+                    <option value="strategic">Стратегические (до 1 янв)</option>
+                </select>
+            </label>
+            <label>
+                Ответственный
+                <select id="filterResponsible">
+                    <option value="all">Все</option>
+                </select>
+            </label>
+            <div class="search-wrap">
+                <input type="text" id="filterSearch" placeholder="Поиск по задаче...">
+            </div>
+            <button class="filter-reset" id="resetFilters">Сбросить фильтры</button>
+        </div>
+
+        <!-- Board -->
+        <div class="board" id="board"></div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal" id="modalContent">
+            <button class="close" id="modalClose">&times;</button>
+            <h2 id="modalTitle"></h2>
+            <div class="sub" id="modalSub"></div>
+            <div class="section">
+                <h4>📌 Описание</h4>
+                <p id="modalDesc"></p>
+            </div>
+            <div class="section">
+                <h4>⚠️ Риски и сложности</h4>
+                <p id="modalComplexity"></p>
+            </div>
+            <div class="section">
+                <h4>👥 Кому поручить</h4>
+                <div class="resp-list" id="modalResponsible"></div>
+            </div>
+            <div class="footer-meta">
+                <span id="modalDeadline"></span>
+                <span id="modalFine"></span>
+            </div>
+            <div class="source-link-full" id="modalSource"></div>
+        </div>
+    </div>
+
+    <script>
+        // ===== ДАННЫЕ =====
+        const tasksData = [
+            // === КРИТИЧЕСКИЕ (ДО 20 АВГУСТА) ===
+            {
+                id: 1,
+                title: 'Платные медуслуги',
+                description: 'Обновить договоры об оказании платных услуг и информированные добровольные согласия. Проверить информацию на стендах и сайте.',
+                complexity: 'Навязывание платных услуг — штраф до 500 тыс. руб. по ст. 14.8 КоАП РФ. Если в договоре не прописать обязанность пациента соблюдать режим лечения, суд будет на стороне пациента.',
+                responsible: ['Юрист', 'Заведующие отделениями', 'IT-специалист'],
+                deadline: '2026-08-20',
+                deadlineLabel: 'До 20 августа',
+                priority: 'critical',
+                fine: 'Штраф до 500 000 ₽',
+                sourceUrl: 'https://1glv.ru/#/document/16/213024/'
+            },
+            {
+                id: 2,
+                title: 'Медосмотры частных охранников и детективов',
+                description: 'Найти медицинского психолога в штат или на договор. Проверить лицензии по офтальмологии, психиатрии, наркологии. Настроить передачу заключений в ЕГИСЗ.',
+                complexity: 'Если осмотр проведёт невролог вместо психолога — грубое нарушение лицензионных требований. Перечень заболеваний вырос до 65 позиций.',
+                responsible: ['Кадровая служба', 'Зам. по медицинской части', 'IT-отдел'],
+                deadline: '2026-08-20',
+                deadlineLabel: 'До 20 августа',
+                priority: 'critical',
+                fine: 'Грубое нарушение лицензии',
+                sourceUrl: 'https://1glv.ru/#/document/16/214165/dfasdcq0dt/'
+            },
+            {
+                id: 3,
+                title: 'ВИЧ-освидетельствование',
+                description: 'Записать врачей на курсы повышения квалификации 72 ч. Закупить комбинированные тест-системы (антитела + p24). Обновить форму 025/у.',
+                complexity: 'Врач без подтверждённого обучения не имеет права консультировать ВИЧ-пациентов. Невыполнение требования — основание для отказа в оплате по ОМС.',
+                responsible: ['Кадровая служба', 'Заведующий лабораторией', 'Зам. по медицинской части'],
+                deadline: '2026-08-20',
+                deadlineLabel: 'До 20 августа',
+                priority: 'critical',
+                fine: 'Отказ в оплате по ОМС',
+                sourceUrl: 'https://1glv.ru/#/document/16/214165/dfasnwr9q5/'
+            },
+            {
+                id: 4,
+                title: 'Работа с медицинскими отходами',
+                description: 'Проверить подрядчиков в официальном реестре субъекта РФ. Запросить у перевозчика списки сотрудников и машин. Провести инструктаж персонала по маркировке.',
+                complexity: 'Если есть отходы, подобные I-II классам — договор только с федеральным оператором. Неправильная маркировка грозит отказом в вывозе. Отчёт в Роспотребнадзор — штраф до 350 тыс. руб.',
+                responsible: ['Главная медсестра', 'Юрист'],
+                deadline: '2026-08-20',
+                deadlineLabel: 'До 20 августа',
+                priority: 'critical',
+                fine: 'Штраф до 350 000 ₽',
+                sourceUrl: 'https://1glv.ru/#/document/16/214165/dfasipzg22/'
+            },
+            {
+                id: 5,
+                title: 'Маркировка медизделий',
+                description: 'Провести инвентаризацию остатков. Утвердить алгоритм приёмки: товар без DataMatrix — возврат поставщику. Остатки без маркировки учесть отдельно.',
+                complexity: 'Остатки без маркировки можно использовать до 31.08.2027 (для длительного срока — до 28.02.2027). Оборот немаркированной продукции — штраф до 300 тыс. ₽ с конфискацией.',
+                responsible: ['Зам. по закупкам', 'Заведующий складом'],
+                deadline: '2026-08-20',
+                deadlineLabel: 'До 20 августа',
+                priority: 'critical',
+                fine: 'Штраф до 300 000 ₽ + конфискация',
+                sourceUrl: 'https://1glv.ru/#/document/16/214165/dfaslcdccp/'
+            },
+            {
+                id: 6,
+                title: 'Переход на электронный документооборот',
+                description: 'Обновить шаблоны документов. Проверить, что все врачи используют КЭП в формате CMS (контейнер). Обеспечить отметку «ПОДПИСАНО ЭЛЕКТРОННОЙ ПОДПИСЬЮ».',
+                complexity: 'Неправильная отметка об ЭП может сделать документ недействительным в суде. Порядок распространяется также на фармацевтов и аптеки.',
+                responsible: ['IT-отдел', 'Кадровая служба'],
+                deadline: '2026-08-20',
+                deadlineLabel: 'До 20 августа',
+                priority: 'critical',
+                fine: 'Документы могут быть признаны недействительными',
+                sourceUrl: 'https://1glv.ru/#/document/16/126781/'
+            },
+
+            // === ВАЖНЫЕ (ДО 1 ОКТЯБРЯ) ===
+            {
+                id: 7,
+                title: 'Диспансерное наблюдение пациентов с зависимостями',
+                description: 'Пересмотреть регистры пациентов с психическими расстройствами и зависимостями, распределить их по группам (ДН‑1, ДН‑2, ДН‑3, ДН‑4). Настроить автоматические напоминания в МИС о сроках осмотров.',
+                complexity: 'Для групп ДН‑2, ДН‑3, ДН‑4 осмотры не реже 1 раза в 2 месяца. Прекратить наблюдение (в принудительном порядке) может только врачебная комиссия. Нарушение периодичности грозит неоплатой по ОМС.',
+                responsible: ['Заведующие отделениями', 'IT-отдел'],
+                deadline: '2026-10-01',
+                deadlineLabel: 'До 1 октября',
+                priority: 'important',
+                fine: 'Неоплата по ОМС',
+                sourceUrl: 'https://1glv.ru/#/document/16/214165/dfasdnu2g7/'
+            },
+            {
+                id: 8,
+                title: 'Новые санитарные правила',
+                description: 'Провести ревизию рабочих мест на наличие канцерогенных факторов. Включить выявленные факторы в программу производственного контроля. Проверить помещения и оборудование.',
+                complexity: 'Требует привлечения специализированной лаборатории. Обновить локальные акты (приказы, ППК, СОБ), где указаны старые СП.',
+                responsible: ['Специалист по охране труда', 'Главный инженер'],
+                deadline: '2026-10-01',
+                deadlineLabel: 'До 1 октября',
+                priority: 'important',
+                fine: null,
+                sourceUrl: 'https://1glv.ru/#/document/16/214165/dfasmsp39v/'
+            },
+            {
+                id: 9,
+                title: 'Медосвидетельствование иностранцев',
+                description: 'Подать заявление на включение МО в региональный перечень. Назначить ответственного за передачу данных в Роспотребнадзор. Провести инструктаж врачей под подпись.',
+                complexity: 'Срок освидетельствования сокращён с 90 до 30 дней. За подделку справки — штраф до 3 млн ₽ и лишение свободы до 8 лет (ст. 235.2 УК РФ).',
+                responsible: ['Юрист', 'Ответственный за передачу данных', 'Зам. по медицинской части'],
+                deadline: '2026-10-01',
+                deadlineLabel: 'До 1 октября',
+                priority: 'important',
+                fine: 'Уголовная ответственность до 8 лет',
+                sourceUrl: 'https://1glv.ru/#/document/16/214165/dfasn2u7np/'
+            },
+
+            // === СТРАТЕГИЧЕСКИЕ (ДО 1 ЯНВАРЯ) ===
+            {
+                id: 10,
+                title: 'Новый порядок выдачи справок и медзаключений',
+                description: 'Внедрить электронные справки с УКЭП. Обновить регламенты выдачи. Срок выдачи — не позднее 3 рабочих дней. Обучить регистратуру и врачей.',
+                complexity: 'Расширен круг получателей (супруг, близкие родственники). Выдача неуполномоченному лицу — разглашение врачебной тайны (штраф до 200 000 ₽).',
+                responsible: ['Старший медрегистратор', 'Зам. главврача по медчасти'],
+                deadline: '2027-01-01',
+                deadlineLabel: 'До 1 января',
+                priority: 'strategic',
+                fine: 'Штраф до 200 000 ₽',
+                sourceUrl: 'https://1glv.ru/#/document/16/211433/'
+            },
+            {
+                id: 11,
+                title: 'Номенклатура должностей и квалификационные требования',
+                description: 'Составить график переименования должностей в штатном расписании. Проверить трудовые договоры. Исключить 13 должностей с 1 сентября 2026 г. Привести квалификацию врачей скорой помощи в соответствие с профстандартом (приказ Минтруда от 10.11.2025 № 634н).',
+                complexity: 'Массовое переименование требует согласия сотрудников (ст. 74 ТК РФ). Для бактериолога, вирусолога, паразитолога — переходный период до 2028 г.',
+                responsible: ['Кадровая служба', 'Юрист'],
+                deadline: '2027-01-01',
+                deadlineLabel: 'До 1 января',
+                priority: 'strategic',
+                fine: null,
+                sourceUrl: 'https://1glv.ru/#/document/16/214165/dfasusfs3s/'
+            },
+            {
+                id: 12,
+                title: 'Неблагоприятные события с медизделиями',
+                description: 'Назначить сотрудника, ответственного за сбор и передачу сведений в Росздравнадзор через АИС. Срок сообщения — 20 рабочих дней.',
+                complexity: 'Обязательный мониторинг для изделий 3 класса риска и имплантируемых 2б в течение первых 3 лет. За непредоставление сведений — штраф до 300 тыс. ₽ на юрлицо.',
+                responsible: ['Зам. по медицинской части', 'Назначенный сотрудник'],
+                deadline: '2027-01-01',
+                deadlineLabel: 'До 1 января',
+                priority: 'strategic',
+                fine: 'Штраф до 300 000 ₽',
+                sourceUrl: 'https://1glv.ru/#/document/16/214165/dfas4a9ggb/'
+            },
+            {
+                id: 13,
+                title: 'Объекты КИИ (критическая инфраструктура)',
+                description: 'Провести категорирование объектов КИИ (МИС, ЕГИСЗ, системы управления рентген-аппаратами и ОРИТ). Начать планирование закупок средств криптозащиты.',
+                complexity: 'Ориентировочный срок категорирования — 60 дней. Если не начать в августе, к декабрю не успеть. Требует внедрения средств защиты и плана реагирования на инциденты.',
+                responsible: ['Глава IT-отдела'],
+                deadline: '2027-01-01',
+                deadlineLabel: 'До 1 января',
+                priority: 'strategic',
+                fine: null,
+                sourceUrl: null
+            }
+        ];
+
+        // ===== STATE =====
+        let filteredTasks = [...tasksData];
+
+        const boardEl = document.getElementById('board');
+        const filterPriority = document.getElementById('filterPriority');
+        const filterResponsible = document.getElementById('filterResponsible');
+        const filterSearch = document.getElementById('filterSearch');
+        const resetBtn = document.getElementById('resetFilters');
+
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalClose = document.getElementById('modalClose');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalSub = document.getElementById('modalSub');
+        const modalDesc = document.getElementById('modalDesc');
+        const modalComplexity = document.getElementById('modalComplexity');
+        const modalResponsible = document.getElementById('modalResponsible');
+        const modalDeadline = document.getElementById('modalDeadline');
+        const modalFine = document.getElementById('modalFine');
+        const modalSource = document.getElementById('modalSource');
+
+        function getPriorityLabel(p) {
+            const map = { critical: 'Критическая', important: 'Важная', strategic: 'Стратегическая' };
+            return map[p] || p;
+        }
+
+        function getCardPriorityClass(p) {
+            return 'priority-' + p;
+        }
+
+        function formatDate(iso) {
+            if (!iso) return '';
+            const d = new Date(iso + 'T00:00:00');
+            return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' });
+        }
+
+        function getAllResponsible() {
+            const set = new Set();
+            tasksData.forEach(t => t.responsible.forEach(r => set.add(r)));
+            return Array.from(set).sort();
+        }
+
+        function populateResponsibleFilter() {
+            const names = getAllResponsible();
+            const sel = filterResponsible;
+            sel.innerHTML = '<option value="all">Все</option>';
+            names.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                sel.appendChild(opt);
+            });
+        }
+
+        function applyFilters() {
+            const priority = filterPriority.value;
+            const responsible = filterResponsible.value;
+            const search = filterSearch.value.trim().toLowerCase();
+
+            filteredTasks = tasksData.filter(task => {
+                if (priority !== 'all' && task.priority !== priority) return false;
+                if (responsible !== 'all' && !task.responsible.includes(responsible)) return false;
+                if (search) {
+                    const inTitle = task.title.toLowerCase().includes(search);
+                    const inDesc = task.description.toLowerCase().includes(search);
+                    if (!inTitle && !inDesc) return false;
+                }
+                return true;
+            });
+
+            renderBoard();
+        }
+
+        function renderBoard() {
+            const groups = {
+                critical: { label: 'Критические — до 20 августа', tasks: [] },
+                important: { label: 'Важные — до 1 октября', tasks: [] },
+                strategic: { label: 'Стратегические — до 1 января', tasks: [] }
+            };
+
+            filteredTasks.forEach(task => {
+                if (groups[task.priority]) {
+                    groups[task.priority].tasks.push(task);
+                }
+            });
+
+            for (const key in groups) {
+                groups[key].tasks.sort((a, b) => a.id - b.id);
+            }
+
+            let html = '';
+            const columnOrder = ['critical', 'important', 'strategic'];
+            const headerColors = { critical: '#dc2626', important: '#f59e0b', strategic: '#3b82f6' };
+
+            for (const key of columnOrder) {
+                const group = groups[key];
+                const count = group.tasks.length;
+                html += `
+                    <div class="column">
+                        <div class="column-header" style="border-bottom-color: ${headerColors[key]};">
+                            ${group.label}
+                            <span class="count">${count}</span>
+                        </div>
+                        <div class="column-body">
+                `;
+                if (count === 0) {
+                    html += `<div class="empty-state"><span>📭</span> Нет задач</div>`;
+                } else {
+                    group.tasks.forEach(task => {
+                        const priorityClass = getCardPriorityClass(task.priority);
+                        const priorityLabel = getPriorityLabel(task.priority);
+                        const fineHtml = task.fine ? `<span class="fine">${task.fine}</span>` : '';
+                        const sourceHtml = task.sourceUrl ? `
+                            <div class="source-link">
+                                📎 <a href="${task.sourceUrl}" target="_blank">Подробнее в Системе «Главный врач»</a>
+                            </div>
+                        ` : '';
+
+                        html += `
+                            <div class="task-card ${priorityClass}" data-id="${task.id}">
+                                <div class="title">
+                                    <span>${task.title}</span>
+                                    <span class="tag">${priorityLabel}</span>
+                                </div>
+                                <div class="desc">${task.description}</div>
+                                <div class="meta">
+                                    <span class="responsible">
+                                        👤 ${task.responsible.map(r => `<span class="name">${r}</span>`).join(' ')}
+                                    </span>
+                                    <span class="deadline-badge">${task.deadlineLabel}</span>
+                                    ${fineHtml}
+                                </div>
+                                ${sourceHtml}
+                                <div class="detail-hint">🖱️ Нажмите для подробностей</div>
+                            </div>
+                        `;
+                    });
+                }
+                html += `</div></div>`;
+            }
+
+            boardEl.innerHTML = html;
+
+            document.querySelectorAll('.task-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.id);
+                    openModal(id);
+                });
+            });
+        }
+
+        function openModal(id) {
+            const task = tasksData.find(t => t.id === id);
+            if (!task) return;
+
+            modalTitle.textContent = task.title;
+            const priorityLabel = getPriorityLabel(task.priority);
+            const color = task.priority === 'critical' ? '#dc2626' :
+                          task.priority === 'important' ? '#f59e0b' : '#3b82f6';
+            modalSub.innerHTML = `
+                <span class="tag" style="background:${color};color:#fff;">${priorityLabel}</span>
+                <span>${task.deadlineLabel}</span>
+                ${task.fine ? `<span style="color:#b91c1c;font-weight:500;">${task.fine}</span>` : ''}
+            `;
+            modalDesc.textContent = task.description;
+            modalComplexity.textContent = task.complexity;
+
+            modalResponsible.innerHTML = task.responsible.map(r =>
+                `<span class="resp-item">${r}</span>`
+            ).join('');
+
+            modalDeadline.textContent = `📅 Срок: ${task.deadlineLabel} (${formatDate(task.deadline)})`;
+            modalFine.textContent = task.fine ? `⚖️ ${task.fine}` : '⚖️ Штрафы не указаны';
+
+            if (task.sourceUrl) {
+                modalSource.innerHTML = `📎 <a href="${task.sourceUrl}" target="_blank">Подробнее в Системе «Главный врач»</a>`;
+            } else {
+                modalSource.innerHTML = '';
+            }
+
+            modalOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modalOverlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function init() {
+            populateResponsibleFilter();
+            applyFilters();
+
+            filterPriority.addEventListener('change', applyFilters);
+            filterResponsible.addEventListener('change', applyFilters);
+            filterSearch.addEventListener('input', applyFilters);
+
+            resetBtn.addEventListener('click', function() {
+                filterPriority.value = 'all';
+                filterResponsible.value = 'all';
+                filterSearch.value = '';
+                applyFilters();
+            });
+
+            modalClose.addEventListener('click', closeModal);
+            modalOverlay.addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeModal();
+            });
+        }
+
+        init();
+    </script>
+</body>
+</html>
