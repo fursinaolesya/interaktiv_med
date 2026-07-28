@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Поликлиника — расчёт объёмов и финансирования</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { background: #f0f2f5; padding: 20px; font-family: 'Segoe UI', Roboto, sans-serif; }
+        .card-custom { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 20px; border: 1px solid #e9edf2; }
+        .section-title { border-bottom: 2px solid #0d6efd; padding-bottom: 8px; margin-top: 28px; margin-bottom: 18px; font-weight: 600; color: #1a2a3a; }
+        .table input[type="number"], .table input[type="text"] { width: 100%; min-width: 70px; font-size: 0.9rem; }
+        .table td { vertical-align: middle; }
+        .total-fin { font-size: 2rem; font-weight: 700; color: #0a3d6b; }
+        .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; background: #fafbfc; transition: 0.2s; cursor: pointer; }
+        .upload-area:hover { border-color: #0d6efd; background: #f8faff; }
+        .upload-area .bi { font-size: 2rem; color: #94a3b8; }
+        .upload-area .format-badge { font-size: 0.7rem; background: #e9edf2; padding: 2px 10px; border-radius: 30px; }
+        .summary-box { background: linear-gradient(135deg, #f0f5ff 0%, #e8f0fe 100%); border-radius: 16px; padding: 20px 24px; border: 1px solid #d6e3f2; }
+        .file-badge { background: #e9edf2; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; }
+        .file-badge .bi { font-size: 0.9rem; }
+        .btn-primary { background: #0d6efd; border: none; padding: 10px 28px; font-weight: 500; border-radius: 40px; }
+        .btn-primary:hover { background: #0b5ed7; }
+        .stat-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f1f5f9; }
+        .stat-item .label { color: #475569; font-size: 0.9rem; }
+        .stat-item .value { font-weight: 600; color: #0f172a; }
+        .format-hint { font-size: 0.7rem; color: #94a3b8; }
+        .flexible-format { background: #f0fdf4; border-radius: 8px; padding: 8px 14px; border: 1px solid #bbf7d0; }
+        .table-light th { background-color: #f1f5f9; font-weight: 600; }
+        .btn-sm { margin: 2px; }
+        .full-width { width: 100%; }
+    </style>
+</head>
+<body>
+<div class="container-lg">
+
+    <!-- Заголовок -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="h2 mb-0">🏥 Поликлиника</h1>
+    </div>
+
+    <!-- Блок загрузки документов -->
+    <div class="card-custom">
+        <h6 class="fw-bold mb-2"><i class="bi bi-upload me-2"></i>Загрузка исходных документов</h6>
+        <div class="flexible-format mb-3">
+            <i class="bi bi-info-circle me-1"></i>
+            <span class="small">Поддерживаются любые форматы: <strong>XLSX, XLS, CSV, XML, JSON, TXT, PDF</strong></span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="upload-area" onclick="document.getElementById('fileStakes').click()">
+                    <i class="bi bi-file-spreadsheet"></i>
+                    <div class="small fw-medium mt-1">Штатное расписание</div>
+                    <div class="format-hint">XLSX · CSV · XML · JSON · TXT</div>
+                    <input type="file" id="fileStakes" accept=".xlsx,.xls,.csv,.xml,.json,.txt" style="display:none" onchange="handleUpload(this, 'stakes')">
+                    <span id="stakesFile" class="file-badge mt-1"><i class="bi bi-file-earmark"></i> не загружено</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="upload-area" onclick="document.getElementById('filePlan').click()">
+                    <i class="bi bi-file-bar-graph"></i>
+                    <div class="small fw-medium mt-1">Данные за прошлый год</div>
+                    <div class="format-hint">XLSX · CSV · XML · JSON</div>
+                    <input type="file" id="filePlan" accept=".xlsx,.xls,.csv,.xml,.json" style="display:none" onchange="handleUpload(this, 'plan')">
+                    <span id="planFile" class="file-badge mt-1"><i class="bi bi-file-earmark"></i> не загружено</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="upload-area" onclick="document.getElementById('fileTariffs').click()">
+                    <i class="bi bi-file-text"></i>
+                    <div class="small fw-medium mt-1">Тарифное соглашение</div>
+                    <div class="format-hint">PDF · XLSX · CSV · TXT</div>
+                    <input type="file" id="fileTariffs" accept=".pdf,.xlsx,.xls,.csv,.txt" style="display:none" onchange="handleUpload(this, 'tariffs')">
+                    <span id="tariffsFile" class="file-badge mt-1"><i class="bi bi-file-earmark"></i> не загружено</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="upload-area" onclick="document.getElementById('fileTerritory').click()">
+                    <i class="bi bi-map"></i>
+                    <div class="small fw-medium mt-1">Территориальная программа</div>
+                    <div class="format-hint">PDF · DOCX · TXT</div>
+                    <input type="file" id="fileTerritory" accept=".pdf,.docx,.txt" style="display:none" onchange="handleUpload(this, 'territory')">
+                    <span id="territoryFile" class="file-badge mt-1"><i class="bi bi-file-earmark"></i> не загружено</span>
+                </div>
+            </div>
+        </div>
+        <div class="mt-2 text-muted small d-flex flex-wrap gap-3">
+            <span><i class="bi bi-check-circle text-success"></i> Адаптация под формат вашего региона</span>
+            <span><i class="bi bi-arrows-expand"></i> Структура файла значения не имеет</span>
+        </div>
+    </div>
+
+    <!-- Общие данные -->
+    <div class="card-custom">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <label for="populationInput" class="fw-bold">👥 Прикреплённое население</label>
+                <input type="number" id="populationInput" class="form-control form-control-lg" value="11000" step="1" min="0">
+            </div>
+        </div>
+    </div>
+
+    <!-- РАСЧЁТ -->
+    <div class="card-custom">
+        <h5 class="section-title">1. Посещения и обращения по специальностям</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle" id="doctorsTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Специальность</th>
+                        <th>Ср. посещений на ставку</th>
+                        <th>Кратность</th>
+                        <th>Ставок</th>
+                        <th>Посещения/обращения (план)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="doctorTbody"></tbody>
+                <tfoot>
+                    <tr class="table-secondary fw-bold">
+                        <td colspan="3">ИТОГО</td>
+                        <td></td>
+                        <td id="totalVisitsPoly">0</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <button class="btn btn-sm btn-outline-primary" onclick="addDoctorRow()">+ Добавить специальность</button>
+    </div>
+
+    <!-- 2. Диспансеризация -->
+    <div class="card-custom full-width">
+        <h5 class="section-title">2. Диспансеризация</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm" id="dispTable">
+                <thead class="table-light"><tr><th>Вид</th><th>Норматив</th><th>Стоимость</th><th>Объём</th><th>Финансирование</th></tr></thead>
+                <tbody>
+                    <tr><td>Общая</td><td><input type="number" class="form-control form-control-sm disp-norm" value="0.439948" step="any"></td><td><input type="number" class="form-control form-control-sm disp-cost" value="3123" step="any"></td><td class="disp-volume">0</td><td class="disp-fin">0</td></tr>
+                    <tr><td>Углублённая</td><td><input type="number" class="form-control form-control-sm disp-norm" value="0.050758" step="any"></td><td><input type="number" class="form-control form-control-sm disp-cost" value="2349.6" step="any"></td><td class="disp-volume">0</td><td class="disp-fin">0</td></tr>
+                    <tr><td>Репродуктивное (ж)</td><td><input type="number" class="form-control form-control-sm disp-norm" value="0.074587" step="any"></td><td><input type="number" class="form-control form-control-sm disp-cost" value="3054.8" step="any"></td><td class="disp-volume">0</td><td class="disp-fin">0</td></tr>
+                    <tr><td>Репродуктивное (м)</td><td><input type="number" class="form-control form-control-sm disp-norm" value="0.071122" step="any"></td><td><input type="number" class="form-control form-control-sm disp-cost" value="759.6" step="any"></td><td class="disp-volume">0</td><td class="disp-fin">0</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 3. Профосмотры -->
+    <div class="card-custom full-width">
+        <h5 class="section-title">3. Профосмотры</h5>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3"><label>Норматив</label><input type="number" id="profNorm" class="form-control" value="0.260168" step="any"></div>
+            <div class="col-md-3"><label>Стоимость</label><input type="number" id="profCost" class="form-control" value="2611.1" step="any"></div>
+            <div class="col-md-3"><label>Объём</label><span id="profVolume" class="fw-bold fs-5 d-block">0</span></div>
+            <div class="col-md-3"><label>Финансирование</label><span id="profFin" class="fw-bold fs-5 d-block">0</span></div>
+        </div>
+    </div>
+
+    <!-- 4. Диспансерное наблюдение -->
+    <div class="card-custom full-width">
+        <h5 class="section-title">4. Диспансерное наблюдение</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm" id="dispObsTable">
+                <thead class="table-light"><tr><th>Группа</th><th>Стоимость</th><th>Пациентов</th><th>Финансирование</th></tr></thead>
+                <tbody>
+                    <tr><td>Онкология</td><td><input type="number" class="form-control form-control-sm obs-cost" value="4331.7" step="any"></td><td><input type="number" class="form-control form-control-sm obs-patients" value="0" step="any"></td><td class="obs-fin">0</td></tr>
+                    <tr><td>Сахарный диабет</td><td><input type="number" class="form-control form-control-sm obs-cost" value="1883.1" step="any"></td><td><input type="number" class="form-control form-control-sm obs-patients" value="0" step="any"></td><td class="obs-fin">0</td></tr>
+                    <tr><td>БСК</td><td><input type="number" class="form-control form-control-sm obs-cost" value="3680.7" step="any"></td><td><input type="number" class="form-control form-control-sm obs-patients" value="0" step="any"></td><td class="obs-fin">0</td></tr>
+                    <tr class="table-secondary"><td>Общий норматив</td><td><input type="number" class="form-control form-control-sm" id="dispObsNorm" value="0.275509" step="any"></td><td>Объём: <span id="dispObsVolume">0</span></td><td><span id="dispObsFinCommon">0</span></td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 5. Школы здоровья -->
+    <div class="card-custom full-width">
+        <h5 class="section-title">5. Школы здоровья</h5>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3"><label>Общий норматив</label><input type="number" id="schoolNorm" class="form-control" value="0.210277" step="any"></div>
+            <div class="col-md-3"><label>Стоимость</label><input type="number" id="schoolCost" class="form-control" value="960.8" step="any"></div>
+            <div class="col-md-3"><label>Объём</label><span id="schoolVolume" class="fw-bold fs-5 d-block">0</span></div>
+            <div class="col-md-3"><label>Финансирование</label><span id="schoolFin" class="fw-bold fs-5 d-block">0</span></div>
+        </div>
+        <div class="row g-3 align-items-end mt-2">
+            <div class="col-md-3"><label>Диабет норматив</label><input type="number" id="schoolDiabNorm" class="form-control" value="0.00562" step="any"></div>
+            <div class="col-md-3"><label>Стоимость</label><input type="number" id="schoolDiabCost" class="form-control" value="1414.8" step="any"></div>
+            <div class="col-md-3"><label>Объём</label><span id="schoolDiabVolume" class="fw-bold fs-5 d-block">0</span></div>
+            <div class="col-md-3"><label>Финансирование</label><span id="schoolDiabFin" class="fw-bold fs-5 d-block">0</span></div>
+        </div>
+    </div>
+
+    <!-- 6. Неотложная помощь -->
+    <div class="card-custom full-width">
+        <h5 class="section-title">6. Неотложная помощь</h5>
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3"><label>Норматив</label><input type="number" id="urgentNorm" class="form-control" value="0.54" step="any"></div>
+            <div class="col-md-3"><label>Стоимость</label><input type="number" id="urgentCost" class="form-control" value="1050.7" step="any"></div>
+            <div class="col-md-3"><label>Объём</label><span id="urgentVolume" class="fw-bold fs-5 d-block">0</span></div>
+            <div class="col-md-3"><label>Финансирование</label><span id="urgentFin" class="fw-bold fs-5 d-block">0</span></div>
+        </div>
+    </div>
+
+    <!-- 7. Дополнительные услуги -->
+    <div class="card-custom full-width">
+        <h5 class="section-title">7. Дополнительные услуги</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm" id="extraServicesTable">
+                <thead class="table-light"><tr><th>Услуга</th><th>Тариф</th><th>Кол-во</th><th>Сумма</th><th></th></tr></thead>
+                <tbody>
+                    <tr><td><input type="text" class="form-control form-control-sm" value="КТ"></td><td><input type="number" class="form-control form-control-sm extra-tariff" value="2500" step="any"></td><td><input type="number" class="form-control form-control-sm extra-qty" value="0" step="any"></td><td class="extra-sum">0</td><td><button class="btn btn-sm btn-danger" onclick="this.closest('tr').remove(); recalcAll();">✕</button></td></tr>
+                </tbody>
+            </table>
+        </div>
+        <button class="btn btn-sm btn-outline-primary" onclick="addExtraServiceRow()">+ Добавить</button>
+    </div>
+
+    <!-- Итог -->
+    <div class="summary-box mt-3 d-flex flex-wrap justify-content-between align-items-center">
+        <div><span class="fw-bold fs-5">💰 Итого финансирование</span>
+            <span class="badge bg-primary bg-opacity-10 text-primary ms-2">план 2026</span></div>
+        <div><span class="total-fin" id="polyTotalFin">0.00</span> <span class="text-muted">руб.</span></div>
+        <button class="btn btn-primary" onclick="recalcAll()">⟳ Пересчитать объемы</button>
+    </div>
+
+    <!-- Сводка -->
+    <div class="card-custom mt-3 bg-light">
+        <div class="d-flex flex-wrap justify-content-between align-items-center">
+            <span><i class="bi bi-clipboard-data me-2"></i>Сводный отчёт</span>
+            <span class="text-muted small">План на 2026 год</span>
+            <span class="fw-bold fs-4" id="summaryTotal">0.00 ₽</span>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ------------------ ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ------------------
+    const results = { poly: 0 };
+
+    // ------------------ ЗАГРУЗКА ДОКУМЕНТОВ ------------------
+    function handleUpload(input, type) {
+        const file = input.files[0];
+        if (!file) return;
+        const labelMap = {
+            stakes: 'stakesFile',
+            plan: 'planFile',
+            tariffs: 'tariffsFile',
+            territory: 'territoryFile'
+        };
+        const fileExt = file.name.split('.').pop().toUpperCase();
+        document.getElementById(labelMap[type]).innerHTML = `<i class="bi bi-file-earmark-check"></i> ${file.name} <span class="badge bg-light text-dark ms-1">${fileExt}</span>`;
+        input.value = '';
+    }
+
+    // ------------------ ВРАЧИ (таблица) ------------------
+    const defaultDoctors = [
+        {spec: "Кардиология", visits: 4470, krat: 3.1},
+        {spec: "Ревматология", visits: 3888, krat: 3.1},
+        {spec: "Педиатрия (общая)", visits: 3200, krat: 2.8},
+        {spec: "Терапия (общая)", visits: 4670, krat: 2.7},
+        {spec: "Пульмонология", visits: 2724, krat: 2.7},
+        {spec: "Гастроэнтерология", visits: 4313, krat: 2.7},
+        {spec: "Нефрология", visits: 2231, krat: 2.7},
+        {spec: "Гематология", visits: 3779, krat: 2.7},
+        {spec: "Эндокринология", visits: 3869, krat: 2.5},
+        {spec: "Аллергология", visits: 3450, krat: 2.6},
+        {spec: "Неврология", visits: 4600, krat: 2.9},
+        {spec: "Инфекционные болезни", visits: 3439, krat: 2.4},
+        {spec: "Хирургия (общая)", visits: 4900, krat: 3.0},
+        {spec: "Урология", visits: 4211, krat: 2.6},
+        {spec: "Акушерство-гинекология", visits: 5282, krat: 3.8},
+        {spec: "Отоларингология", visits: 4910, krat: 4.1},
+        {spec: "Офтальмология", visits: 4870, krat: 3.8},
+        {spec: "Дерматология", visits: 5000, krat: 4.2},
+        {spec: "Стоматология", visits: 3790, krat: 0},
+        {spec: "Средний медперсонал", visits: 4300, krat: 0}
+    ];
+
+    function renderDoctors() {
+        const tbody = document.getElementById('doctorTbody');
+        tbody.innerHTML = '';
+        defaultDoctors.forEach(d => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${d.spec}</td>
+                <td><input type="number" class="form-control form-control-sm doc-visits" value="${d.visits}" step="any"></td>
+                <td><input type="number" class="form-control form-control-sm doc-krat" value="${d.krat}" step="any"></td>
+                <td><input type="number" class="form-control form-control-sm doc-stakes" value="0" step="any"></td>
+                <td class="doc-visits-result">0</td>
+                <td><button class="btn btn-sm btn-danger" onclick="this.closest('tr').remove(); recalcAll();">✕</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function addDoctorRow() {
+        const tbody = document.getElementById('doctorTbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="form-control form-control-sm" value="Новая специальность"></td>
+            <td><input type="number" class="form-control form-control-sm doc-visits" value="4000" step="any"></td>
+            <td><input type="number" class="form-control form-control-sm doc-krat" value="2.5" step="any"></td>
+            <td><input type="number" class="form-control form-control-sm doc-stakes" value="0" step="any"></td>
+            <td class="doc-visits-result">0</td>
+            <td><button class="btn btn-sm btn-danger" onclick="this.closest('tr').remove(); recalcAll();">✕</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    function addExtraServiceRow() {
+        const tbody = document.querySelector('#extraServicesTable tbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="form-control form-control-sm" value="Новая услуга"></td>
+            <td><input type="number" class="form-control form-control-sm extra-tariff" value="1000" step="any"></td>
+            <td><input type="number" class="form-control form-control-sm extra-qty" value="0" step="any"></td>
+            <td class="extra-sum">0</td>
+            <td><button class="btn btn-sm btn-danger" onclick="this.closest('tr').remove(); recalcAll();">✕</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    // ------------------ ОСНОВНОЙ РАСЧЁТ ------------------
+    function recalcAll() {
+        const pop = parseFloat(document.getElementById('populationInput').value) || 0;
+        let totalFin = 0;
+        let totalVisits = 0;
+
+        // 1. Врачи
+        document.querySelectorAll('#doctorTbody tr').forEach(row => {
+            const visitsPerStake = parseFloat(row.querySelector('.doc-visits')?.value) || 0;
+            const krat = parseFloat(row.querySelector('.doc-krat')?.value) || 0;
+            const stakes = parseFloat(row.querySelector('.doc-stakes')?.value) || 0;
+            const visits = visitsPerStake * stakes;
+            row.querySelector('.doc-visits-result').textContent = visits.toFixed(0);
+            totalVisits += visits;
+        });
+        document.getElementById('totalVisitsPoly').textContent = totalVisits.toFixed(0);
+
+        // 2. Диспансеризация
+        let dispSum = 0;
+        document.querySelectorAll('#dispTable tbody tr').forEach(row => {
+            const norm = parseFloat(row.querySelector('.disp-norm')?.value) || 0;
+            const cost = parseFloat(row.querySelector('.disp-cost')?.value) || 0;
+            const volume = pop * norm;
+            const fin = volume * cost;
+            row.querySelector('.disp-volume').textContent = volume.toFixed(2);
+            row.querySelector('.disp-fin').textContent = fin.toFixed(2);
+            dispSum += fin;
+        });
+        totalFin += dispSum;
+
+        // 3. Профосмотры
+        const profNorm = parseFloat(document.getElementById('profNorm').value) || 0;
+        const profCost = parseFloat(document.getElementById('profCost').value) || 0;
+        const profVol = pop * profNorm;
+        const profFin = profVol * profCost;
+        document.getElementById('profVolume').textContent = profVol.toFixed(2);
+        document.getElementById('profFin').textContent = profFin.toFixed(2);
+        totalFin += profFin;
+
+        // 4. Диспансерное наблюдение
+        let obsSum = 0;
+        document.querySelectorAll('#dispObsTable tbody tr').forEach((row, idx) => {
+            if (idx < 3) {
+                const cost = parseFloat(row.querySelector('.obs-cost')?.value) || 0;
+                const patients = parseFloat(row.querySelector('.obs-patients')?.value) || 0;
+                const fin = cost * patients;
+                row.querySelector('.obs-fin').textContent = fin.toFixed(2);
+                obsSum += fin;
+            }
+        });
+        const obsNorm = parseFloat(document.getElementById('dispObsNorm').value) || 0;
+        const obsVol = pop * obsNorm;
+        document.getElementById('dispObsVolume').textContent = obsVol.toFixed(2);
+        const obsCommonCost = 3113.5;
+        const obsCommonFin = obsVol * obsCommonCost;
+        document.getElementById('dispObsFinCommon').textContent = obsCommonFin.toFixed(2);
+        obsSum += obsCommonFin;
+        totalFin += obsSum;
+
+        // 5. Школы
+        const schoolNorm = parseFloat(document.getElementById('schoolNorm').value) || 0;
+        const schoolCost = parseFloat(document.getElementById('schoolCost').value) || 0;
+        const schoolVol = pop * schoolNorm;
+        const schoolFin = schoolVol * schoolCost;
+        document.getElementById('schoolVolume').textContent = schoolVol.toFixed(2);
+        document.getElementById('schoolFin').textContent = schoolFin.toFixed(2);
+        totalFin += schoolFin;
+
+        const diabNorm = parseFloat(document.getElementById('schoolDiabNorm').value) || 0;
+        const diabCost = parseFloat(document.getElementById('schoolDiabCost').value) || 0;
+        const diabVol = pop * diabNorm;
+        const diabFin = diabVol * diabCost;
+        document.getElementById('schoolDiabVolume').textContent = diabVol.toFixed(2);
+        document.getElementById('schoolDiabFin').textContent = diabFin.toFixed(2);
+        totalFin += diabFin;
+
+        // 6. Неотложная
+        const urgNorm = parseFloat(document.getElementById('urgentNorm').value) || 0;
+        const urgCost = parseFloat(document.getElementById('urgentCost').value) || 0;
+        const urgVol = pop * urgNorm;
+        const urgFin = urgVol * urgCost;
+        document.getElementById('urgentVolume').textContent = urgVol.toFixed(2);
+        document.getElementById('urgentFin').textContent = urgFin.toFixed(2);
+        totalFin += urgFin;
+
+        // 7. Доп. услуги
+        let extraSum = 0;
+        document.querySelectorAll('#extraServicesTable tbody tr').forEach(row => {
+            const tariff = parseFloat(row.querySelector('.extra-tariff')?.value) || 0;
+            const qty = parseFloat(row.querySelector('.extra-qty')?.value) || 0;
+            const sum = tariff * qty;
+            row.querySelector('.extra-sum').textContent = sum.toFixed(2);
+            extraSum += sum;
+        });
+        totalFin += extraSum;
+
+        // Итог
+        document.getElementById('polyTotalFin').textContent = totalFin.toFixed(2);
+        document.getElementById('summaryTotal').textContent = totalFin.toFixed(2) + ' ₽';
+        results.poly = totalFin;
+    }
+
+    // ------------------ ИНИЦИАЛИЗАЦИЯ ------------------
+    window.addEventListener('DOMContentLoaded', () => {
+        renderDoctors();
+        recalcAll();
+    });
+
+    window.recalcAll = recalcAll;
+    window.addDoctorRow = addDoctorRow;
+    window.addExtraServiceRow = addExtraServiceRow;
+    window.handleUpload = handleUpload;
+</script>
+</body>
+</html>

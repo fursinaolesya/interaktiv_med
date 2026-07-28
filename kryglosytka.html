@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Круглосуточный стационар — расчёт объёмов и финансирования</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <style>
+        body { background: #f0f2f5; padding: 20px; font-family: 'Segoe UI', Roboto, sans-serif; }
+        .card-custom { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin-bottom: 20px; border: 1px solid #e9edf2; }
+        .section-title { border-bottom: 2px solid #0d6efd; padding-bottom: 8px; margin-top: 28px; margin-bottom: 18px; font-weight: 600; color: #1a2a3a; }
+        .table input[type="number"], .table input[type="text"] { width: 100%; min-width: 70px; font-size: 0.9rem; }
+        .table td { vertical-align: middle; }
+        .total-fin { font-size: 2rem; font-weight: 700; color: #0a3d6b; }
+        .upload-area { border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px; text-align: center; background: #fafbfc; transition: 0.2s; cursor: pointer; }
+        .upload-area:hover { border-color: #0d6efd; background: #f8faff; }
+        .upload-area .bi { font-size: 2rem; color: #94a3b8; }
+        .upload-area .format-badge { font-size: 0.7rem; background: #e9edf2; padding: 2px 10px; border-radius: 30px; }
+        .summary-box { background: linear-gradient(135deg, #f0f5ff 0%, #e8f0fe 100%); border-radius: 16px; padding: 20px 24px; border: 1px solid #d6e3f2; }
+        .file-badge { background: #e9edf2; padding: 4px 12px; border-radius: 30px; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; }
+        .file-badge .bi { font-size: 0.9rem; }
+        .btn-primary { background: #0d6efd; border: none; padding: 10px 28px; font-weight: 500; border-radius: 40px; }
+        .btn-primary:hover { background: #0b5ed7; }
+        .flexible-format { background: #f0fdf4; border-radius: 8px; padding: 8px 14px; border: 1px solid #bbf7d0; }
+        .table-light th { background-color: #f1f5f9; font-weight: 600; }
+        .btn-sm { margin: 2px; }
+        .full-width { width: 100%; }
+        .format-hint { font-size: 0.7rem; color: #94a3b8; }
+    </style>
+</head>
+<body>
+<div class="container-lg">
+
+    <!-- Заголовок -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h1 class="h2 mb-0">🛏️ Круглосуточный стационар</h1>
+    </div>
+
+    <!-- Блок загрузки документов -->
+    <div class="card-custom">
+        <h6 class="fw-bold mb-2"><i class="bi bi-upload me-2"></i>Загрузка исходных документов</h6>
+        <div class="flexible-format mb-3">
+            <i class="bi bi-info-circle me-1"></i>
+            <span class="small">Поддерживаются любые форматы: <strong>XLSX, XLS, CSV, XML, JSON, TXT, PDF</strong></span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="upload-area" onclick="document.getElementById('fileStakes').click()">
+                    <i class="bi bi-file-spreadsheet"></i>
+                    <div class="small fw-medium mt-1">Коечный фонд (штатное)</div>
+                    <div class="format-hint">XLSX · CSV · XML · JSON · TXT</div>
+                    <input type="file" id="fileStakes" accept=".xlsx,.xls,.csv,.xml,.json,.txt" style="display:none" onchange="handleUpload(this, 'stakes')">
+                    <span id="stakesFile" class="file-badge mt-1"><i class="bi bi-file-earmark"></i> не загружено</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="upload-area" onclick="document.getElementById('filePlan').click()">
+                    <i class="bi bi-file-bar-graph"></i>
+                    <div class="small fw-medium mt-1">Данные за прошлый год</div>
+                    <div class="format-hint">XLSX · CSV · XML · JSON</div>
+                    <input type="file" id="filePlan" accept=".xlsx,.xls,.csv,.xml,.json" style="display:none" onchange="handleUpload(this, 'plan')">
+                    <span id="planFile" class="file-badge mt-1"><i class="bi bi-file-earmark"></i> не загружено</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="upload-area" onclick="document.getElementById('fileTariffs').click()">
+                    <i class="bi bi-file-text"></i>
+                    <div class="small fw-medium mt-1">Тарифное соглашение</div>
+                    <div class="format-hint">PDF · XLSX · CSV · TXT</div>
+                    <input type="file" id="fileTariffs" accept=".pdf,.xlsx,.xls,.csv,.txt" style="display:none" onchange="handleUpload(this, 'tariffs')">
+                    <span id="tariffsFile" class="file-badge mt-1"><i class="bi bi-file-earmark"></i> не загружено</span>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="upload-area" onclick="document.getElementById('fileTerritory').click()">
+                    <i class="bi bi-map"></i>
+                    <div class="small fw-medium mt-1">Территориальная программа</div>
+                    <div class="format-hint">PDF · DOCX · TXT</div>
+                    <input type="file" id="fileTerritory" accept=".pdf,.docx,.txt" style="display:none" onchange="handleUpload(this, 'territory')">
+                    <span id="territoryFile" class="file-badge mt-1"><i class="bi bi-file-earmark"></i> не загружено</span>
+                </div>
+            </div>
+        </div>
+        <div class="mt-2 text-muted small d-flex flex-wrap gap-3">
+            <span><i class="bi bi-check-circle text-success"></i> Адаптация под формат вашего региона</span>
+            <span><i class="bi bi-arrows-expand"></i> Структура файла значения не имеет</span>
+        </div>
+    </div>
+
+    <!-- 1. Коечный фонд -->
+    <div class="card-custom">
+        <h5 class="section-title">1. Коечный фонд и плановая мощность</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle" id="bedsTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Профиль</th>
+                        <th>Кол-во коек</th>
+                        <th>Ср. длительность (дней)</th>
+                        <th>Дней работы в году</th>
+                        <th>Койко-дни (план)</th>
+                        <th>План госпитализаций</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="bedsTbody"></tbody>
+                <tfoot>
+                    <tr class="table-secondary fw-bold">
+                        <td colspan="4">ИТОГО</td>
+                        <td id="totalKd">0</td>
+                        <td id="totalHospitalizations">0</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <button class="btn btn-sm btn-outline-primary" onclick="addBedRow()">+ Добавить профиль</button>
+    </div>
+
+    <!-- 2. Высокотехнологичная помощь (ВМП) -->
+    <div class="card-custom">
+        <h5 class="section-title">2. Высокотехнологичная медицинская помощь (ВМП)</h5>
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle" id="vmpTable">
+                <thead class="table-light">
+                    <tr>
+                        <th>Вид ВМП</th>
+                        <th>Стоимость случая, руб.</th>
+                        <th>План случаев</th>
+                        <th>Сумма, руб.</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="vmpTbody">
+                    <tr>
+                        <td><input type="text" class="form-control form-control-sm" value="Привычный выкидыш с резус-иммунизацией"></td>
+                        <td><input type="number" class="form-control form-control-sm vmp-cost" value="158727" step="any"></td>
+                        <td><input type="number" class="form-control form-control-sm vmp-qty" value="10" step="any"></td>
+                        <td class="vmp-sum">0</td>
+                        <td><button class="btn btn-sm btn-danger" onclick="this.closest('tr').remove(); recalcAll();">✕</button></td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr class="table-secondary fw-bold">
+                        <td colspan="3">ИТОГО по ВМП</td>
+                        <td id="totalVmpSum">0</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <button class="btn btn-sm btn-outline-primary" onclick="addVMPRow()">+ Добавить ВМП</button>
+    </div>
+
+    <!-- Итог -->
+    <div class="summary-box mt-3 d-flex flex-wrap justify-content-between align-items-center">
+        <div><span class="fw-bold fs-5">💰 Итого финансирование стационара</span>
+            <span class="badge bg-primary bg-opacity-10 text-primary ms-2">план 2027</span></div>
+        <div><span class="total-fin" id="totalFin">0.00</span> <span class="text-muted">руб.</span></div>
+        <button class="btn btn-primary" onclick="recalcAll()">⟳ Пересчитать объемы</button>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // ------------------ ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ------------------
+    const results = { hospital: 0 };
+
+    // ------------------ ЗАГРУЗКА ДОКУМЕНТОВ ------------------
+    function handleUpload(input, type) {
+        const file = input.files[0];
+        if (!file) return;
+        const labelMap = {
+            stakes: 'stakesFile',
+            plan: 'planFile',
+            tariffs: 'tariffsFile',
+            territory: 'territoryFile'
+        };
+        const fileExt = file.name.split('.').pop().toUpperCase();
+        document.getElementById(labelMap[type]).innerHTML = `<i class="bi bi-file-earmark-check"></i> ${file.name} <span class="badge bg-light text-dark ms-1">${fileExt}</span>`;
+        input.value = '';
+    }
+
+    // ------------------ ПРОФИЛИ КОЕК ------------------
+    const defaultBeds = [
+        {prof: "Кардиология", los: 10.8, days: 336},
+        {prof: "Терапия", los: 10.1, days: 332},
+        {prof: "Хирургия", los: 8.9, days: 325},
+        {prof: "Неврология", los: 12.1, days: 336},
+        {prof: "Онкология", los: 10.8, days: 336},
+        {prof: "Акушерство и гинекология", los: 6.6, days: 318}
+    ];
+
+    function renderBeds() {
+        const tbody = document.getElementById('bedsTbody');
+        tbody.innerHTML = '';
+        defaultBeds.forEach(b => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${b.prof}</td>
+                <td><input type="number" class="form-control form-control-sm bed-count" value="0" step="any"></td>
+                <td><input type="number" class="form-control form-control-sm bed-los" value="${b.los}" step="any"></td>
+                <td><input type="number" class="form-control form-control-sm bed-days" value="${b.days}" step="any"></td>
+                <td class="bed-kd">0</td>
+                <td class="bed-hosp">0</td>
+                <td><button class="btn btn-sm btn-danger" onclick="this.closest('tr').remove(); recalcAll();">✕</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function addBedRow() {
+        const tbody = document.getElementById('bedsTbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="form-control form-control-sm" value="Новый профиль"></td>
+            <td><input type="number" class="form-control form-control-sm bed-count" value="0" step="any"></td>
+            <td><input type="number" class="form-control form-control-sm bed-los" value="10" step="any"></td>
+            <td><input type="number" class="form-control form-control-sm bed-days" value="330" step="any"></td>
+            <td class="bed-kd">0</td>
+            <td class="bed-hosp">0</td>
+            <td><button class="btn btn-sm btn-danger" onclick="this.closest('tr').remove(); recalcAll();">✕</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    // ------------------ ВМП ------------------
+    function addVMPRow() {
+        const tbody = document.getElementById('vmpTbody');
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td><input type="text" class="form-control form-control-sm" value="ВМП"></td>
+            <td><input type="number" class="form-control form-control-sm vmp-cost" value="200000" step="any"></td>
+            <td><input type="number" class="form-control form-control-sm vmp-qty" value="0" step="any"></td>
+            <td class="vmp-sum">0</td>
+            <td><button class="btn btn-sm btn-danger" onclick="this.closest('tr').remove(); recalcAll();">✕</button></td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    // ------------------ ОСНОВНОЙ РАСЧЁТ ------------------
+    function recalcAll() {
+        let totalFin = 0;
+        let totalKd = 0;
+        let totalHosp = 0;
+
+        // 1. Койки
+        document.querySelectorAll('#bedsTbody tr').forEach(row => {
+            const beds = parseFloat(row.querySelector('.bed-count')?.value) || 0;
+            const los = parseFloat(row.querySelector('.bed-los')?.value) || 1;
+            const days = parseFloat(row.querySelector('.bed-days')?.value) || 0;
+            const kd = beds * days;
+            const hosp = kd / los;
+            row.querySelector('.bed-kd').textContent = kd.toFixed(0);
+            row.querySelector('.bed-hosp').textContent = hosp.toFixed(0);
+            totalKd += kd;
+            totalHosp += hosp;
+        });
+        document.getElementById('totalKd').textContent = totalKd.toFixed(0);
+        document.getElementById('totalHospitalizations').textContent = totalHosp.toFixed(0);
+
+        // 2. ВМП
+        let vmpSum = 0;
+        document.querySelectorAll('#vmpTbody tr').forEach(row => {
+            const cost = parseFloat(row.querySelector('.vmp-cost')?.value) || 0;
+            const qty = parseFloat(row.querySelector('.vmp-qty')?.value) || 0;
+            const sum = cost * qty;
+            row.querySelector('.vmp-sum').textContent = sum.toFixed(2);
+            vmpSum += sum;
+        });
+        document.getElementById('totalVmpSum').textContent = vmpSum.toFixed(2);
+        totalFin += vmpSum;
+
+        // Итог
+        document.getElementById('totalFin').textContent = totalFin.toFixed(2);
+        results.hospital = totalFin;
+    }
+
+    // ------------------ ИНИЦИАЛИЗАЦИЯ ------------------
+    window.addEventListener('DOMContentLoaded', () => {
+        renderBeds();
+        recalcAll();
+    });
+
+    window.recalcAll = recalcAll;
+    window.addBedRow = addBedRow;
+    window.addVMPRow = addVMPRow;
+    window.handleUpload = handleUpload;
+</script>
+</body>
+</html>
