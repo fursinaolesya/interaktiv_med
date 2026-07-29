@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Изменения-2026: новый порядок обращения медотходов</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #f5f7fc;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .card {
+      max-width: 1100px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      padding: 32px 30px 40px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: #0b1e3a;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+    .subhead {
+      color: #5b6f8c;
+      font-size: 16px;
+      margin-bottom: 28px;
+      border-left: 4px solid #2a7de1;
+      padding-left: 16px;
+      background: #f0f4fe;
+      border-radius: 0 8px 8px 0;
+      line-height: 1.5;
+      padding: 12px 16px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid #e6edf5;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #5b6f8c;
+      cursor: pointer;
+      border-radius: 40px 40px 0 0;
+      transition: all 0.2s;
+      position: relative;
+      bottom: -2px;
+    }
+    .tab-btn:hover {
+      background: #eef3fc;
+      color: #1a3a6b;
+    }
+    .tab-btn.active {
+      color: #1a3a6b;
+      background: #ffffff;
+      border-bottom: 3px solid #2a7de1;
+      font-weight: 600;
+    }
+    .tab-content {
+      display: none;
+      animation: fade 0.25s ease;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    @keyframes fade {
+      0% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    /* Чек-лист */
+    .checklist {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px 0;
+    }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #edf2f9;
+      font-size: 15px;
+      line-height: 1.5;
+      color: #1e2f4a;
+      cursor: pointer;
+    }
+    .checklist li:last-child {
+      border-bottom: none;
+    }
+    .checklist li::before {
+      content: "☐";
+      font-size: 20px;
+      color: #2a7de1;
+      flex-shrink: 0;
+      margin-top: -1px;
+      font-weight: 400;
+    }
+    .checklist li.done::before {
+      content: "☑";
+      color: #1d8b4b;
+    }
+
+    /* Таблицы поручений */
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 4px;
+      margin-bottom: 30px;
+    }
+    .assign-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .assign-table th {
+      background: #f0f4fe;
+      color: #0b1e3a;
+      font-weight: 600;
+      text-align: left;
+      padding: 12px 12px;
+      border-bottom: 2px solid #d0ddee;
+    }
+    .assign-table td {
+      padding: 12px 12px;
+      border-bottom: 1px solid #e6edf5;
+      vertical-align: top;
+      background: #ffffff;
+    }
+    .assign-table tr:last-child td {
+      border-bottom: none;
+    }
+    .assign-table .col-role {
+      width: 18%;
+      font-weight: 500;
+      color: #0b1e3a;
+    }
+    .assign-table .col-task {
+      width: 32%;
+      color: #1e2f4a;
+    }
+    .assign-table .col-deadline {
+      width: 12%;
+      color: #1e2f4a;
+      white-space: nowrap;
+    }
+    .assign-table .col-difficulty {
+      width: 18%;
+      color: #1e2f4a;
+    }
+    .assign-table .col-solution {
+      width: 20%;
+      color: #1e2f4a;
+    }
+    .assign-table .deadline-highlight {
+      background: #fef6e6;
+      border-radius: 20px;
+      padding: 2px 10px;
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #a86800;
+    }
+    .table-subhead {
+      font-size: 18px;
+      font-weight: 600;
+      color: #0b1e3a;
+      margin: 20px 0 10px 0;
+      padding-bottom: 6px;
+      border-bottom: 2px solid #e6edf5;
+    }
+
+    /* Кнопки скачивания */
+    .download-area {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-top: 1px solid #e6edf5;
+      padding-top: 20px;
+    }
+    .btn-download {
+      background: #f0f4fe;
+      border: 1px solid #d0ddee;
+      padding: 10px 20px;
+      border-radius: 40px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #1a3a6b;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-download:hover {
+      background: #e0e9fc;
+      border-color: #2a7de1;
+    }
+    .btn-download svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    @media (max-width: 700px) {
+      .card { padding: 20px 16px; }
+      .tab-btn { padding: 10px 16px; font-size: 14px; }
+      .assign-table th, .assign-table td { padding: 8px 8px; font-size: 13px; }
+      .assign-table .col-role { width: 20%; }
+      .assign-table .col-task { width: 28%; }
+      .assign-table .col-deadline { width: 14%; }
+      .assign-table .col-difficulty { width: 18%; }
+      .assign-table .col-solution { width: 20%; }
+      .download-area { flex-direction: column; }
+    }
+    @media print {
+      body { background: white; padding: 0; }
+      .card { box-shadow: none; border: 1px solid #ccc; }
+      .tab-btn { display: none; }
+      .tab-content { display: block !important; }
+      .tabs { border-bottom: 1px solid #999; }
+      .checklist li::before { content: "☐"; }
+      .download-area { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>🗑️ Новый порядок обращения медотходов</h1>
+  <div class="subhead">
+    С 1 сентября 2026 окончательно вступает в силу Федеральный закон № 306‑ФЗ о медотходах, а также утверждённые Правительством требования к транспортированию и обезвреживанию (постановление № 506). Кроме того, с 1 сентября вводятся новые правила учёта медотходов (постановление № 624). Отходы класса «Г» I–II классов опасности нужно передавать федеральному оператору, заключать договоры с исполнителями из утверждённого Роспотребнадзором перечня, а также передавать сведения по новым формам учёта. Нужно провести аудит системы обращения с отходами, заключить новые договоры, обновить документацию и обучить персонал.
+  </div>
+
+  <!-- Вкладки -->
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="tab1" role="tab">Чек‑лист</button>
+    <button class="tab-btn" data-tab="tab2" role="tab">Комплект экспресс‑поручений</button>
+  </div>
+
+  <!-- Содержимое вкладок -->
+  <div id="tab1" class="tab-content active" role="tabpanel">
+    <ul class="checklist" id="checklistItems">
+      <li><strong>Аудит системы обращения с отходами</strong> – проверить соответствие действующих договоров новым требованиям (передача отходов класса «Г» I–II классов опасности федеральному оператору, остальных – региональным операторам).</li>
+      <li><strong>Проверка перечня исполнителей</strong> – свериться с реестром организаций на сайте Роспотребнадзора; при необходимости заключить договоры только с теми, кто есть в перечне.</li>
+      <li><strong>Договоры на транспортирование и обезвреживание</strong> – заключить письменные договоры с исполнителями из перечня Роспотребнадзора (устные соглашения не допускаются).</li>
+      <li><strong>Новые правила учёта</strong> – внедрить формы учёта и порядок передачи сведений в Роспотребнадзор согласно постановлению № 624.</li>
+      <li><strong>Обучение персонала</strong> – провести инструктаж для сотрудников, ответственных за обращение с медотходами, о новых требованиях и изменениях в документообороте.</li>
+      <li><strong>Обновление локальной документации</strong> – скорректировать инструкции, журналы, внутренние регламенты в соответствии с новыми нормами.</li>
+    </ul>
+    <div class="download-area">
+      <button class="btn-download" id="downloadChecklist">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/><path d="M12 15l-4-4h2.5V8h3v3H16l-4 4z"/><path d="M8 17h8v1.5H8V17z"/></svg>
+        Скачать чек-лист (.txt)
+      </button>
+    </div>
+  </div>
+
+  <div id="tab2" class="tab-content" role="tabpanel">
+    <!-- Блок 1: Основные изменения -->
+    <div class="table-subhead">Поручения по новому порядку обращения с медотходами (закон № 306‑ФЗ, постановление № 506)</div>
+    <div class="table-wrap">
+      <table class="assign-table" id="assignTable1">
+        <thead>
+          <tr>
+            <th class="col-role">Кому поручить</th>
+            <th class="col-task">Что сделать</th>
+            <th class="col-deadline">Срок</th>
+            <th class="col-difficulty">Сложности</th>
+            <th class="col-solution">Как решить</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-role">Заместителю главврача по хозяйственной части</td>
+            <td class="col-task">Провести аудит действующих договоров на вывоз и утилизацию медотходов; проверить, соответствуют ли они новым требованиям (федеральный/региональный оператор)</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 10.08</span></td>
+            <td class="col-difficulty">Неясно, кто является федеральным оператором для класса «Г» I–II</td>
+            <td class="col-solution">Запросить информацию в территориальном органе Росприроднадзора или на сайте федерального оператора</td>
+          </tr>
+          <tr>
+            <td class="col-role">Юрисконсульту (или начальнику договорного отдела)</td>
+            <td class="col-task">Проверить перечень исполнителей на сайте Роспотребнадзора; подготовить проекты новых договоров с организациями из этого перечня</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 15.08</span></td>
+            <td class="col-difficulty">Перечень может быть ещё не полным или часто обновляться</td>
+            <td class="col-solution">Мониторить сайт Роспотребнадзора ежедневно; закладывать в договор условие о соответствии перечню на момент исполнения</td>
+          </tr>
+          <tr>
+            <td class="col-role">Заместителю главврача по хозяйственной части</td>
+            <td class="col-task">Заключить письменные договоры с исполнителями на транспортирование и обезвреживание медотходов классов «Б», «В» и «Г» (согласно новым требованиям)</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 25.08</span></td>
+            <td class="col-difficulty">Длительные процедуры согласования, возможен отказ контрагентов</td>
+            <td class="col-solution">Заранее вести переговоры; иметь запасных операторов; подготовить типовой договор для ускорения</td>
+          </tr>
+          <tr>
+            <td class="col-role">Начальнику отдела закупок</td>
+            <td class="col-task">Обеспечить соблюдение требований о передаче отходов класса «Г» I–II классов опасности только федеральному оператору</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 25.08</span></td>
+            <td class="col-difficulty">Не все виды отходов класса «Г» могут быть отнесены к I–II классам опасности</td>
+            <td class="col-solution">Провести классификацию отходов с привлечением специалистов; закрепить ответственных за идентификацию</td>
+          </tr>
+          <tr>
+            <td class="col-role">Главному инженеру (или ответственному за инфраструктуру)</td>
+            <td class="col-task">Организовать места временного хранения отходов в соответствии с новыми санитарно-эпидемиологическими требованиями</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 28.08</span></td>
+            <td class="col-difficulty">Нехватка площадей или недостаточное оснащение</td>
+            <td class="col-solution">Пересмотреть логистику вывоза, увеличить частоту вывоза, оптимизировать накопление</td>
+          </tr>
+          <tr>
+            <td class="col-role">Заместителю главврача по организации работы с персоналом</td>
+            <td class="col-task">Провести инструктаж с сотрудниками, ответственными за обращение с отходами, о новых правилах и требованиях</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 28.08</span></td>
+            <td class="col-difficulty">Сопротивление персонала, непонимание новых процедур</td>
+            <td class="col-solution">Разработать краткие памятки, провести практические занятия, назначить внутренних кураторов</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Блок 2: Новые правила учета -->
+    <div class="table-subhead">Поручения по новым правилам учёта медотходов (постановление № 624)</div>
+    <div class="table-wrap">
+      <table class="assign-table" id="assignTable2">
+        <thead>
+          <tr>
+            <th class="col-role">Кому поручить</th>
+            <th class="col-task">Что сделать</th>
+            <th class="col-deadline">Срок</th>
+            <th class="col-difficulty">Сложности</th>
+            <th class="col-solution">Как решить</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-role">Начальнику отдела экологии (или ответственному за учёт отходов)</td>
+            <td class="col-task">Внедрить новые формы учёта медицинских отходов в соответствии с постановлением № 624; настроить электронный документооборот для передачи сведений в Роспотребнадзор</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 20.08</span></td>
+            <td class="col-difficulty">Отсутствие готовых программных решений, сложности интеграции с учётными системами</td>
+            <td class="col-solution">Адаптировать существующие таблицы Excel или закупить простое ПО; провести тестирование передачи данных</td>
+          </tr>
+          <tr>
+            <td class="col-role">Главному бухгалтеру (или экономисту)</td>
+            <td class="col-task">Обеспечить ведение раздельного учёта затрат на транспортирование и обезвреживание по новым категориям отходов</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 22.08</span></td>
+            <td class="col-difficulty">Изменение статей затрат, необходимость переквалификации расходов</td>
+            <td class="col-solution">Уточнить коды ОКВЭД и КОСГУ; проконсультироваться с финансовым отделом</td>
+          </tr>
+          <tr>
+            <td class="col-role">Начальнику отдела информационных технологий</td>
+            <td class="col-task">Обеспечить техническую возможность передачи сведений в Роспотребнадзор в установленном формате; при необходимости доработать МИС</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 25.08</span></td>
+            <td class="col-difficulty">Несовместимость форматов, отсутствие регламента передачи</td>
+            <td class="col-solution">Использовать универсальные форматы (XML, JSON); разработать инструкцию для операторов</td>
+          </tr>
+          <tr>
+            <td class="col-role">Заместителю главврача по контролю качества</td>
+            <td class="col-task">Разработать внутреннюю инструкцию по новому порядку учёта и передаче сведений; организовать внутренний контроль правильности заполнения форм</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 27.08</span></td>
+            <td class="col-difficulty">Новые формы могут вызывать ошибки при заполнении</td>
+            <td class="col-solution">Провести пробное заполнение, организовать разбор типичных ошибок</td>
+          </tr>
+          <tr>
+            <td class="col-role">Всем перечисленным ответственным</td>
+            <td class="col-task">Представить сводный отчёт о готовности (заключённые договоры, обновлённые формы, обученный персонал) с указанием проблемных зон</td>
+            <td class="col-deadline"><span class="deadline-highlight">29.08</span></td>
+            <td class="col-difficulty">Неполная информация от контрагентов, задержки</td>
+            <td class="col-solution">Регулярно запрашивать промежуточные отчёты, назначать дедлайны с запасом</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="download-area">
+      <button class="btn-download" id="downloadAssignments">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/><path d="M12 15l-4-4h2.5V8h3v3H16l-4 4z"/><path d="M8 17h8v1.5H8V17z"/></svg>
+        Скачать поручения (.csv)
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = {
+      tab1: document.getElementById('tab1'),
+      tab2: document.getElementById('tab2')
+    };
+
+    function activateTab(tabId) {
+      Object.values(contents).forEach(el => el.classList.remove('active'));
+      tabs.forEach(btn => btn.classList.remove('active'));
+      const target = contents[tabId];
+      if (target) target.classList.add('active');
+      const activeBtn = Array.from(tabs).find(btn => btn.dataset.tab === tabId);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    tabs.forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const tabId = this.dataset.tab;
+        if (tabId) activateTab(tabId);
+      });
+    });
+
+    document.querySelectorAll('.checklist li').forEach(item => {
+      item.addEventListener('click', function(e) {
+        this.classList.toggle('done');
+      });
+    });
+
+    // Скачивание чек-листа
+    document.getElementById('downloadChecklist').addEventListener('click', function() {
+      const items = document.querySelectorAll('#checklistItems li');
+      let text = 'Чек-лист: Новый порядок обращения медотходов (к 1 сентября 2026)\n';
+      text += '----------------------------------------------------\n\n';
+      items.forEach((li, index) => {
+        const rawText = li.textContent.trim().replace(/\s+/g, ' ');
+        text += (index + 1) + '. ' + rawText + '\n';
+      });
+      text += '\n(Отмечайте выполненные пункты по мере готовности.)';
+      downloadFile(text, 'checklist_medotkhody.txt', 'text/plain');
+    });
+
+    // Скачивание поручений (CSV) – объединённый файл из двух таблиц
+    document.getElementById('downloadAssignments').addEventListener('click', function() {
+      const tables = document.querySelectorAll('.assign-table');
+      let csv = '\uFEFF';
+      // Заголовки для обоих таблиц (одинаковые)
+      const headers = ['Кому поручить', 'Что сделать', 'Срок', 'Сложности', 'Как решить'];
+      csv += headers.join(';') + '\n';
+
+      tables.forEach((table, idx) => {
+        // Добавим разделитель между таблицами
+        if (idx > 0) {
+          csv += '\n--- ' + (idx === 1 ? 'Поручения по новым правилам учёта' : '') + ' ---\n';
+        }
+        const rows = table.querySelectorAll('tr');
+        for (let i = 1; i < rows.length; i++) {
+          const row = rows[i];
+          const cells = row.querySelectorAll('td');
+          if (cells.length === 0) continue;
+          const rowData = [];
+          cells.forEach(td => {
+            let text = td.textContent.trim().replace(/\s+/g, ' ');
+            rowData.push(text);
+          });
+          csv += rowData.join(';') + '\n';
+        }
+      });
+
+      downloadFile(csv, 'porucheniya_medotkhody.csv', 'text/csv;charset=utf-8;');
+    });
+
+    function downloadFile(content, filename, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    }
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Изменения-2026: маркировка медизделий</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #f5f7fc;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .card {
+      max-width: 1100px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      padding: 32px 30px 40px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: #0b1e3a;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+    .subhead {
+      color: #5b6f8c;
+      font-size: 16px;
+      margin-bottom: 28px;
+      border-left: 4px solid #2a7de1;
+      padding-left: 16px;
+      background: #f0f4fe;
+      border-radius: 0 8px 8px 0;
+      line-height: 1.5;
+      padding: 12px 16px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid #e6edf5;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #5b6f8c;
+      cursor: pointer;
+      border-radius: 40px 40px 0 0;
+      transition: all 0.2s;
+      position: relative;
+      bottom: -2px;
+    }
+    .tab-btn:hover {
+      background: #eef3fc;
+      color: #1a3a6b;
+    }
+    .tab-btn.active {
+      color: #1a3a6b;
+      background: #ffffff;
+      border-bottom: 3px solid #2a7de1;
+      font-weight: 600;
+    }
+    .tab-content {
+      display: none;
+      animation: fade 0.25s ease;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    @keyframes fade {
+      0% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    /* Чек-лист */
+    .checklist {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px 0;
+    }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #edf2f9;
+      font-size: 15px;
+      line-height: 1.5;
+      color: #1e2f4a;
+      cursor: pointer;
+    }
+    .checklist li:last-child {
+      border-bottom: none;
+    }
+    .checklist li::before {
+      content: "☐";
+      font-size: 20px;
+      color: #2a7de1;
+      flex-shrink: 0;
+      margin-top: -1px;
+      font-weight: 400;
+    }
+    .checklist li.done::before {
+      content: "☑";
+      color: #1d8b4b;
+    }
+
+    /* Таблицы поручений */
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 4px;
+      margin-bottom: 10px;
+    }
+    .assign-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .assign-table th {
+      background: #f0f4fe;
+      color: #0b1e3a;
+      font-weight: 600;
+      text-align: left;
+      padding: 12px 12px;
+      border-bottom: 2px solid #d0ddee;
+    }
+    .assign-table td {
+      padding: 12px 12px;
+      border-bottom: 1px solid #e6edf5;
+      vertical-align: top;
+      background: #ffffff;
+    }
+    .assign-table tr:last-child td {
+      border-bottom: none;
+    }
+    .assign-table .col-role {
+      width: 18%;
+      font-weight: 500;
+      color: #0b1e3a;
+    }
+    .assign-table .col-task {
+      width: 32%;
+      color: #1e2f4a;
+    }
+    .assign-table .col-deadline {
+      width: 12%;
+      color: #1e2f4a;
+      white-space: nowrap;
+    }
+    .assign-table .col-difficulty {
+      width: 18%;
+      color: #1e2f4a;
+    }
+    .assign-table .col-solution {
+      width: 20%;
+      color: #1e2f4a;
+    }
+    .assign-table .deadline-highlight {
+      background: #fef6e6;
+      border-radius: 20px;
+      padding: 2px 10px;
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #a86800;
+    }
+
+    /* Кнопки скачивания */
+    .download-area {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-top: 1px solid #e6edf5;
+      padding-top: 20px;
+    }
+    .btn-download {
+      background: #f0f4fe;
+      border: 1px solid #d0ddee;
+      padding: 10px 20px;
+      border-radius: 40px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #1a3a6b;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-download:hover {
+      background: #e0e9fc;
+      border-color: #2a7de1;
+    }
+    .btn-download svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    @media (max-width: 700px) {
+      .card { padding: 20px 16px; }
+      .tab-btn { padding: 10px 16px; font-size: 14px; }
+      .assign-table th, .assign-table td { padding: 8px 8px; font-size: 13px; }
+      .assign-table .col-role { width: 20%; }
+      .assign-table .col-task { width: 28%; }
+      .assign-table .col-deadline { width: 14%; }
+      .assign-table .col-difficulty { width: 18%; }
+      .assign-table .col-solution { width: 20%; }
+      .download-area { flex-direction: column; }
+    }
+    @media print {
+      body { background: white; padding: 0; }
+      .card { box-shadow: none; border: 1px solid #ccc; }
+      .tab-btn { display: none; }
+      .tab-content { display: block !important; }
+      .tabs { border-bottom: 1px solid #999; }
+      .checklist li::before { content: "☐"; }
+      .download-area { display: none; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>🏷️ Маркировка медизделий</h1>
+  <div class="subhead">
+    С 1 сентября 2026 расширяется перечень медизделий, подлежащих обязательной маркировке в системе «Честный знак» (постановление Правительства № 375). В перечень добавлены аппараты дыхательной терапии, инкубаторы для новорожденных, шприцы, инфузионные системы, салфетки, пробирки, имплантаты для пластической хирургии (филлеры, нити) и медицинские маски. Передача сведений в систему мониторинга становится строго обязательной. При этом остатки без маркировки, произведённые или ввезённые до 31 августа 2026, можно реализовывать до истечения срока годности. Нужно провести инвентаризацию остатков, обеспечить возможность работы с маркированными изделиями, обновить учётные системы и проинструктировать персонал.
+  </div>
+
+  <!-- Вкладки -->
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="tab1" role="tab">Чек‑лист</button>
+    <button class="tab-btn" data-tab="tab2" role="tab">Комплект экспресс‑поручений</button>
+  </div>
+
+  <!-- Содержимое вкладок -->
+  <div id="tab1" class="tab-content active" role="tabpanel">
+    <ul class="checklist" id="checklistItems">
+      <li><strong>Инвентаризация остатков</strong> – провести ревизию всех медизделий из нового перечня, определить, какие позиции уже имеют маркировку, а какие – нет (и были произведены/ввезены до 31.08.2026).</li>
+      <li><strong>Проверка поставщиков</strong> – запросить у поставщиков информацию о наличии маркировки на поставляемых изделиях; при заключении новых договоров включать условие о предоставлении кодов маркировки.</li>
+      <li><strong>Настройка учётной системы</strong> – обеспечить возможность сканирования и учёта маркированных изделий (коды Data Matrix) в складской и медицинской информационных системах.</li>
+      <li><strong>Обучение персонала</strong> – провести инструктаж для сотрудников, принимающих и отпускающих медизделия, о правилах работы с маркированными товарами, сканировании кодов и передаче сведений в «Честный знак».</li>
+      <li><strong>Договоры с операторами</strong> – при необходимости заключить договоры с операторами электронного документооборота (ЭДО) для передачи данных о маркированных изделиях.</li>
+      <li><strong>План работы с остатками</strong> – разработать внутренний порядок реализации немаркированных остатков (до истечения срока годности) и раздельного учёта маркированных/немаркированных изделий с 1 сентября.</li>
+    </ul>
+    <div class="download-area">
+      <button class="btn-download" id="downloadChecklist">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/><path d="M12 15l-4-4h2.5V8h3v3H16l-4 4z"/><path d="M8 17h8v1.5H8V17z"/></svg>
+        Скачать чек-лист (.txt)
+      </button>
+    </div>
+  </div>
+
+  <div id="tab2" class="tab-content" role="tabpanel">
+    <div class="table-wrap">
+      <table class="assign-table" id="assignTable">
+        <thead>
+          <tr>
+            <th class="col-role">Кому поручить</th>
+            <th class="col-task">Что сделать</th>
+            <th class="col-deadline">Срок</th>
+            <th class="col-difficulty">Сложности</th>
+            <th class="col-solution">Как решить</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="col-role">Начальнику отдела закупок (или логистики)</td>
+            <td class="col-task">Провести полную инвентаризацию медизделий из нового перечня (дыхательная аппаратура, инкубаторы, шприцы, системы, салфетки, пробирки, имплантаты, маски) с разделением на маркированные и немаркированные остатки</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 10.08</span></td>
+            <td class="col-difficulty">Большой ассортимент, отсутствие чёткого учёта по маркировке</td>
+            <td class="col-solution">Привлечь складских работников, использовать штрих-коды или серийные номера; создать таблицу соответствия</td>
+          </tr>
+          <tr>
+            <td class="col-role">Начальнику отдела закупок</td>
+            <td class="col-task">Направить запросы поставщикам о наличии кодов маркировки на все поставляемые изделия из перечня; при заключении новых договоров включить обязательное условие о предоставлении маркировки</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 15.08</span></td>
+            <td class="col-difficulty">Поставщики могут быть не готовы или затягивать ответы</td>
+            <td class="col-solution">Заранее уведомить ключевых поставщиков; иметь резервных; в договорах предусмотреть штрафы за отсутствие маркировки</td>
+          </tr>
+          <tr>
+            <td class="col-role">Начальнику ИТ-отдела (или ответственному за МИС)</td>
+            <td class="col-task">Обеспечить возможность сканирования и учёта кодов Data Matrix в складской системе и МИС; настроить передачу данных в систему «Честный знак» через оператора ЭДО</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 20.08</span></td>
+            <td class="col-difficulty">Отсутствие интеграции с «Честным знаком», технические ограничения старого ПО</td>
+            <td class="col-solution">Закупить необходимое оборудование (сканеры), доработать МИС силами разработчиков или использовать готовое облачное решение оператора ЭДО</td>
+          </tr>
+          <tr>
+            <td class="col-role">Начальнику отдела обучения (или ответственному за развитие персонала)</td>
+            <td class="col-task">Провести инструктаж для всех работников склада, приёмной комиссии и медицинских сестёр, которые принимают или отпускают медизделия: как сканировать коды, как вносить данные в систему</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 22.08</span></td>
+            <td class="col-difficulty">Сопротивление персонала, нехватка времени на обучение</td>
+            <td class="col-solution">Разработать краткие видеоинструкции, провести практические занятия; назначить внутренних супервайзеров</td>
+          </tr>
+          <tr>
+            <td class="col-role">Юрисконсульту (или начальнику договорного отдела)</td>
+            <td class="col-task">Подготовить изменения в типовые договоры с поставщиками, включив обязанность по маркировке и передаче данных; также разработать внутренний порядок реализации немаркированных остатков (с учётом разрешённого срока годности)</td>
+            <td class="col-deadline"><span class="deadline-highlight">до 25.08</span></td>
+            <td class="col-difficulty">Необходимость учесть особенности каждого вида изделий и сроки</td>
+            <td class="col-solution">Использовать шаблон с общими условиями и приложение с конкретными позициями; согласовать с закупочным отделом</td>
+          </tr>
+          <tr>
+            <td class="col-role">Всем перечисленным ответственным</td>
+            <td class="col-task">Представить сводный отчёт о готовности (инвентаризация, договоры, настройка системы, обучение) с указанием проблемных зон и предложениями по их устранению</td>
+            <td class="col-deadline"><span class="deadline-highlight">28.08</span></td>
+            <td class="col-difficulty">Непредвиденные технические проблемы, задержки от поставщиков</td>
+            <td class="col-solution">Регулярно проводить промежуточные контрольные точки, иметь план Б (ручной учёт до полной интеграции)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="download-area">
+      <button class="btn-download" id="downloadAssignments">
+        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/><path d="M12 15l-4-4h2.5V8h3v3H16l-4 4z"/><path d="M8 17h8v1.5H8V17z"/></svg>
+        Скачать поручения (.csv)
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = {
+      tab1: document.getElementById('tab1'),
+      tab2: document.getElementById('tab2')
+    };
+
+    function activateTab(tabId) {
+      Object.values(contents).forEach(el => el.classList.remove('active'));
+      tabs.forEach(btn => btn.classList.remove('active'));
+      const target = contents[tabId];
+      if (target) target.classList.add('active');
+      const activeBtn = Array.from(tabs).find(btn => btn.dataset.tab === tabId);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    tabs.forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const tabId = this.dataset.tab;
+        if (tabId) activateTab(tabId);
+      });
+    });
+
+    document.querySelectorAll('.checklist li').forEach(item => {
+      item.addEventListener('click', function(e) {
+        this.classList.toggle('done');
+      });
+    });
+
+    // Скачивание чек-листа
+    document.getElementById('downloadChecklist').addEventListener('click', function() {
+      const items = document.querySelectorAll('#checklistItems li');
+      let text = 'Чек-лист: Маркировка медизделий (к 1 сентября 2026)\n';
+      text += '--------------------------------------------------\n\n';
+      items.forEach((li, index) => {
+        const rawText = li.textContent.trim().replace(/\s+/g, ' ');
+        text += (index + 1) + '. ' + rawText + '\n';
+      });
+      text += '\n(Отмечайте выполненные пункты по мере готовности.)';
+      downloadFile(text, 'checklist_markirovka.txt', 'text/plain');
+    });
+
+    // Скачивание поручений (CSV)
+    document.getElementById('downloadAssignments').addEventListener('click', function() {
+      const table = document.getElementById('assignTable');
+      const rows = table.querySelectorAll('tr');
+      let csv = '\uFEFF';
+      const headers = ['Кому поручить', 'Что сделать', 'Срок', 'Сложности', 'Как решить'];
+      csv += headers.join(';') + '\n';
+
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const cells = row.querySelectorAll('td');
+        if (cells.length === 0) continue;
+        const rowData = [];
+        cells.forEach(td => {
+          let text = td.textContent.trim().replace(/\s+/g, ' ');
+          rowData.push(text);
+        });
+        csv += rowData.join(';') + '\n';
+      }
+
+      downloadFile(csv, 'porucheniya_markirovka.csv', 'text/csv;charset=utf-8;');
+    });
+
+    function downloadFile(content, filename, mimeType) {
+      const blob = new Blob([content], { type: mimeType });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    }
+  })();
+</script>
+
+</body>
+</html>
