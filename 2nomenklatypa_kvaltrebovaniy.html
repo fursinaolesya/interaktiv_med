@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Изменения-2026: номенклатура и квалификационные требования</title>
+  <!-- Подключаем html2pdf для создания PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #f5f7fc;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .card {
+      max-width: 1000px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      padding: 32px 30px 40px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: #0b1e3a;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+    .subhead {
+      color: #5b6f8c;
+      font-size: 16px;
+      margin-bottom: 28px;
+      border-left: 4px solid #2a7de1;
+      padding-left: 16px;
+      background: #f0f4fe;
+      border-radius: 0 8px 8px 0;
+      line-height: 1.5;
+      padding: 12px 16px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid #e6edf5;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #5b6f8c;
+      cursor: pointer;
+      border-radius: 40px 40px 0 0;
+      transition: all 0.2s;
+      position: relative;
+      bottom: -2px;
+    }
+    .tab-btn:hover {
+      background: #eef3fc;
+      color: #1a3a6b;
+    }
+    .tab-btn.active {
+      color: #1a3a6b;
+      background: #ffffff;
+      border-bottom: 3px solid #2a7de1;
+      font-weight: 600;
+    }
+    .tab-content {
+      display: none;
+      animation: fade 0.25s ease;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    @keyframes fade {
+      0% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    /* Скролл для длинного контента */
+    .scrollable-content {
+      max-height: 70vh;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    .scrollable-content::-webkit-scrollbar {
+      width: 6px;
+    }
+    .scrollable-content::-webkit-scrollbar-track {
+      background: #f0f4fe;
+      border-radius: 8px;
+    }
+    .scrollable-content::-webkit-scrollbar-thumb {
+      background: #b0c4de;
+      border-radius: 8px;
+    }
+    .scrollable-content::-webkit-scrollbar-thumb:hover {
+      background: #8aaddd;
+    }
+
+    /* Чек-лист */
+    .checklist {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px 0;
+    }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #edf2f9;
+      font-size: 15px;
+      line-height: 1.5;
+      color: #1e2f4a;
+      cursor: pointer;
+    }
+    .checklist li:last-child {
+      border-bottom: none;
+    }
+    .checklist li::before {
+      content: "☐";
+      font-size: 20px;
+      color: #2a7de1;
+      flex-shrink: 0;
+      margin-top: -1px;
+      font-weight: 400;
+    }
+    .checklist li.done::before {
+      content: "☑";
+      color: #1d8b4b;
+    }
+
+    /* Таблица поручений */
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 4px;
+    }
+    .assign-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .assign-table th {
+      background: #f0f4fe;
+      color: #0b1e3a;
+      font-weight: 600;
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 2px solid #d0ddee;
+    }
+    .assign-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #e6edf5;
+      vertical-align: top;
+      background: #ffffff;
+    }
+    .assign-table tr:last-child td {
+      border-bottom: none;
+    }
+    .assign-table .col-role {
+      width: 22%;
+      font-weight: 500;
+      color: #0b1e3a;
+    }
+    .assign-table .col-task {
+      width: 55%;
+      color: #1e2f4a;
+    }
+    .assign-table .col-deadline {
+      width: 23%;
+      color: #1e2f4a;
+      white-space: nowrap;
+    }
+    .assign-table .deadline-highlight {
+      background: #fef6e6;
+      border-radius: 20px;
+      padding: 2px 12px;
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #a86800;
+    }
+
+    /* Кнопки скачивания */
+    .download-area {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-top: 1px solid #e6edf5;
+      padding-top: 20px;
+    }
+    .btn-download {
+      background: #f0f4fe;
+      border: 1px solid #d0ddee;
+      padding: 10px 20px;
+      border-radius: 40px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #1a3a6b;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-download:hover {
+      background: #e0e9fc;
+      border-color: #2a7de1;
+    }
+    .btn-download svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    @media (max-width: 700px) {
+      .card { padding: 20px 16px; }
+      .tab-btn { padding: 10px 16px; font-size: 14px; }
+      .assign-table th, .assign-table td { padding: 8px 10px; font-size: 13px; }
+      .assign-table .col-role { width: 25%; }
+      .assign-table .col-task { width: 50%; }
+      .assign-table .col-deadline { width: 25%; }
+      .download-area { flex-direction: column; }
+    }
+    @media print {
+      body { background: white; padding: 0; }
+      .card { box-shadow: none; border: 1px solid #ccc; }
+      .tab-btn { display: none; }
+      .tab-content { display: block !important; }
+      .tabs { border-bottom: 1px solid #999; }
+      .checklist li::before { content: "☐"; }
+      .download-area { display: none; }
+      .scrollable-content { max-height: none; overflow: visible; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>🧑‍⚕️ Новые номенклатура должностей и квалификационные требования</h1>
+  <div class="subhead">
+    С 1 сентября 2026 – новые приказы № 434н и № 436н. Старые утрачивают силу. Нужно провести кадровый аудит, скорректировать штатное расписание, обновить документы и отправить сотрудников на переподготовку.
+  </div>
+
+  <!-- Вкладки -->
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="tab1" role="tab">Чек‑лист</button>
+    <button class="tab-btn" data-tab="tab2" role="tab">Комплект экспресс‑поручений</button>
+  </div>
+
+  <!-- Содержимое вкладок -->
+  <div id="tab1" class="tab-content active" role="tabpanel">
+    <div class="scrollable-content">
+      <ul class="checklist" id="checklistItems">
+        <li><strong>Штатное расписание</strong> — сверено с новой номенклатурой, убраны исчезающие должности из плана приема, добавлены новые при необходимости (главный лаборант, нутрициолог и др.).</li>
+        <li><strong>Кадровый аудит</strong> — проверен уровень квалификации каждого сотрудника по новым требованиям (особое внимание — врачам без ординатуры и тем, у кого истекает аккредитация).</li>
+        <li><strong>Распределение персонала</strong> — персонал разделен на группы по приоритетности повышения квалификации и профпереподготовки.</li>
+        <li><strong>Ученические договоры</strong> — запланировано необходимое обучение сотрудникам для соответствия занимаемой должности, в ученических договорах прописано обязательство отработать 2–3 года после обучения.</li>
+        <li><strong>Обновление документов</strong> — скорректированы должностные инструкции и трудовые договоры для всех, кто меняет должность или название должности, изменены формулировки квалификационных требований к занимаемой должности везде, где это требуется.</li>
+        <li><strong>Заявки на переподготовку</strong> — поданы заранее (с сентября обучение только очное, очереди в учебных центрах будут большими).</li>
+      </ul>
+      <div class="download-area">
+        <button class="btn-download" id="downloadPDF">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/><path d="M12 15l-4-4h2.5V8h3v3H16l-4 4z"/><path d="M8 17h8v1.5H8V17z"/></svg>
+          Скачать чек-лист (PDF)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab2" class="tab-content" role="tabpanel">
+    <div class="scrollable-content">
+      <div class="table-wrap">
+        <table class="assign-table" id="assignTable">
+          <thead>
+            <tr>
+              <th class="col-role">Кому дать поручение</th>
+              <th class="col-task">Содержание поручения</th>
+              <th class="col-deadline">Сроки исполнения</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-role">Заместитель главного врача по медицинской части</td>
+              <td class="col-task">Провести аудит врачебных должностей: выявить сотрудников без ординатуры, с «уходящими» специальностями, со стажем &lt; 3 лет для руководящих постов</td>
+              <td class="col-deadline"><span class="deadline-highlight">10 августа 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Главная медицинская сестра</td>
+              <td class="col-task">Проверить средний и младший медперсонал: кто работает без профильного СПО, кто попадает под новые допуски (фельдшеры скорой, сестринское дело в педиатрии)</td>
+              <td class="col-deadline"><span class="deadline-highlight">10 августа 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Начальник отдела кадров / юрист</td>
+              <td class="col-task">
+                1. Сверить штатное расписание с новой номенклатурой.<br>
+                2. Подготовить проекты допсоглашений для переводов без обучения.<br>
+                3. Разработать форму ученического договора.
+              </td>
+              <td class="col-deadline"><span class="deadline-highlight">14 августа 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Руководитель лабораторной службы (если есть)</td>
+              <td class="col-task">Определить, нужны ли новые должности (старший лаборант, медицинский микробиолог). Оценить, какие исследования попадают под новую специальность «Медицинская микробиология»</td>
+              <td class="col-deadline"><span class="deadline-highlight">До 14 августа 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Финансовый директор / бухгалтерия</td>
+              <td class="col-task">Заложить в бюджет расходы на очное обучение (переподготовка, повышение квалификации) с учетом замещения отсутствующих сотрудников</td>
+              <td class="col-deadline"><span class="deadline-highlight">До 17 августа 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Вся рабочая группа во главе с главврачом</td>
+              <td class="col-task">Подготовить приказ об изменении штатного расписания с 01.09.2026.</td>
+              <td class="col-deadline"><span class="deadline-highlight">До 20 августа 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Вся рабочая группа во главе с главврачом</td>
+              <td class="col-task">Издать приказы о переводах, заключить ученические договоры, утвердить новые должностные инструкции</td>
+              <td class="col-deadline"><span class="deadline-highlight">До 25 августа 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Вся рабочая группа во главе с главврачом</td>
+              <td class="col-task">Провести разъяснительную работу с персоналом — что меняется, кого коснется, куда обращаться в случае возникновения вопросов и трудностей</td>
+              <td class="col-deadline"><span class="deadline-highlight">До конца августа 2026 года</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="download-area">
+        <button class="btn-download" id="downloadWord">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/><path d="M12 15l-4-4h2.5V8h3v3H16l-4 4z"/><path d="M8 17h8v1.5H8V17z"/></svg>
+          Скачать поручения (Word)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // Переключение вкладок
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = {
+      tab1: document.getElementById('tab1'),
+      tab2: document.getElementById('tab2')
+    };
+
+    function activateTab(tabId) {
+      Object.values(contents).forEach(el => el.classList.remove('active'));
+      tabs.forEach(btn => btn.classList.remove('active'));
+      const target = contents[tabId];
+      if (target) target.classList.add('active');
+      const activeBtn = Array.from(tabs).find(btn => btn.dataset.tab === tabId);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    tabs.forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const tabId = this.dataset.tab;
+        if (tabId) activateTab(tabId);
+      });
+    });
+
+    // Клик по пункту чек-листа — переключение состояния (демо)
+    document.querySelectorAll('.checklist li').forEach(item => {
+      item.addEventListener('click', function(e) {
+        this.classList.toggle('done');
+      });
+    });
+
+    // ---- Скачивание PDF (чек-лист) ----
+    document.getElementById('downloadPDF').addEventListener('click', function() {
+      const element = document.getElementById('checklistItems');
+      const clone = element.cloneNode(true);
+      clone.style.cursor = 'default';
+      const wrapper = document.createElement('div');
+      wrapper.style.padding = '20px';
+      wrapper.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+      wrapper.style.maxWidth = '800px';
+      wrapper.style.margin = '0 auto';
+      const title = document.createElement('h2');
+      title.textContent = 'Чек-лист: Новые номенклатура должностей и квалификационные требования (к 1 сентября 2026)';
+      title.style.marginBottom = '20px';
+      wrapper.appendChild(title);
+      wrapper.appendChild(clone);
+      const note = document.createElement('p');
+      note.textContent = '(Отмечайте выполненные пункты по мере готовности.)';
+      note.style.marginTop = '20px';
+      note.style.color = '#5b6f8c';
+      wrapper.appendChild(note);
+
+      const opt = {
+        margin:       10,
+        filename:     'checklist_nomenklatura.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, letterRendering: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(wrapper).save();
+    });
+
+    // ---- Скачивание Word (комплект поручений) ----
+    document.getElementById('downloadWord').addEventListener('click', function() {
+      const table = document.getElementById('assignTable');
+      const clone = table.cloneNode(true);
+      const style = `
+        <style>
+          body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; }
+          h1 { font-size: 24px; color: #0b1e3a; }
+          table { border-collapse: collapse; width: 100%; font-size: 12pt; }
+          th { background: #f0f4fe; font-weight: 600; border: 1px solid #999; padding: 8px; text-align: left; }
+          td { border: 1px solid #999; padding: 8px; vertical-align: top; }
+          .deadline-highlight { background: #fef6e6; padding: 2px 6px; border-radius: 4px; }
+        </style>
+      `;
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8">${style}</head>
+        <body>
+          <h1>Поручения в связи с изменениями в номенклатуре и квалификационных требованиях</h1>
+          ${clone.outerHTML}
+          <p style="margin-top:20px; color:#5b6f8c; font-size:10pt;">Дата формирования: ${new Date().toLocaleDateString('ru-RU')}</p>
+        </body>
+        </html>
+      `;
+      const blob = new Blob([htmlContent], { type: 'application/msword' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'porucheniya_nomenklatura.doc';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    });
+
+  })();
+</script>
+
+</body>
+</html>
