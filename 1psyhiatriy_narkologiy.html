@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Изменения-2026: психиатрия-наркология</title>
+  <!-- Подключаем html2pdf для создания PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #f5f7fc;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .card {
+      max-width: 1000px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      padding: 32px 30px 40px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: #0b1e3a;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+    .subhead {
+      color: #5b6f8c;
+      font-size: 16px;
+      margin-bottom: 28px;
+      border-left: 4px solid #2a7de1;
+      padding-left: 16px;
+      background: #f0f4fe;
+      border-radius: 0 8px 8px 0;
+      line-height: 1.5;
+      padding: 12px 16px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid #e6edf5;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #5b6f8c;
+      cursor: pointer;
+      border-radius: 40px 40px 0 0;
+      transition: all 0.2s;
+      position: relative;
+      bottom: -2px;
+    }
+    .tab-btn:hover {
+      background: #eef3fc;
+      color: #1a3a6b;
+    }
+    .tab-btn.active {
+      color: #1a3a6b;
+      background: #ffffff;
+      border-bottom: 3px solid #2a7de1;
+      font-weight: 600;
+    }
+    .tab-content {
+      display: none;
+      animation: fade 0.25s ease;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    @keyframes fade {
+      0% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    /* Скролл для длинного контента */
+    .scrollable-content {
+      max-height: 70vh;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    .scrollable-content::-webkit-scrollbar {
+      width: 6px;
+    }
+    .scrollable-content::-webkit-scrollbar-track {
+      background: #f0f4fe;
+      border-radius: 8px;
+    }
+    .scrollable-content::-webkit-scrollbar-thumb {
+      background: #b0c4de;
+      border-radius: 8px;
+    }
+    .scrollable-content::-webkit-scrollbar-thumb:hover {
+      background: #8aaddd;
+    }
+
+    /* Чек-лист */
+    .checklist {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px 0;
+    }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #edf2f9;
+      font-size: 15px;
+      line-height: 1.5;
+      color: #1e2f4a;
+      cursor: pointer;
+    }
+    .checklist li:last-child {
+      border-bottom: none;
+    }
+    .checklist li::before {
+      content: "☐";
+      font-size: 20px;
+      color: #2a7de1;
+      flex-shrink: 0;
+      margin-top: -1px;
+      font-weight: 400;
+    }
+    .checklist li.done::before {
+      content: "☑";
+      color: #1d8b4b;
+    }
+
+    /* Таблица поручений */
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 4px;
+    }
+    .assign-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .assign-table th {
+      background: #f0f4fe;
+      color: #0b1e3a;
+      font-weight: 600;
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 2px solid #d0ddee;
+    }
+    .assign-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #e6edf5;
+      vertical-align: top;
+      background: #ffffff;
+    }
+    .assign-table tr:last-child td {
+      border-bottom: none;
+    }
+    .assign-table .col-role {
+      width: 22%;
+      font-weight: 500;
+      color: #0b1e3a;
+    }
+    .assign-table .col-task {
+      width: 55%;
+      color: #1e2f4a;
+    }
+    .assign-table .col-deadline {
+      width: 23%;
+      color: #1e2f4a;
+      white-space: nowrap;
+    }
+    .assign-table .deadline-highlight {
+      background: #fef6e6;
+      border-radius: 20px;
+      padding: 2px 12px;
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #a86800;
+    }
+
+    /* Кнопки скачивания */
+    .download-area {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-top: 1px solid #e6edf5;
+      padding-top: 20px;
+    }
+    .btn-download {
+      background: #f0f4fe;
+      border: 1px solid #d0ddee;
+      padding: 10px 20px;
+      border-radius: 40px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #1a3a6b;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-download:hover {
+      background: #e0e9fc;
+      border-color: #2a7de1;
+    }
+    .btn-download svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    @media (max-width: 700px) {
+      .card { padding: 20px 16px; }
+      .tab-btn { padding: 10px 16px; font-size: 14px; }
+      .assign-table th, .assign-table td { padding: 8px 10px; font-size: 13px; }
+      .assign-table .col-role { width: 25%; }
+      .assign-table .col-task { width: 50%; }
+      .assign-table .col-deadline { width: 25%; }
+      .download-area { flex-direction: column; }
+    }
+    @media print {
+      body { background: white; padding: 0; }
+      .card { box-shadow: none; border: 1px solid #ccc; }
+      .tab-btn { display: none; }
+      .tab-content { display: block !important; }
+      .tabs { border-bottom: 1px solid #999; }
+      .checklist li::before { content: "☐"; }
+      .download-area { display: none; }
+      .scrollable-content { max-height: none; overflow: visible; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>🧾 Новые порядки по психиатрии‑наркологии</h1>
+  <div class="subhead">
+    С 1 сентября 2026 вступают в силу новые порядки оказания медпомощи и диспансерного наблюдения по профилю «психиатрия-наркология» (приказы Минздрава № 666н и № 10н). Прежний порядок из приказа № 1034н утрачивает силу. Расширен перечень состояний (добавлены патологическое влечение к азартным играм и проблемы образа жизни), уточнены виды помощи, поликлиники обязаны участвовать в профилактике и взаимодействовать с наркодиспансерами. Нужно провести аудит лицензий, обновить внутренние регламенты, обучить персонал и организовать работу с пациентами.
+  </div>
+
+  <!-- Вкладки -->
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="tab1" role="tab">Чек‑лист</button>
+    <button class="tab-btn" data-tab="tab2" role="tab">Комплект экспресс‑поручений</button>
+  </div>
+
+  <!-- Содержимое вкладок -->
+  <div id="tab1" class="tab-content active" role="tabpanel">
+    <div class="scrollable-content">
+      <ul class="checklist" id="checklistItems">
+        <li><strong>Лицензия</strong> — у организации есть лицензия на меддеятельность по психиатрии‑наркологии в амбулаторных условиях. Если нет — заключен ли договор с наркодиспансером.</li>
+        <li><strong>Штатное расписание</strong> — введены ставки психологов и социальных работников, или перераспределена нагрузка между действующими специалистами. Назначен ответственный за межведомственное взаимодействие.</li>
+        <li><strong>Внутренние документы</strong> — обновлены алгоритмы маршрутизации пациентов с подозрением на профильные заболевания, включая телемедицинские консультации.</li>
+        <li><strong>Информирование персонала</strong> — проведены совещания во всех подразделениях. Все врачи и медсестры знают о новых обязанностях.</li>
+        <li><strong>Обучение</strong> — запланированы или уже проведены тренинги по коммуникации с пациентами, имеющими наркологические расстройства и патологическое влечение.</li>
+        <li><strong>Система напоминаний</strong> — настроена отправка SMS/звонков для повышения явки на диспансерное наблюдение; готовы информационные материалы для пациентов.</li>
+        <li><strong>Взаимодействие с наркодиспансером</strong> — определен ответственный врач‑психиатр‑нарколог для консультаций в поликлинике; налажен документооборот.</li>
+      </ul>
+      <div class="download-area">
+        <button class="btn-download" id="downloadPDF">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/><path d="M12 15l-4-4h2.5V8h3v3H16l-4 4z"/><path d="M8 17h8v1.5H8V17z"/></svg>
+          Скачать чек-лист (PDF)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab2" class="tab-content" role="tabpanel">
+    <div class="scrollable-content">
+      <div class="table-wrap">
+        <table class="assign-table" id="assignTable">
+          <thead>
+            <tr>
+              <th class="col-role">Кому дать поручение</th>
+              <th class="col-task">Содержание поручения</th>
+              <th class="col-deadline">Сроки исполнения</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-role">Главный врач</td>
+              <td class="col-task">Издать приказ о внедрении новых мероприятий, назначить ответственных за каждый этап</td>
+              <td class="col-deadline"><span class="deadline-highlight">Как можно быстрее</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Заместители главного врача</td>
+              <td class="col-task">
+                1. Отработать маршрутизацию пациента при направлении к врачам-специалистам других профилей с учетом доступности, при необходимости в другие МО, в том числе специализированные.<br>
+                2. Организовать проведение телемедицинских консультаций (ТМК) с учетом защиты персональных данных в действующей МИС, в частности:<br>
+                &nbsp;&nbsp;- организовать место проведения ТМК;<br>
+                &nbsp;&nbsp;- предусмотреть в расписании врача-психиатра слоты для проведения ТМК;<br>
+                &nbsp;&nbsp;- обеспечить запись в сторонние медорганизации с учетом критериев доступности;<br>
+                &nbsp;&nbsp;- провести обучение врачей по порядку проведения ТМК и закрытию данного случая для оплаты.<br>
+                3. Поручить разработать памятки для пациентов по Алгоритму действий в случае развития жизнеугрожающих состояний, обострении психического расстройства и расстройства поведения, связанного с употреблением ПАВ.<br>
+                4. Предусмотреть объем лабораторных и инструментальных методов обследования пациентов в рамках диспансерного наблюдения.<br>
+                5. Обеспечить проведение патопсихологического исследования.<br>
+                6. Определить ответственного врача психиатра-нарколога за оформление выписного эпикриза и его передачу пациенту в случае получения информации об изменении места жительства пациента.<br>
+                7. Обеспечить проведение химико-токсикологических исследований (ХТИ) в соответствии с требованиями.
+              </td>
+              <td class="col-deadline"><span class="deadline-highlight">До 1 сентября 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Заместитель главврача по лечебной работе</td>
+              <td class="col-task">Разработать и утвердить локальный регламент взаимодействия с наркодиспансером: порядок передачи данных, маршрутизация пациентов</td>
+              <td class="col-deadline"><span class="deadline-highlight">10 августа 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Заведующие терапевтическим и педиатрическим отделениями</td>
+              <td class="col-task">Организовать обучение врачей первичного звена методике скрининга на употребление ПАВ, работе с анкетами и экспресс‑тестами</td>
+              <td class="col-deadline"><span class="deadline-highlight">15 августа 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Отдел закупок</td>
+              <td class="col-task">
+                1. Определить источник финансирования (региональный бюджет, иные источники, кроме средств ОМС), согласовать перечень с главным внештатным специалистом и наркологическим диспансером.<br>
+                2. Закупить экспресс‑тесты на ПАВ в соответствии с расчетной потребностью, обеспечить их хранение и учет
+              </td>
+              <td class="col-deadline"><span class="deadline-highlight">15 августа 2026 год по согласованию с региональным Минздравом</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Врачи первичного звена (терапевты, педиатры)</td>
+              <td class="col-task">Освоить методику скрининга, начать апробацию анкет и тестов на практике (пилотный режим)</td>
+              <td class="col-deadline"><span class="deadline-highlight">15 августа 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Психолог поликлиники (при наличии)</td>
+              <td class="col-task">Разработать программу психопрофилактических мероприятий для пациентов группы «риска»</td>
+              <td class="col-deadline"><span class="deadline-highlight">20 августа 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">IT-специалист</td>
+              <td class="col-task">Настроить электронный обмен данными с наркодиспансером через ЕГИСЗ, протестировать систему передачи данных для контроля за направлением на консультативный прием с формированием талона на посещение специалиста наркодиспансера (дата, время)</td>
+              <td class="col-deadline"><span class="deadline-highlight">20 августа 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Врачи медорганизации, непосредственно принимающие участие в профилактических мероприятиях, приемах пациентов</td>
+              <td class="col-task">Пройти инструктаж по новому порядку в части участия в мероприятиях по профилактике наркологических расстройств и патологического влечения, изучить критерии формирования группы «риска»</td>
+              <td class="col-deadline"><span class="deadline-highlight">20 августа 2026 года</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="download-area">
+        <button class="btn-download" id="downloadWord">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/><path d="M12 15l-4-4h2.5V8h3v3H16l-4 4z"/><path d="M8 17h8v1.5H8V17z"/></svg>
+          Скачать поручения (Word)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // Переключение вкладок
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = {
+      tab1: document.getElementById('tab1'),
+      tab2: document.getElementById('tab2')
+    };
+
+    function activateTab(tabId) {
+      Object.values(contents).forEach(el => el.classList.remove('active'));
+      tabs.forEach(btn => btn.classList.remove('active'));
+      const target = contents[tabId];
+      if (target) target.classList.add('active');
+      const activeBtn = Array.from(tabs).find(btn => btn.dataset.tab === tabId);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    tabs.forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const tabId = this.dataset.tab;
+        if (tabId) activateTab(tabId);
+      });
+    });
+
+    // Клик по пункту чек-листа — переключение состояния (демо)
+    document.querySelectorAll('.checklist li').forEach(item => {
+      item.addEventListener('click', function(e) {
+        this.classList.toggle('done');
+      });
+    });
+
+    // ---- Скачивание PDF (чек-лист) ----
+    document.getElementById('downloadPDF').addEventListener('click', function() {
+      const element = document.getElementById('checklistItems');
+      const clone = element.cloneNode(true);
+      clone.style.cursor = 'default';
+      const wrapper = document.createElement('div');
+      wrapper.style.padding = '20px';
+      wrapper.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+      wrapper.style.maxWidth = '800px';
+      wrapper.style.margin = '0 auto';
+      const title = document.createElement('h2');
+      title.textContent = 'Чек-лист: Новые порядки по психиатрии-наркологии (к 1 сентября 2026)';
+      title.style.marginBottom = '20px';
+      wrapper.appendChild(title);
+      wrapper.appendChild(clone);
+      const note = document.createElement('p');
+      note.textContent = '(Отмечайте выполненные пункты по мере готовности.)';
+      note.style.marginTop = '20px';
+      note.style.color = '#5b6f8c';
+      wrapper.appendChild(note);
+
+      const opt = {
+        margin:       10,
+        filename:     'checklist_psihiatr_narkolog.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, letterRendering: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(wrapper).save();
+    });
+
+    // ---- Скачивание Word (комплект поручений) ----
+    document.getElementById('downloadWord').addEventListener('click', function() {
+      const table = document.getElementById('assignTable');
+      const clone = table.cloneNode(true);
+      const style = `
+        <style>
+          body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; }
+          h1 { font-size: 24px; color: #0b1e3a; }
+          table { border-collapse: collapse; width: 100%; font-size: 12pt; }
+          th { background: #f0f4fe; font-weight: 600; border: 1px solid #999; padding: 8px; text-align: left; }
+          td { border: 1px solid #999; padding: 8px; vertical-align: top; }
+          .deadline-highlight { background: #fef6e6; padding: 2px 6px; border-radius: 4px; }
+        </style>
+      `;
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8">${style}</head>
+        <body>
+          <h1>Поручения в связи с изменениями в порядках по психиатрии-наркологии</h1>
+          ${clone.outerHTML}
+          <p style="margin-top:20px; color:#5b6f8c; font-size:10pt;">Дата формирования: ${new Date().toLocaleDateString('ru-RU')}</p>
+        </body>
+        </html>
+      `;
+      const blob = new Blob([htmlContent], { type: 'application/msword' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'porucheniya_psihiatr_narkolog.doc';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    });
+
+  })();
+</script>
+
+</body>
+</html>
