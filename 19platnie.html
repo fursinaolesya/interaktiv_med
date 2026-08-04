@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Изменения-2026: новые правила платных медуслуг</title>
+  <!-- Подключаем html2pdf для создания PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      background: #f5f7fc;
+      display: flex;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .card {
+      max-width: 1100px;
+      width: 100%;
+      background: #ffffff;
+      border-radius: 24px;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+      padding: 32px 30px 40px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: #0b1e3a;
+      margin-bottom: 8px;
+      letter-spacing: -0.01em;
+    }
+    .subhead {
+      color: #5b6f8c;
+      font-size: 16px;
+      margin-bottom: 28px;
+      border-left: 4px solid #2a7de1;
+      padding-left: 16px;
+      background: #f0f4fe;
+      border-radius: 0 8px 8px 0;
+      line-height: 1.5;
+      padding: 12px 16px;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      border-bottom: 2px solid #e6edf5;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: transparent;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #5b6f8c;
+      cursor: pointer;
+      border-radius: 40px 40px 0 0;
+      transition: all 0.2s;
+      position: relative;
+      bottom: -2px;
+    }
+    .tab-btn:hover {
+      background: #eef3fc;
+      color: #1a3a6b;
+    }
+    .tab-btn.active {
+      color: #1a3a6b;
+      background: #ffffff;
+      border-bottom: 3px solid #2a7de1;
+      font-weight: 600;
+    }
+    .tab-content {
+      display: none;
+      animation: fade 0.25s ease;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    @keyframes fade {
+      0% { opacity: 0.4; }
+      100% { opacity: 1; }
+    }
+
+    /* Скролл для длинного контента */
+    .scrollable-content {
+      max-height: 70vh;
+      overflow-y: auto;
+      padding-right: 6px;
+    }
+    .scrollable-content::-webkit-scrollbar {
+      width: 6px;
+    }
+    .scrollable-content::-webkit-scrollbar-track {
+      background: #f0f4fe;
+      border-radius: 8px;
+    }
+    .scrollable-content::-webkit-scrollbar-thumb {
+      background: #b0c4de;
+      border-radius: 8px;
+    }
+    .scrollable-content::-webkit-scrollbar-thumb:hover {
+      background: #8aaddd;
+    }
+
+    /* Чек-лист */
+    .checklist {
+      list-style: none;
+      padding: 0;
+      margin: 0 0 20px 0;
+    }
+    .checklist li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #edf2f9;
+      font-size: 15px;
+      line-height: 1.5;
+      color: #1e2f4a;
+      cursor: pointer;
+    }
+    .checklist li:last-child {
+      border-bottom: none;
+    }
+    .checklist li::before {
+      content: "☐";
+      font-size: 20px;
+      color: #2a7de1;
+      flex-shrink: 0;
+      margin-top: -1px;
+      font-weight: 400;
+    }
+    .checklist li.done::before {
+      content: "☑";
+      color: #1d8b4b;
+    }
+
+    /* Таблица поручений */
+    .table-wrap {
+      overflow-x: auto;
+      margin-top: 4px;
+    }
+    .assign-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .assign-table th {
+      background: #f0f4fe;
+      color: #0b1e3a;
+      font-weight: 600;
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 2px solid #d0ddee;
+    }
+    .assign-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid #e6edf5;
+      vertical-align: top;
+      background: #ffffff;
+    }
+    .assign-table tr:last-child td {
+      border-bottom: none;
+    }
+    .assign-table .col-role {
+      width: 22%;
+      font-weight: 500;
+      color: #0b1e3a;
+    }
+    .assign-table .col-task {
+      width: 55%;
+      color: #1e2f4a;
+    }
+    .assign-table .col-deadline {
+      width: 23%;
+      color: #1e2f4a;
+      white-space: nowrap;
+    }
+    .assign-table .deadline-highlight {
+      background: #fef6e6;
+      border-radius: 20px;
+      padding: 2px 12px;
+      display: inline-block;
+      font-size: 13px;
+      font-weight: 500;
+      color: #a86800;
+    }
+
+    /* Кнопки скачивания */
+    .download-area {
+      margin-top: 20px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      border-top: 1px solid #e6edf5;
+      padding-top: 20px;
+    }
+    .btn-download {
+      background: #f0f4fe;
+      border: 1px solid #d0ddee;
+      padding: 10px 20px;
+      border-radius: 40px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #1a3a6b;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-download:hover {
+      background: #e0e9fc;
+      border-color: #2a7de1;
+    }
+    .btn-download svg {
+      width: 18px;
+      height: 18px;
+      fill: currentColor;
+    }
+
+    @media (max-width: 700px) {
+      .card { padding: 20px 16px; }
+      .tab-btn { padding: 10px 16px; font-size: 14px; }
+      .assign-table th, .assign-table td { padding: 8px 10px; font-size: 13px; }
+      .assign-table .col-role { width: 25%; }
+      .assign-table .col-task { width: 50%; }
+      .assign-table .col-deadline { width: 25%; }
+      .download-area { flex-direction: column; }
+    }
+    @media print {
+      body { background: white; padding: 0; }
+      .card { box-shadow: none; border: 1px solid #ccc; }
+      .tab-btn { display: none; }
+      .tab-content { display: block !important; }
+      .tabs { border-bottom: 1px solid #999; }
+      .checklist li::before { content: "☐"; }
+      .download-area { display: none; }
+      .scrollable-content { max-height: none; overflow: visible; }
+    }
+  </style>
+</head>
+<body>
+<div class="card">
+  <h1>💳 Новые правила платных медуслуг</h1>
+  <div class="subhead">
+    С 1 сентября 2026 вступают в силу новые Правила предоставления платных медуслуг (постановление Правительства № 659). Старые правила (№ 736н) утрачивают силу. Закреплена обязанность отдельного согласия на платные услуги, обновлены требования к договору (смета, уведомление о последствиях), разрешено заключение через мессенджер МАКС, введена строгая передача данных в ЕГИСЗ, обновлены требования к инфостенду и сайту, а также изменён порядок выдачи документов для налогового вычета. Нужно обновить локальные акты, формы договоров, настроить IT-системы и провести обучение персонала.
+  </div>
+
+  <!-- Вкладки -->
+  <div class="tabs" role="tablist">
+    <button class="tab-btn active" data-tab="tab1" role="tab">Чек‑лист</button>
+    <button class="tab-btn" data-tab="tab2" role="tab">Комплект экспресс‑поручений</button>
+  </div>
+
+  <!-- Содержимое вкладок -->
+  <div id="tab1" class="tab-content active" role="tabpanel">
+    <div class="scrollable-content">
+      <ul class="checklist" id="checklistItems">
+        <li><strong>Локальные нормативные акты</strong> — в Положении об оказании платных услуг закреплено, что платные услуги оказываются по письменной просьбе гражданина. Утверждена обновленная форма договора, соответствующая требованиям постановления № 659. В частности, в форму включено: уведомление о возможном снижении качества услуги и рисках при несоблюдении назначенного режима лечения; уведомление о том, что отказ от платных услуг не может уменьшить объем бесплатной помощи по полису ОМС; пункт о формировании твердой или приблизительной сметы (по запросу пациента/заказчика или по инициативе медорганизации).</li>
+        <li><strong>Согласие пациента</strong> — разработан отдельный документ «Заявление-согласие на заключение договора на оказание платных медицинских услуг», который содержит прямое волеизъявление пациента / заказчика на получение таких услуг.</li>
+        <li><strong>Информационный стенд и сайт</strong> — обновлен стенд с информацией об оказании платных услуг и соответствующий раздел сайта медорганизации. В частности, для врачей указаны данные об образовании, стаже, квалификации, сертификатах и аккредитации. Размещены действующие образцы договора, ИДС и отказа от медвмешательства, а также ссылки на стандарты медпомощи и клинреки. Указаны методы оказания медпомощи, связанные с ними риски, виды медвмешательства и последствия.</li>
+        <li><strong>Обучение персонала</strong> — сотрудники, участвующие в оказании платных услуг, проинструктированы о новых правилах выдачи документов для налогового вычета и о необходимости передавать в ЕГИСЗ сведения об обращении пациента, лечении и оказанных платных медуслугах.</li>
+        <li><strong>Техническая готовность</strong> — на официальном сайте и в мобильном приложении медорганизации настроены механизмы для дистанционного заключения договора. Проработана интеграция с мессенджером МАКС. Настроено и протестировано взаимодействие с ЕГИСЗ для передачи сведений о платных услугах.</li>
+      </ul>
+      <div class="download-area">
+        <button class="btn-download" id="downloadPDF">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/><path d="M12 15l-4-4h2.5V8h3v3H16l-4 4z"/><path d="M8 17h8v1.5H8V17z"/></svg>
+          Скачать чек-лист (PDF)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab2" class="tab-content" role="tabpanel">
+    <div class="scrollable-content">
+      <div class="table-wrap">
+        <table class="assign-table" id="assignTable">
+          <thead>
+            <tr>
+              <th class="col-role">Кому дать поручение</th>
+              <th class="col-task">Содержание поручения</th>
+              <th class="col-deadline">Срок исполнения</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="col-role">Главный врач</td>
+              <td class="col-task">Утвердить обновленный регламент оказания платных медуслуг</td>
+              <td class="col-deadline"><span class="deadline-highlight">Как можно скорее</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Юрисконсульт (или начальник юридического отдела)</td>
+              <td class="col-task">
+                1. Разработать и утвердить новые формы договора на оказание платных услуг. В частности, проверить наличие уведомления о последствиях несоблюдения режима лечения и предусмотреть опцию включения сметы;<br>
+                2. Разработать отдельную форму согласия на платные услуги (с просьбой)
+              </td>
+              <td class="col-deadline"><span class="deadline-highlight">1 сентября 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Заместители главного врача</td>
+              <td class="col-task">
+                1. Организовать работу по внесению сведений о пациенте, его обращении и лечении, а также другой информации при оказании платных медуслуг в ЕГИСЗ. Проинструктировать заведующих подразделениями по необходимости внесения сведений по платным пациентам и их лечению в ЕГИСЗ. При необходимости провести инструктажи по работе в ЕГИСЗ;<br>
+                2. Организовать проверку и обновление материалов информационных стендов по оказанию платных медуслуг;<br>
+                3. Проинструктировать регистратуру и (или) администраторов по новому порядку выдачи подтверждающих документов для социального налогового вычета, а также по информированию пациентов при записи на платные медуслуги
+              </td>
+              <td class="col-deadline"><span class="deadline-highlight">1 сентября 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Начальнику ИТ-отдела</td>
+              <td class="col-task">
+                1. Обеспечить техническую возможность для дистанционного заключения договора через сайт, мобильное приложение и мессенджер МАКС;<br>
+                2. Настроить и протестировать электронный обмен данными с ЕГИСЗ по факту оказания платных услуг;<br>
+                3. Обновить раздел платных услуг на сайте медорганизации
+              </td>
+              <td class="col-deadline"><span class="deadline-highlight">25 августа 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Заведующие отделениями</td>
+              <td class="col-task">
+                1. Проинструктировать медперсонал, задействованный в оказании платных услуг, по необходимости вносить сведения о платных услугах в ЕГИСЗ, а также по новому порядку выдачи рецептов и выписок для оформления налогового вычета;<br>
+                2. Собрать актуальные данные об образовании, стаже, сертификатах и аккредитации врачей для инфостендов и сайта. Разместить ссылки на стандарты медпомощи и КР
+              </td>
+              <td class="col-deadline"><span class="deadline-highlight">1 сентября 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Заведующие отделениями</td>
+              <td class="col-task">Провести инструктаж и обучение персонала, задействованного в оказании платных услуг. Обучить врачей и регистраторов правильному оформлению документов для предоставления налогового вычета</td>
+              <td class="col-deadline"><span class="deadline-highlight">25 августа 2026 года</span></td>
+            </tr>
+            <tr>
+              <td class="col-role">Экономическая служба</td>
+              <td class="col-task">Утвердить внутренний алгоритм расчета твердой и приблизительной сметы на платные услуги</td>
+              <td class="col-deadline"><span class="deadline-highlight">1 сентября 2026 года</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="download-area">
+        <button class="btn-download" id="downloadWord">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"/><path d="M12 15l-4-4h2.5V8h3v3H16l-4 4z"/><path d="M8 17h8v1.5H8V17z"/></svg>
+          Скачать поручения (Word)
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // Переключение вкладок
+    const tabs = document.querySelectorAll('.tab-btn');
+    const contents = {
+      tab1: document.getElementById('tab1'),
+      tab2: document.getElementById('tab2')
+    };
+
+    function activateTab(tabId) {
+      Object.values(contents).forEach(el => el.classList.remove('active'));
+      tabs.forEach(btn => btn.classList.remove('active'));
+      const target = contents[tabId];
+      if (target) target.classList.add('active');
+      const activeBtn = Array.from(tabs).find(btn => btn.dataset.tab === tabId);
+      if (activeBtn) activeBtn.classList.add('active');
+    }
+
+    tabs.forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        const tabId = this.dataset.tab;
+        if (tabId) activateTab(tabId);
+      });
+    });
+
+    // Клик по пункту чек-листа — переключение состояния (демо)
+    document.querySelectorAll('.checklist li').forEach(item => {
+      item.addEventListener('click', function(e) {
+        this.classList.toggle('done');
+      });
+    });
+
+    // ---- Скачивание PDF (чек-лист) ----
+    document.getElementById('downloadPDF').addEventListener('click', function() {
+      const element = document.getElementById('checklistItems');
+      const clone = element.cloneNode(true);
+      clone.style.cursor = 'default';
+      const wrapper = document.createElement('div');
+      wrapper.style.padding = '20px';
+      wrapper.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+      wrapper.style.maxWidth = '800px';
+      wrapper.style.margin = '0 auto';
+      const title = document.createElement('h2');
+      title.textContent = 'Чек-лист: Новые правила платных медуслуг (к 1 сентября 2026)';
+      title.style.marginBottom = '20px';
+      wrapper.appendChild(title);
+      wrapper.appendChild(clone);
+      const note = document.createElement('p');
+      note.textContent = '(Отмечайте выполненные пункты по мере готовности.)';
+      note.style.marginTop = '20px';
+      note.style.color = '#5b6f8c';
+      wrapper.appendChild(note);
+
+      const opt = {
+        margin:       10,
+        filename:     'checklist_platnye_uslugi.pdf',
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, letterRendering: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(wrapper).save();
+    });
+
+    // ---- Скачивание Word (комплект поручений) ----
+    document.getElementById('downloadWord').addEventListener('click', function() {
+      const table = document.getElementById('assignTable');
+      const clone = table.cloneNode(true);
+      const style = `
+        <style>
+          body { font-family: 'Segoe UI', Arial, sans-serif; margin: 20px; }
+          h1 { font-size: 24px; color: #0b1e3a; }
+          table { border-collapse: collapse; width: 100%; font-size: 12pt; }
+          th { background: #f0f4fe; font-weight: 600; border: 1px solid #999; padding: 8px; text-align: left; }
+          td { border: 1px solid #999; padding: 8px; vertical-align: top; }
+          .deadline-highlight { background: #fef6e6; padding: 2px 6px; border-radius: 4px; }
+        </style>
+      `;
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="UTF-8">${style}</head>
+        <body>
+          <h1>Поручения в связи с новыми правилами платных медуслуг</h1>
+          ${clone.outerHTML}
+          <p style="margin-top:20px; color:#5b6f8c; font-size:10pt;">Дата формирования: ${new Date().toLocaleDateString('ru-RU')}</p>
+        </body>
+        </html>
+      `;
+      const blob = new Blob([htmlContent], { type: 'application/msword' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'porucheniya_platnye_uslugi.doc';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+    });
+
+  })();
+</script>
+
+</body>
+</html>
